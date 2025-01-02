@@ -26,7 +26,44 @@ public class StoreService {
 
     public CreateStoreResponse createStore(StoreDto request, String userId) {
         //todo: 권한체크로직
-        Store store = Store.of(
+        Store store = create(request, userId);
+        storeRepository.save(store);
+        return CreateStoreResponse.from(store.getId());
+    }
+
+    public StoreResponse updateStore(UUID storeId, StoreDto request, String userId) {
+        //todo: 권한체크로직
+        Store store = checkStore(storeId);
+        checkUser(store, userId);
+        store.update(request);
+        return StoreResponse.from(store);
+    }
+
+    @Transactional(readOnly = true)
+    public StoreResponse getStore(UUID storeId) {
+        Store store = checkStore(storeId);
+        return StoreResponse.from(store);
+    }
+
+    public void deleteStore(UUID storeId, String userId) {
+        //todo: 권한체크로직
+        Store store = checkStore(storeId);
+        store.delete(userId);
+    }
+
+    private Store checkStore(UUID storeId) {
+        return storeRepository.findByIdAndIsDeleteFalse(storeId)
+                .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
+    }
+
+    private void checkUser(Store store, String userId) {
+        if(!store.getUserId().equals(userId)) {
+            throw new CustomException(USER_NOT_SAME);
+        }
+    }
+
+    private Store create(StoreDto request, String userId) {
+        return Store.of(
                 request.getName(),
                 request.getDescription(),
                 request.getAddress(),
@@ -38,39 +75,6 @@ public class StoreService {
                 request.getCategory(),
                 userId
         );
-        storeRepository.save(store);
-        return CreateStoreResponse.from(store.getId());
-    }
-
-    public StoreResponse updateStore(UUID storeId, StoreDto request, String userId) {
-        //todo: 권한체크로직
-        Store store = CheckStore(storeId);
-        CheckUser(store, userId);
-        store.update(request);
-        return StoreResponse.from(store);
-    }
-
-    @Transactional(readOnly = true)
-    public StoreResponse getStore(UUID storeId) {
-        Store store = CheckStore(storeId);
-        return StoreResponse.from(store);
-    }
-
-    public void deleteStore(UUID storeId, String userId) {
-        //todo: 권한체크로직
-        Store store = CheckStore(storeId);
-        store.delete(userId);
-    }
-
-    private Store CheckStore(UUID storeId) {
-        return storeRepository.findByIdAndIsDeleteFalse(storeId)
-                .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
-    }
-
-    private void CheckUser(Store store, String userId) {
-        if(!store.getUserId().equals(userId)) {
-            throw new CustomException(USER_NOT_SAME);
-        }
     }
 
 }
