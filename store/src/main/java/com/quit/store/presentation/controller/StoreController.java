@@ -48,6 +48,15 @@ public class StoreController {
         return ResponseEntity.ok(ApiResponse.success(storeService.getStore(storeId)));
     }
 
+    @DeleteMapping("/{storeId}")
+    public ResponseEntity<ApiResponse<String>> deleteStore(@PathVariable(name = "storeId") UUID storeId) {
+        // todo:
+        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
+        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
 
+        String userId = "testUserId";
+        storeService.deleteStore(storeId, userId);
+        return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));
+    }
 
 }

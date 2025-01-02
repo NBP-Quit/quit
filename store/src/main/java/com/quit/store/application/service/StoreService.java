@@ -6,9 +6,10 @@ import com.quit.store.application.dto.res.StoreResponse;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -49,9 +50,16 @@ public class StoreService {
         return StoreResponse.from(store);
     }
 
+    @Transactional(readOnly = true)
     public StoreResponse getStore(UUID storeId) {
         Store store = CheckStore(storeId);
         return StoreResponse.from(store);
+    }
+
+    public void deleteStore(UUID storeId, String userId) {
+        //todo: 권한체크로직
+        Store store = CheckStore(storeId);
+        store.delete(userId);
     }
 
     private Store CheckStore(UUID storeId) {
