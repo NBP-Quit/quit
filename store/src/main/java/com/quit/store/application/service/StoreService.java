@@ -2,7 +2,7 @@ package com.quit.store.application.service;
 
 import com.quit.store.application.dto.StoreDto;
 import com.quit.store.application.dto.res.CreateStoreResponse;
-import com.quit.store.application.dto.res.UpdateStoreResponse;
+import com.quit.store.application.dto.res.StoreResponse;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
@@ -41,12 +41,17 @@ public class StoreService {
         return CreateStoreResponse.from(store.getId());
     }
 
-    public UpdateStoreResponse updateStore(UUID storeId, StoreDto request, String userId) {
+    public StoreResponse updateStore(UUID storeId, StoreDto request, String userId) {
         //todo: 권한체크로직
         Store store = CheckStore(storeId);
         CheckUser(store, userId);
         store.update(request);
-        return UpdateStoreResponse.from(store);
+        return StoreResponse.from(store);
+    }
+
+    public StoreResponse getStore(UUID storeId) {
+        Store store = CheckStore(storeId);
+        return StoreResponse.from(store);
     }
 
     private Store CheckStore(UUID storeId) {

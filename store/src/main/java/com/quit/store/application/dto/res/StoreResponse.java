@@ -11,7 +11,7 @@ import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UpdateStoreResponse {
+public class StoreResponse {
 
     private String name;
     private String description;
@@ -24,10 +24,10 @@ public class UpdateStoreResponse {
     private Category category;
 
     @Builder
-    private UpdateStoreResponse(String name, String description, String address,
-                               String contactNumber, Integer reservationDeposit,
-                               LocalTime openTime, LocalTime closeTime,
-                               LocalTime lastOrderTime, Category category) {
+    private StoreResponse(String name, String description, String address,
+                          String contactNumber, Integer reservationDeposit,
+                          LocalTime openTime, LocalTime closeTime,
+                          LocalTime lastOrderTime, Category category) {
         this.name = name;
         this.description = description;
         this.address = address;
@@ -39,8 +39,8 @@ public class UpdateStoreResponse {
         this.category = category;
     }
 
-    public static UpdateStoreResponse from(Store store) {
-        return UpdateStoreResponse.builder()
+    public static StoreResponse from(Store store) {
+        return StoreResponse.builder()
                 .name(store.getName())
                 .description(store.getDescription())
                 .address(store.getAddress())
