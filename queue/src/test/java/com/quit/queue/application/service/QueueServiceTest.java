@@ -5,12 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.data.redis.core.ReactiveZSetOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -19,13 +23,13 @@ import static org.mockito.Mockito.when;
 class QueueServiceTest {
 
     @Mock
-    private RedisTemplate<String, String> redisTemplate;
+    private ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
     @Mock
-    private ValueOperations<String, String> valueOperations;
+    private ReactiveValueOperations<String, String> valueOperations;
 
     @Mock
-    private ZSetOperations<String, String> zSetOperations;
+    private ReactiveZSetOperations<String, String> zSetOperations;
 
     @InjectMocks
     private QueueService queueService;
@@ -35,8 +39,8 @@ class QueueServiceTest {
         // Mockito 초기화
         MockitoAnnotations.openMocks(this);
         // redisTemplate의 opsForValue()와 opsForZSet()가 각각 Mock 객체를 반환하도록 설정
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
+        when(reactiveRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(reactiveRedisTemplate.opsForZSet()).thenReturn(zSetOperations);
     }
 
     @Test
@@ -48,8 +52,10 @@ class QueueServiceTest {
         String key = "queue:store:" + storeId + ":users";
 
         // When
-        when(valueOperations.increment(counterKey, 1)).thenReturn((long) 1.0);  // Counter 값 증가 결과
-        queueService.addUserToQueue(storeId, userId);
+        when(valueOperations.increment(counterKey, 1)).thenReturn(Mono.just(1L));  // Mono로 반환하도록 수정
+        when(zSetOperations.add(key, userId.toString(), 1.0)).thenReturn(Mono.just(true));  // Mocking Mono<Boolean>
+
+        queueService.addUserToQueue(storeId, userId).block();  // 비동기 메서드를 block으로 동기화하여 실행
 
         // Then
         // ZSet에 추가되는지 확인
@@ -64,10 +70,15 @@ class QueueServiceTest {
         Set<String> expectedQueue = Set.of("user1", "user2", "user3");
 
         // When
-        when(redisTemplate.opsForZSet().range(key, 0, -1)).thenReturn(expectedQueue);
+        when(reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))).thenReturn(Flux.just("user1", "user2", "user3"));
 
         // Then
-        Set<String> actualQueue = queueService.getQueueForStore(storeId);
+        Set<String> actualQueue = queueService.getQueueForStore(storeId)
+                .collect(Collectors.toSet())  // Flux를 Set으로 변환
+                .block();  // 동기화
+
         assertEquals(expectedQueue, actualQueue);  // 반환된 값이 예상값과 일치하는지 확인
     }
+
+
 }
