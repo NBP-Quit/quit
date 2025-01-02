@@ -1,5 +1,6 @@
 package com.quit.reservation.application.service;
 
+import com.quit.reservation.application.dto.CreateReservationDto;
 import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.model.Reservation;
@@ -25,7 +26,7 @@ public class ReservationService {
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
     @Transactional
-    public CreateReservationResponse createReservation(CreateReservationRequest request, String customerId) {
+    public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
         //TODO: Store application에서 예약 관련 정보 feign client로 받아오기
 

@@ -22,6 +22,6 @@ public class ReservationController {
 
         //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가)
         String customerId = "testUser";
-        return ApiResponse.success(reservationService.createReservation(request, customerId));
+        return ApiResponse.success(reservationService.createReservation(request.toDto(), customerId));
     }
 }
