@@ -1,0 +1,20 @@
+server:
+  port: 19094
+
+spring:
+  application:
+    name: reservation
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    show-sql: true
+    database: postgresql
+    hibernate:
+      ddl-auto: create
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:19090/eureka/
