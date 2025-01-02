@@ -45,7 +45,6 @@ public class User extends BaseEntity {
     public static User create(String email,
                               String password,
                               String nickname,
-                              UserRoleEnum role,
                               String phone,
                               String birthdate,
                               String address) {
@@ -53,7 +52,7 @@ public class User extends BaseEntity {
                 .email(email)
                 .password(password)
                 .nickname(nickname)
-                .role(role)
+                .role(UserRoleEnum.USER)
                 .phone(phone)
                 .birthdate(birthdate)
                 .address(address)
