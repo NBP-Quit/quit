@@ -1,6 +1,7 @@
 package com.quit.queue.presentation.controller;
 
 import com.quit.queue.application.service.QueueService;
+import com.quit.queue.application.service.dto.res.QueueResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -22,9 +23,9 @@ public class QueueController {
         return queueService.addUserToQueue(storeId, userId);
     }
 
-    @GetMapping("/{storeId}/users")
-    public Flux<String> getQueueForStore(@PathVariable UUID storeId) {
+    @GetMapping
+    public Flux<QueueResponse> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
         // 비동기적으로 대기열 데이터를 가져오기
-        return queueService.getQueueForStore(storeId);
+        return queueService.getQueue(storeId);
     }
 }
