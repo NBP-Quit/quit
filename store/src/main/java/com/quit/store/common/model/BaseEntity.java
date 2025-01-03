@@ -36,12 +36,12 @@ public abstract class BaseEntity {
     private String deletedBy;
 
     @Column(nullable = false)
-    private Boolean isDelete = false;
+    private Boolean isDeleted = false;
 
     public void delete(String userId) {
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = userId;
-        this.isDelete = true;
+        this.isDeleted = true;
     }
 
 }
