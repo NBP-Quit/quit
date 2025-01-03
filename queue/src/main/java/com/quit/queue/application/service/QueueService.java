@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -51,12 +52,12 @@ public class QueueService {
 
         String key = "queue:store:" + storeId + ":users";
 
-        return reactiveRedisTemplate.opsForZSet().score(key, userId.toString())  // 사용자 점수 조회
+        return reactiveRedisTemplate.opsForZSet().score(key, userId.toString())
                 .flatMap(score -> {
                     if (score == null) {
                         return Mono.error(new IllegalStateException("User not found in queue"));
                     }
-                    return Mono.just(ApiResponse.success(score.floatValue()));  // 점수 반환
+                    return Mono.just(ApiResponse.success(score.floatValue()));
                 });
     }
 
@@ -116,5 +117,47 @@ public class QueueService {
                 })
                 .onErrorResume(e -> Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Failed to remove user from queue: " + e.getMessage())));
+    }
+
+    public Mono<ApiResponse<String>> resetQueueForStore(UUID storeId) {
+        // TODO 권한 검증 추가
+
+        String key = "queue:store:" + storeId + ":users";
+        String globalUserKey = "queue:global:users";
+
+        if (storeId == null) {
+            return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:store:*:users").build())
+                    .flatMap(reactiveRedisTemplate::delete)
+                    .then(reactiveRedisTemplate.delete(globalUserKey))
+                    .then(Mono.just(ApiResponse.<String>success("All store queues have been reset successfully.")))
+                    .onErrorResume(e -> {
+                        log.error("Failed to reset all store queues", e);
+                        return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Failed to reset all store queues: " + e.getMessage()));
+                    });
+        } else {
+            return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
+                    .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
+                    .flatMapSequential(queuedUserId -> {
+                        if (queuedUserId != null && !queuedUserId.isEmpty()) {
+                            return reactiveRedisTemplate.opsForSet().remove(globalUserKey, queuedUserId)
+                                    .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
+                                    .onErrorResume(e -> {
+                                        log.warn("Failed to remove {} from globalUserKey. Skipping.", queuedUserId, e);
+                                        return Mono.empty();
+                                    });
+                        } else {
+                            log.warn("Queued userId is null or empty, skipping: {}", queuedUserId);
+                            return Mono.empty();
+                        }
+                    })
+                    .then(reactiveRedisTemplate.delete(key))
+                    .then(Mono.just(ApiResponse.<String>success("Store queue has been reset successfully.")))
+                    .onErrorResume(e -> {
+                        log.error("Failed to reset store queue for storeId: {}", storeId, e);
+                        return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Failed to reset store queue: " + e.getMessage()));
+                    });
+        }
     }
 }

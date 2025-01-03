@@ -39,4 +39,10 @@ public class QueueController {
                                                                    @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.getUserPositionInQueueForStore(storeId, userId);
     }
+
+    @DeleteMapping("/reset")
+    public Mono<ApiResponse<String>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
+                                                        @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.resetQueueForStore(storeId);
+    }
 }
