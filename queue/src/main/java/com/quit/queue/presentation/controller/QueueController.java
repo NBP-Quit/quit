@@ -5,7 +5,6 @@ import com.quit.queue.application.service.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class QueueController {
 
     @PostMapping("/{storeId}/users")
     public Mono<ApiResponse<Long>> addUserToQueueForStore(@PathVariable UUID storeId,
-                                                    @RequestHeader(value = "X-User-Id") Long userId) {
+                                                          @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.addUserToQueue(storeId, userId);
     }
 
