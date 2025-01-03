@@ -78,4 +78,10 @@ public class Reservation implements Serializable {
     public void cancel() {
         this.reservationStatus = ReservationStatus.CANCELED;
     }
+
+    public void updateDetails(Integer guestCount, LocalDate reservationDate, LocalTime reservationTime) {
+        this.guestCount = guestCount;
+        this.reservationDate = reservationDate;
+        this.reservationTime = reservationTime;
+    }
 }

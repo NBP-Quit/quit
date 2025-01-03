@@ -2,11 +2,13 @@ package com.quit.reservation.presentation.controller;
 
 import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
 import com.quit.reservation.application.dto.CreateReservationResponse;
+import com.quit.reservation.application.dto.UpdateReservationResponse;
 import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.common.dto.ApiResponse;
 import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
 import com.quit.reservation.presentation.request.CreateReservationRequest;
+import com.quit.reservation.presentation.request.UpdateReservationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class ReservationController {
     @PostMapping
     public ResponseEntity<ApiResponse<CreateReservationResponse>> createReservation(@RequestBody CreateReservationRequest request) {
 
-        //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가)
+        //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가) 1
         String customerId = "testUser";
         return ResponseEntity.ok(ApiResponse.success(reservationService.createReservation(request.toDto(), customerId)));
     }
@@ -45,6 +47,14 @@ public class ReservationController {
         String customerId = "testUser";
         reservationService.cancelReservation(reservationId, customerId);
         return ResponseEntity.ok(ApiResponse.success("예약을 취소 했습니다."));
+    }
+
+    @PatchMapping("/{reservationId}/details")
+    public ResponseEntity<ApiResponse<UpdateReservationResponse>> updateReservation(@PathVariable UUID reservationId,
+                                                                                    @RequestBody UpdateReservationRequest request) {
+        //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가) 2
+        String customerId = "testUser";
+        return ResponseEntity.ok(ApiResponse.success(reservationService.updateReservationDetails(reservationId, request.toDto(), customerId)));
     }
 
     @DeleteMapping("/{reservationId}")
