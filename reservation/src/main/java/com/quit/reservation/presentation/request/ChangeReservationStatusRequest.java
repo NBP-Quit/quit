@@ -4,10 +4,10 @@ import com.quit.reservation.application.dto.ChangeReservationStatusDto;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.UUID;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class ChangeReservationStatusRequest {
 

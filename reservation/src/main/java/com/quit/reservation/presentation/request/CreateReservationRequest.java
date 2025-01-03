@@ -3,14 +3,17 @@ package com.quit.reservation.presentation.request;
 import com.quit.reservation.application.dto.CreateReservationDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class CreateReservationRequest {
+public class CreateReservationRequest implements Serializable {
 
     private UUID storeId;
 
