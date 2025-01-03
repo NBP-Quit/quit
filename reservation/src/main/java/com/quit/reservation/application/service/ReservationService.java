@@ -117,6 +117,7 @@ public class ReservationService {
                     request.getReservationDate(), request.getReservationTime());
             reservation.updateDetails(request.getGuestCount(),
                     request.getReservationDate(), request.getReservationTime());
+            log.info("예약 수정 작업 완료");
             return UpdateReservationResponse.fromReservation(reservation);
         }
 
