@@ -24,7 +24,6 @@ public class StoreRepositoryImpl implements StoreRepositoryCustom {
 
     @Override
     public Page<Store> findAllBySearchRequest(SearchStoreDto request, Pageable pageable) {
-        log.info("keyword {}", request.getKeyword());
 
         List<Store> storeList = jpaQueryFactory
                 .selectFrom(store)
