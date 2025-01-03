@@ -1,8 +1,6 @@
 package com.quit.reservation.application.service;
 
-import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
-import com.quit.reservation.application.dto.CreateReservationDto;
-import com.quit.reservation.application.dto.CreateReservationResponse;
+import com.quit.reservation.application.dto.*;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
@@ -80,6 +78,7 @@ public class ReservationService {
         throw new IllegalArgumentException("예약 상태를 변경할 권한이 없습니다.");
     }
 
+    @Transactional
     public void cancelReservation(UUID reservationId, String customerId) {
         //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
         log.info("예약 취소 작업 시작");
@@ -94,7 +93,7 @@ public class ReservationService {
         throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
     }
 
-
+    @Transactional
     public void deleteReservation(UUID reservationId, String managerId, Role role) {
         log.info("예약 삭제 작업 시작");
         log.info("관리자: {}", managerId);
