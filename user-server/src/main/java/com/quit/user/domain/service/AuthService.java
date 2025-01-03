@@ -23,7 +23,6 @@ public class AuthService {
         //user 객체 생성
         User user = User.create(signupRequest.email(), encodedPassword, signupRequest.nickname(),
                 signupRequest.phone(), signupRequest.birthdate(), signupRequest.address());
-
         userRepository.save(user);
 
         return UserDto.of(user);

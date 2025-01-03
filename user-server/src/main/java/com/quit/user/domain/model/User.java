@@ -42,6 +42,12 @@ public class User extends BaseEntity {
     @Column(name = " address", nullable = true)
     private String address;
 
+    @PrePersist
+    public void prePersist() {
+        if (getCreatedBy() == null) {
+            markAsCreated(String.valueOf(this.id));
+        }
+    }
     public static User create(String email,
                               String password,
                               String nickname,
