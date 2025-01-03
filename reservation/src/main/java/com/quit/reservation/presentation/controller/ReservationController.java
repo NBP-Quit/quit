@@ -4,6 +4,7 @@ import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
 import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.common.dto.ApiResponse;
+import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
 import com.quit.reservation.presentation.request.CreateReservationRequest;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,14 @@ public class ReservationController {
         String customerId = "testUser";
         reservationService.cancelReservation(reservationId, customerId);
         return ResponseEntity.ok(ApiResponse.success("예약을 취소 했습니다."));
+    }
+
+    @DeleteMapping("/{reservationId}")
+    public ResponseEntity<ApiResponse<String>> deleteReservation(@PathVariable UUID reservationId, @RequestBody Role role) {
+
+        //TODO: managerId 임시 값 사용, Role 값 추후 헤더 값으로 변경 예정(임시로 RequestBody 값 사용)
+        String managerId = "testManager";
+        reservationService.deleteReservation(reservationId, managerId, role);
+        return ResponseEntity.ok(ApiResponse.success("예약을 삭제 했습니다."));
     }
 }

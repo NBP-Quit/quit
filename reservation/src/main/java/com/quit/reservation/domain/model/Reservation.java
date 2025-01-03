@@ -46,6 +46,12 @@ public class Reservation implements Serializable {
     @Version
     private Integer version;
 
+    //TODO: isDeleted 필드 및 삭제 메서드 임시 사용 - Base Entity 연결 후 삭제 예정
+    private Boolean isDeleted = false;
+    public void markDeleted() {
+        this.isDeleted = true;
+    }
+
     public static Reservation create(String customerId,
                                      UUID storeId,
                                      Integer guestCount,

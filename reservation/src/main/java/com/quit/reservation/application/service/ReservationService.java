@@ -4,6 +4,7 @@ import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
 import com.quit.reservation.application.dto.CreateReservationDto;
 import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.domain.enums.ReservationStatus;
+import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
@@ -24,12 +25,13 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
 
-
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
      * 2. 예약 정보 임시 저장하기
      * 3. 가게로 예약 정보 보내고, 결제 시스템에 결제 요청 보내기
      * 4. 결제 완료되면 예약 상태 변경하기*/
+
+    //TODO: Kafka event 추가 및 동시성 제어 구현 필요
 
     @Transactional
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
@@ -90,6 +92,23 @@ public class ReservationService {
         }
 
         throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
+    }
+
+
+    public void deleteReservation(UUID reservationId, String managerId, Role role) {
+        log.info("예약 삭제 작업 시작");
+        log.info("관리자: {}", managerId);
+
+        if (!(role.equals(Role.MANAGER) || role.equals(Role.MASTER))) {
+            throw new IllegalArgumentException("예약을 삭제할 권한이 없습니다.");
+        }
+
+        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+
+        //TODO: BaseEntity 연결 후 삭제 시 관리자 아이디 추가(deletedBy)
+        reservation.markDeleted();
+        log.info("예약 삭제 작업 완료");
     }
 
     private void validateReservationRequest(CreateReservationDto request) {
