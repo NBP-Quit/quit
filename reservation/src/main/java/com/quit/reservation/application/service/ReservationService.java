@@ -30,6 +30,7 @@ public class ReservationService {
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
     //TODO: Kafka event 추가 및 동시성 제어 구현 필요
+    //TODO: 검증 메서드 클래스로 분리 or 서비스 클래스 분리 고려(Kafka 사용/미사용)
 
     @Transactional
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
@@ -104,6 +105,11 @@ public class ReservationService {
         log.info("예약 수정 작업 시작");
         Reservation reservation = reservationRepository.findByReservationId(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+
+        if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
+                || reservation.getIsDeleted().equals(true)) {
+            throw new IllegalArgumentException("수정할 수 없는 상태의 예약 입니다.");
+        }
 
         if (reservation.getCustomerId().equals(customerId)) {
             //TODO: 가게의 예약 정보를 확인해 변경 가능 여부 확인하는 메서드 추가
