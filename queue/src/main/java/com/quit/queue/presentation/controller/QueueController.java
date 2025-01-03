@@ -27,4 +27,10 @@ public class QueueController {
                                                           @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.addUserToQueueForStore(storeId, userId);
     }
+
+    @DeleteMapping("/stores/{storeId}")
+    public Mono<ApiResponse<String>> removeUserFromQueueForStore(@PathVariable UUID storeId,
+                                                                 @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.removeUserFromQueueForStore(storeId, userId);
+    }
 }

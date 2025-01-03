@@ -77,7 +77,7 @@ public class QueueService {
                 .collectList();
     }
 
-    public Mono<ApiResponse<String>> removeUserFromQueue(UUID storeId, Long userId) {
+    public Mono<ApiResponse<String>> removeUserFromQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
