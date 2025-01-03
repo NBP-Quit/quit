@@ -4,16 +4,31 @@ server:
 spring:
   application:
     name: gateway-service
+
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
       routes:
-
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**, /api/auth/**
 
 eureka:
   client:
+    register-with-eureka: true
     service-url:
       defaultZone: http://localhost:19090/eureka/
+    fetch-registry: true
+#  instance:
+#    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+#    prefer-ip-address: true
+#    ip-address: 127.0.0.1
+#    hostname: localhost
 
+logging:
+  level:
+    com.netflix.discovery: DEBUG  # Eureka 관련 디버깅 로그 수준 설정
+    org.springframework.cloud.netflix.eureka: DEBUG  # Eureka 클라이언트의 로그 수준 설정
