@@ -1,10 +1,13 @@
 package com.quit.reservation.application.service;
 
+import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
 import com.quit.reservation.application.dto.CreateReservationDto;
 import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
+import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -46,6 +50,46 @@ public class ReservationService {
         log.info("예약 UUID : {}", reservation.getReservationId());
         log.info("예약 정보 생성 완료");
         return CreateReservationResponse.of(reservation.getReservationId());
+    }
+
+    @Transactional
+    public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId, ChangeReservationStatusRequest request, String customerId) {
+        log.info("예약 상태 변경 작업 시작");
+        log.info("상태 변경 예약 UUID : {}", reservationId);
+        log.info("변경할 상태: {}", request.getReservationStatus());
+
+        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+
+        //TODO: 취소 상태가 들어올 경우에 대한 예외 처리 변경하기
+        if (request.getReservationStatus().equals(ReservationStatus.CANCELED)
+                || reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
+                || reservation.getReservationStatus().equals(ReservationStatus.COMPLETED)) {
+            throw new IllegalArgumentException("예약 진행 작업을 수행할 수 없는 예약 상태 입니다.");
+        }
+
+        //TODO: OWNER 이상의 권한을 가진 사람은 상태 변경을 할 수 있도록 수정
+        if (reservation.getCustomerId().equals(customerId)) {
+            reservation.changeStatus(request.getReservationStatus());
+            log.info("예약 상태 변경 작업 완료");
+            return ChangeReservationStatusResponse.fromReservation(reservation);
+        }
+
+        throw new IllegalArgumentException("예약 상태를 변경할 권한이 없습니다.");
+    }
+
+    public void cancelReservation(UUID reservationId, String customerId) {
+        //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
+        log.info("예약 취소 작업 시작");
+        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+
+        if (reservation.getCustomerId().equals(customerId)) {
+            reservation.cancel();
+            log.info("예약 취소 작업 완료");
+        }
+
+        throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
     }
 
     private void validateReservationRequest(CreateReservationDto request) {

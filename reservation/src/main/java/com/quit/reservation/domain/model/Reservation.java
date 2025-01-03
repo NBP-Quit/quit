@@ -1,7 +1,6 @@
 package com.quit.reservation.domain.model;
 
 import com.quit.reservation.domain.enums.ReservationStatus;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -64,5 +63,13 @@ public class Reservation implements Serializable {
                 .reservationStatus(reservationStatus)
                 .reservationPrice(reservationPrice)
                 .build();
+    }
+
+    public void changeStatus(ReservationStatus reservationStatus) {
+        this.reservationStatus = reservationStatus;
+    }
+
+    public void cancel() {
+        this.reservationStatus = ReservationStatus.CANCELED;
     }
 }
