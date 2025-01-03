@@ -90,6 +90,7 @@ public class ReservationService {
         if (reservation.getCustomerId().equals(customerId)) {
             reservation.cancel();
             log.info("예약 취소 작업 완료");
+            return;
         }
 
         throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
@@ -128,9 +129,14 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findByReservationId(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
-        //TODO: BaseEntity 연결 후 삭제 시 관리자 아이디 추가(deletedBy)
-        reservation.markDeleted();
-        log.info("예약 삭제 작업 완료");
+        if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)) {
+            //TODO: BaseEntity 연결 후 삭제 시 관리자 아이디 추가(deletedBy)
+            reservation.markDeleted();
+            log.info("예약 삭제 작업 완료");
+            return;
+        }
+
+        throw new IllegalArgumentException("예약을 삭제할 수 없는 예약 상태입니다.");
     }
 
     //TODO: 검증 메서드 리팩토링 작업 필요
