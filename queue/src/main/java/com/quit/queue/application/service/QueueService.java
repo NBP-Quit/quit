@@ -46,6 +46,20 @@ public class QueueService {
                 });
     }
 
+    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
+        // TODO 권한 검증 추가
+
+        String key = "queue:store:" + storeId + ":users";
+
+        return reactiveRedisTemplate.opsForZSet().score(key, userId.toString())  // 사용자 점수 조회
+                .flatMap(score -> {
+                    if (score == null) {
+                        return Mono.error(new IllegalStateException("User not found in queue"));
+                    }
+                    return Mono.just(ApiResponse.success(score.floatValue()));  // 점수 반환
+                });
+    }
+
     public Mono<ApiResponse<List<QueueResponse>>> getQueue(UUID storeId) {
         // TODO 권한 검증 추가
 
