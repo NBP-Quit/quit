@@ -1,13 +1,15 @@
 package com.quit.store.application.service;
 
+import com.quit.store.application.dto.SearchStoreDto;
 import com.quit.store.application.dto.StoreDto;
 import com.quit.store.application.dto.res.CreateStoreResponse;
 import com.quit.store.application.dto.res.StoreResponse;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,12 @@ public class StoreService {
         return StoreResponse.from(store);
     }
 
+    @Transactional(readOnly = true)
+    public Page<StoreResponse> searchStores(SearchStoreDto request, Pageable pageable) {
+        Page<Store> storePage =  storeRepository.findAllBySearchRequest(request, pageable);
+        return storePage.map(StoreResponse::from);
+    }
+
     public void deleteStore(UUID storeId, String userId) {
         //todo: 권한체크로직
         Store store = checkStore(storeId);
@@ -52,7 +60,7 @@ public class StoreService {
     }
 
     private Store checkStore(UUID storeId) {
-        return storeRepository.findByIdAndIsDeleteFalse(storeId)
+        return storeRepository.findByIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
     }
 
