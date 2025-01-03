@@ -22,6 +22,7 @@ public class QueueService {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
+        String counterKey = "queue:store:" + storeId + ":counter";
         String globalUserKey = "queue:global:users";
 
         return reactiveRedisTemplate.opsForSet().isMember(globalUserKey, userId.toString())
@@ -30,10 +31,9 @@ public class QueueService {
                         return Mono.just(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "User already in another queue"));
                     } else {
                         return reactiveRedisTemplate.opsForSet().add(globalUserKey, userId.toString())
-                                .then(reactiveRedisTemplate.opsForValue().increment("queue:store:" + storeId + ":counter", 1)
-                                        .flatMap(newScore -> reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
-                                                .thenReturn(newScore)))
-                                .flatMap(newScore -> Mono.just(ApiResponse.success(newScore)));
+                                .then(reactiveRedisTemplate.opsForValue().increment(counterKey, 1))
+                                .flatMap(newScore -> reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
+                                        .then(Mono.just(ApiResponse.success(newScore))));
                     }
                 });
     }
@@ -77,12 +77,22 @@ public class QueueService {
                 .collectList();
     }
 
-    public Mono<Void> removeUserFromQueue(UUID storeId, Long userId) {
+    public Mono<ApiResponse<String>> removeUserFromQueue(UUID storeId, Long userId) {
+        // TODO 권한 검증 추가
+
         String key = "queue:store:" + storeId + ":users";
         String globalUserKey = "queue:global:users";
 
         return reactiveRedisTemplate.opsForZSet().remove(key, userId.toString())
-                .then(reactiveRedisTemplate.opsForSet().remove(globalUserKey, userId.toString()))
-                .then();
+                .flatMap(result -> {
+                    if (result > 0) {
+                        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, userId.toString())
+                                .then(Mono.just(ApiResponse.<String>success("User removed from queue successfully")));
+                    } else {
+                        return Mono.just(ApiResponse.<String>error(HttpStatus.NOT_FOUND.value(), "User not found in queue"));
+                    }
+                })
+                .onErrorResume(e -> Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "Failed to remove user from queue: " + e.getMessage())));
     }
 }
