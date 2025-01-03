@@ -27,7 +27,7 @@ public class QueueService {
         return reactiveRedisTemplate.opsForSet().isMember(globalUserKey, userId.toString())
                 .flatMap(isMember -> {
                     if (isMember) {
-                        return Mono.just(ApiResponse.<Long>error(HttpStatus.BAD_REQUEST.value(), "User already in another queue"));
+                        return Mono.just(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "User already in another queue"));
                     } else {
                         return reactiveRedisTemplate.opsForSet().add(globalUserKey, userId.toString())
                                 .then(reactiveRedisTemplate.opsForValue().increment("queue:store:" + storeId + ":counter", 1)
@@ -77,7 +77,7 @@ public class QueueService {
                 .collectList();
     }
 
-    private Mono<Void> removeUserFromQueue(UUID storeId, Long userId) {
+    public Mono<Void> removeUserFromQueue(UUID storeId, Long userId) {
         String key = "queue:store:" + storeId + ":users";
         String globalUserKey = "queue:global:users";
 
