@@ -1,0 +1,12 @@
+#회원 가입
+POST http://host.docker.internal:19092/api/auth/signup
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user2@email.com",
+  "password" :"User2222@",
+  "nickname":"사용자2",
+  "phone":"010-2222-2222",
+  "birthdate":"2000-01-01"
+}

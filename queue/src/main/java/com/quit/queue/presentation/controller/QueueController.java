@@ -1,9 +1,9 @@
 package com.quit.queue.presentation.controller;
 
 import com.quit.queue.application.service.QueueService;
+import com.quit.queue.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -15,16 +15,32 @@ public class QueueController {
 
     private final QueueService queueService;
 
-    @PostMapping("/{storeId}/users")
-    public Mono<Long> addUserToQueueForStore(@PathVariable UUID storeId,
-                                             @RequestHeader(value = "X-User-Id", required = true) Long userId) {
-        // 비동기적으로 사용자 대기열에 추가
-        return queueService.addUserToQueue(storeId, userId);
+    @GetMapping
+    public Mono<ApiResponse<?>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
+        return queueService.getQueue(storeId);
     }
 
-    @GetMapping("/{storeId}/users")
-    public Flux<String> getQueueForStore(@PathVariable UUID storeId) {
-        // 비동기적으로 대기열 데이터를 가져오기
-        return queueService.getQueueForStore(storeId);
+    @PostMapping("/stores/{storeId}")
+    public Mono<ApiResponse<Float>> addUserToQueueForStore(@PathVariable UUID storeId,
+                                                           @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.addUserToQueueForStore(storeId, userId);
+    }
+
+    @DeleteMapping("/stores/{storeId}")
+    public Mono<ApiResponse<String>> removeUserFromQueueForStore(@PathVariable UUID storeId,
+                                                                 @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.removeUserFromQueueForStore(storeId, userId);
+    }
+
+    @GetMapping("/stores/{storeId}/users/position")
+    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
+                                                                   @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.getUserPositionInQueueForStore(storeId, userId);
+    }
+
+    @DeleteMapping("/reset")
+    public Mono<ApiResponse<String>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
+                                                        @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.resetQueueForStore(storeId);
     }
 }
