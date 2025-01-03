@@ -18,7 +18,7 @@ import java.util.UUID;
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
-    public Mono<ApiResponse<Long>> addUserToQueue(UUID storeId, Long userId) {
+    public Mono<ApiResponse<Long>> addUserToQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";

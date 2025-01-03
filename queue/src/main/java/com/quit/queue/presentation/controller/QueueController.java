@@ -17,14 +17,14 @@ public class QueueController {
 
     private final QueueService queueService;
 
-    @PostMapping("/stores/{storeId}")
-    public Mono<ApiResponse<Long>> addUserToQueueForStore(@PathVariable UUID storeId,
-                                                          @RequestHeader(value = "X-User-Id") Long userId) {
-        return queueService.addUserToQueue(storeId, userId);
-    }
-
     @GetMapping
     public Mono<ApiResponse<List<QueueResponse>>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
         return queueService.getQueue(storeId);
+    }
+
+    @PostMapping("/stores/{storeId}")
+    public Mono<ApiResponse<Long>> addUserToQueueForStore(@PathVariable UUID storeId,
+                                                          @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.addUserToQueueForStore(storeId, userId);
     }
 }
