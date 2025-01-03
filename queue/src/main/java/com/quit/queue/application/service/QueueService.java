@@ -3,8 +3,10 @@ package com.quit.queue.application.service;
 import com.quit.queue.application.service.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -12,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.UUID;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QueueService {
@@ -22,18 +24,24 @@ public class QueueService {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
-        String counterKey = "queue:store:" + storeId + ":counter";
         String globalUserKey = "queue:global:users";
 
         return reactiveRedisTemplate.opsForSet().isMember(globalUserKey, userId.toString())
                 .flatMap(isMember -> {
                     if (isMember) {
-                        return Mono.just(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "User already in another queue"));
+                        return Mono.error(new IllegalStateException("User already in another queue"));
                     } else {
                         return reactiveRedisTemplate.opsForSet().add(globalUserKey, userId.toString())
-                                .then(reactiveRedisTemplate.opsForValue().increment(counterKey, 1))
-                                .flatMap(newScore -> reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
-                                        .then(Mono.just(ApiResponse.success(newScore))));
+                                .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
+                                        .next()
+                                        .map(ZSetOperations.TypedTuple::getScore)
+                                        .switchIfEmpty(Mono.just(0.0))
+                                        .flatMap(highestScore -> {
+                                            double newScore = (highestScore == 0.0) ? 1.0 : highestScore + 1;
+                                            return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
+                                                    .then(Mono.just(ApiResponse.success((long) newScore)));
+                                        })
+                                );
                     }
                 });
     }
