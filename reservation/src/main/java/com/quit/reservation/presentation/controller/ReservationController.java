@@ -5,6 +5,7 @@ import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.common.dto.ApiResponse;
 import com.quit.reservation.presentation.request.CreateReservationRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +19,10 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ApiResponse<CreateReservationResponse> createReservation(@RequestBody CreateReservationRequest request) {
+    public ResponseEntity<ApiResponse<CreateReservationResponse>> createReservation(@RequestBody CreateReservationRequest request) {
 
         //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가)
         String customerId = "testUser";
-        return ApiResponse.success(reservationService.createReservation(request.toDto(), customerId));
+        return ResponseEntity.ok(ApiResponse.success(reservationService.createReservation(request.toDto(), customerId)));
     }
 }
