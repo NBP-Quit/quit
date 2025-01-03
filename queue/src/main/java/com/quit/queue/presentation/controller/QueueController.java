@@ -1,13 +1,11 @@
 package com.quit.queue.presentation.controller;
 
 import com.quit.queue.application.service.QueueService;
-import com.quit.queue.application.service.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,7 +16,7 @@ public class QueueController {
     private final QueueService queueService;
 
     @GetMapping
-    public Mono<ApiResponse<List<QueueResponse>>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
+    public Mono<ApiResponse<?>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
         return queueService.getQueue(storeId);
     }
 

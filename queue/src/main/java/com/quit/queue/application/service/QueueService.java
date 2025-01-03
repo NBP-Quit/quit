@@ -61,27 +61,12 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<List<QueueResponse>>> getQueue(UUID storeId) {
+    public Mono<ApiResponse<?>> getQueue(UUID storeId) {
         // TODO 권한 검증 추가
 
-        String key = "queue:store:" + storeId + ":users";
-
-        return reactiveRedisTemplate.hasKey(key)
-                .flatMap(exists -> {
-                    if (exists) {
-                        return reactiveRedisTemplate.opsForZSet().rangeWithScores(key, Range.closed(0L, -1L))
-                                .map(entry -> {
-                                    QueueResponse response = new QueueResponse(storeId);
-                                    response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue());
-                                    return response;
-                                })
-                                .collectList()
-                                .map(ApiResponse::success);
-                    } else {
-                        return getAllQueues()
-                                .map(ApiResponse::success);
-                    }
-                });
+        return (storeId == null)
+                ? getAllQueues().map(ApiResponse::success)
+                : getQueueForStore(storeId);
     }
 
     private Mono<List<QueueResponse>> getAllQueues() {
@@ -98,6 +83,27 @@ public class QueueService {
                             });
                 })
                 .collectList();
+    }
+
+    private Mono<ApiResponse<?>> getQueueForStore(UUID storeId) {
+        String key = "queue:store:" + storeId + ":users";
+
+        return reactiveRedisTemplate.hasKey(key)
+                .flatMap(exists -> {
+                    if (exists) {
+                        return reactiveRedisTemplate.opsForZSet().rangeWithScores(key, Range.closed(0L, -1L))
+                                .collectList()
+                                .map(entries -> {
+                                    QueueResponse response = new QueueResponse(storeId);
+                                    entries.forEach(entry ->
+                                            response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue()));
+                                    return response;
+                                })
+                                .map(ApiResponse::success);
+                    } else {
+                        return Mono.just(ApiResponse.error(HttpStatus.NOT_FOUND.value(), "Store queue not found for storeId: " + storeId));
+                    }
+                });
     }
 
     public Mono<ApiResponse<String>> removeUserFromQueueForStore(UUID storeId, Long userId) {
