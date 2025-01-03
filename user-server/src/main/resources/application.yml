@@ -4,7 +4,11 @@ server:
 spring:
   application:
     name: user-service
-
+  datasource:
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${SPRING_DATASOURCE_LOCAL_USERNAME}
+    password: ${SPRING_DATASOURCE_LOCAL_PASSWORD}
+    url: ${SPRING_DATASOURCE_LOCAL_URL}
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,16 +19,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         default_batch_fetch_size: 1000
       open-in-view: false
-
----
-spring:
-  application:
-    name: user-servic
-  datasource:
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
-    username: ${SPRING_DATASOURCE_LOCAL_USERNAME}
-    password: ${SPRING_DATASOURCE_LOCAL_PASSWORD}
-    url: ${SPRING_DATASOURCE_LOCAL_URL}
 
 eureka:
   client:
