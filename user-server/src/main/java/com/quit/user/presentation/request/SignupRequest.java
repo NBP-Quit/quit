@@ -23,7 +23,9 @@ public record SignupRequest(
         @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "전화번호는 XXX-XXXX-XXXX와 같은 형식으로 입력해야합니다.")
         String phone,
 
+        @Pattern(regexp = "^(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "생일은 yyyy-MM-dd 형식이어야 합니다.")
         String birthdate,
+
         String address
 ){
 }
