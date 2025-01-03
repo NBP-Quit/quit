@@ -1,7 +1,6 @@
 package com.quit.reservation;
 
 import com.quit.reservation.application.service.ReservationService;
-import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
