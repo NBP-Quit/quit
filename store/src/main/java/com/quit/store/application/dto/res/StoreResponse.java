@@ -8,11 +8,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StoreResponse {
-
+    private UUID id;
     private String name;
     private String description;
     private String address;
@@ -24,10 +25,11 @@ public class StoreResponse {
     private Category category;
 
     @Builder
-    private StoreResponse(String name, String description, String address,
+    private StoreResponse(UUID id, String name, String description, String address,
                           String contactNumber, Integer reservationDeposit,
                           LocalTime openTime, LocalTime closeTime,
                           LocalTime lastOrderTime, Category category) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.address = address;
@@ -41,6 +43,7 @@ public class StoreResponse {
 
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
+                .id(store.getId())
                 .name(store.getName())
                 .description(store.getDescription())
                 .address(store.getAddress())
