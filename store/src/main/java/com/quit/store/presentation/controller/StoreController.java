@@ -4,10 +4,14 @@ import com.quit.store.application.dto.res.CreateStoreResponse;
 import com.quit.store.application.dto.res.StoreResponse;
 import com.quit.store.application.service.StoreService;
 import com.quit.store.common.dto.ApiResponse;
+import com.quit.store.common.util.PageableUtil;
 import com.quit.store.presentation.dto.CreateStoreRequest;
+import com.quit.store.presentation.dto.SearchStoreRequest;
 import com.quit.store.presentation.dto.UpdateStoreRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +50,16 @@ public class StoreController {
     @GetMapping("/{storeId}")
     public ResponseEntity<ApiResponse<StoreResponse>> getStore(@PathVariable(name = "storeId") UUID storeId) {
         return ResponseEntity.ok(ApiResponse.success(storeService.getStore(storeId)));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<StoreResponse>>> searchStores(@RequestBody SearchStoreRequest request,
+                                                                        @RequestParam(defaultValue = "1") int page,
+                                                                        @RequestParam(defaultValue = "10") int size,
+                                                                        @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                                        @RequestParam(defaultValue = "false") boolean isAsc) {
+        Pageable pageable = PageableUtil.createPageableWithSorting(page, size, sortBy, isAsc);
+        return ResponseEntity.ok(ApiResponse.success(storeService.searchStores(request.toDto(), pageable)));
     }
 
     @DeleteMapping("/{storeId}")
