@@ -20,14 +20,12 @@ public class QueueController {
 
     @PostMapping("/{storeId}/users")
     public Mono<ApiResponse<Long>> addUserToQueueForStore(@PathVariable UUID storeId,
-                                                    @RequestHeader(value = "X-User-Id", required = true) Long userId) {
-        // 비동기적으로 사용자 대기열에 추가
+                                                    @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.addUserToQueue(storeId, userId);
     }
 
     @GetMapping
-    public  Mono<ApiResponse<List<QueueResponse>>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
-        // 비동기적으로 대기열 데이터를 가져오기
+    public Mono<ApiResponse<List<QueueResponse>>> getQueue(@RequestParam(value = "storeId", required = false) UUID storeId) {
         return queueService.getQueue(storeId);
     }
 }
