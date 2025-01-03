@@ -16,33 +16,31 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class CreateStoreRequest {
 
-    //todo: 필드별 validation message 추가
-
-    @NotBlank
+    @NotBlank(message = "STORE_NAME_EMPTY")
     private String name;
 
     private String description;
 
-    @NotBlank
+    @NotBlank(message = "STORE_ADDRESS_EMPTY")
     private String address;
 
-    @NotBlank
+    @NotBlank(message = "STORE_CONTACT_NUMBER_EMPTY")
     private String contactNumber;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "STORE_RESERVATION_DEPOSIT_EMPTY")
+    @Positive(message = "STORE_RESERVATION_DEPOSIT_INVALID")
     private Integer reservationDeposit;
 
-    @NotNull
+    @NotNull(message = "STORE_OPEN_TIME_EMPTY")
     private LocalTime openTime;
 
-    @NotNull
+    @NotNull(message = "STORE_CLOSE_TIME_EMPTY")
     private LocalTime closeTime;
 
-    @NotNull
+    @NotNull(message = "STORE_LAST_ORDER_TIME_EMPTY")
     private LocalTime lastOrderTime;
 
-    @NotNull
+    @NotNull(message = "STORE_CATEGORY_EMPTY")
     private Category category;
 
     public StoreDto toDto() {
