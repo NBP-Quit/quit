@@ -17,7 +17,7 @@ public class QueueController {
 
     private final QueueService queueService;
 
-    @PostMapping("/{storeId}/users")
+    @PostMapping("/stores/{storeId}")
     public Mono<ApiResponse<Long>> addUserToQueueForStore(@PathVariable UUID storeId,
                                                           @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.addUserToQueue(storeId, userId);
