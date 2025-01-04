@@ -3,13 +3,17 @@ package com.quit.store.presentation.controller;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
 import com.quit.store.application.service.ReservationSlotService;
 import com.quit.store.common.dto.ApiResponse;
+import com.quit.store.common.util.PageableUtil;
 import com.quit.store.presentation.dto.CreateReservationSlotRequest;
 import com.quit.store.presentation.dto.UpdateReservationSlotRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -39,6 +43,16 @@ public class ReservationSlotController {
         //  2. @RequestHeader(name = "X-user-role") String userRole 추가
         String userId = "testUserId";
         return ResponseEntity.ok(ApiResponse.success(reservationSlotService.updateSlot(storeId, slotId, request.toDto(), userId)));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ReservationSlotResponse>>> getSlotsByStore(@PathVariable(name = "storeId") UUID storeId,
+                                                                                      @RequestParam(defaultValue = "1") int page,
+                                                                                      @RequestParam(defaultValue = "10") int size,
+                                                                                      @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                                                      @RequestParam(defaultValue = "false") boolean isAsc) {
+        Pageable pageable = PageableUtil.createPageableWithSorting(page, size, sortBy, isAsc);
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.getSlotsByStore(storeId, pageable)));
     }
 
     @DeleteMapping("/{slotId}")

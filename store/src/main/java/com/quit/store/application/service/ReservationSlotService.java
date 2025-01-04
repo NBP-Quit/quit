@@ -9,6 +9,8 @@ import com.quit.store.domain.repository.ReservationSlotRepository;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,13 @@ public class ReservationSlotService {
         validateMaxCapacity(slot, request.getMaxCapacity());
         slot.update(request);
         return ReservationSlotResponse.from(slot);
+    }
+
+    public Page<ReservationSlotResponse> getSlotsByStore(UUID storeId, Pageable pageable) {
+        Store store = checkStore(storeId);
+        Page<ReservationSlot> reservationSlotPage =
+                reservationSlotRepository.findByStoreAndIsDeletedFalseAndIsAvailableTrue(store, pageable);
+        return reservationSlotPage.map(ReservationSlotResponse::from);
     }
 
     public void deleteSlot(UUID storeId, UUID slotId, String userId) {
