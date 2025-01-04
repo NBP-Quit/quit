@@ -1,5 +1,6 @@
 package com.quit.store.domain.entity;
 
+import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.common.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -57,6 +58,37 @@ public class ReservationSlot extends BaseEntity {
                 .maxCapacity(maxCapacity)
                 .store(store)
                 .build();
+    }
+
+    public void update(UpdateReservationSlotDto request) {
+        updateDate(request.getDate());
+        updateTime(request.getTime());
+        updateMaxCapacity(request.getMaxCapacity());
+        updateIsAvailable(request.getIsAvailable());
+    }
+
+    private void updateDate(LocalDate date) {
+        if (date != null) {
+            this.date = date;
+        }
+    }
+
+    private void updateTime(LocalTime time) {
+        if (time != null) {
+            this.time = time;
+        }
+    }
+
+    private void updateMaxCapacity(Integer maxCapacity) {
+        if (maxCapacity != null) {
+            this.maxCapacity = maxCapacity;
+        }
+    }
+
+    private void updateIsAvailable(Boolean isAvailable) {
+        if (isAvailable != null) {
+            this.isAvailable = isAvailable;
+        }
     }
 
 }
