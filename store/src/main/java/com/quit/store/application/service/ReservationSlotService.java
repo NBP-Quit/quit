@@ -1,6 +1,7 @@
 package com.quit.store.application.service;
 
 import com.quit.store.application.dto.ReservationSlotDto;
+import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
 import com.quit.store.domain.entity.ReservationSlot;
 import com.quit.store.domain.entity.Store;
@@ -11,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 
-import static com.quit.store.presentation.exception.ErrorType.STORE_NOT_FOUND;
+import static com.quit.store.presentation.exception.ErrorType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,38 @@ public class ReservationSlotService {
         return ReservationSlotResponse.from(slot);
     }
 
+    public ReservationSlotResponse updateSlot(UUID storeId, UUID slotId,
+                                              UpdateReservationSlotDto request, String userId) {
+        // todo: 권한체크로직
+        Store store = checkStore(storeId);
+        ReservationSlot slot = checkSlot(slotId);
+        // 1. 현재 currentCapacity > 0 일 때 날짜, 시간 변경 X
+        // 2. maxCapacity 가 현재 currentCapacity 보다 작을 경우 변경 X
+        validateDate(slot, request.getDate());
+        validateTime(slot, request.getTime());
+        validateMaxCapacity(slot, request.getMaxCapacity());
+        slot.update(request);
+        return ReservationSlotResponse.from(slot);
+    }
+
+    private void validateMaxCapacity(ReservationSlot slot, Integer maxCapacity) {
+        if(maxCapacity != null && maxCapacity < slot.getCurrentCapacity()) {
+            throw new CustomException(RESERVATION_SLOT_MAX_CAPACITY_INVALID);
+        }
+    }
+
+    private void validateTime(ReservationSlot slot, LocalTime time) {
+        if(slot.getCurrentCapacity() > 0 && time != null && !time.equals(slot.getTime())) {
+            throw new CustomException(RESERVATION_SLOT_TIME_CHANGE_NOT_ALLOWED);
+        }
+    }
+
+    private void validateDate(ReservationSlot slot, LocalDate date) {
+        if(slot.getCurrentCapacity() > 0 && date != null && !date.equals(slot.getDate())) {
+            throw new CustomException(RESERVATION_SLOT_DATE_CHANGE_NOT_ALLOWED);
+        }
+    }
+
     private ReservationSlot create(Store store, ReservationSlotDto request) {
         return ReservationSlot.of(
                 request.getDate(),
@@ -43,6 +78,11 @@ public class ReservationSlotService {
     private Store checkStore(UUID storeId) {
         return storeRepository.findByIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
+    }
+
+    private ReservationSlot checkSlot(UUID slotId) {
+        return reservationSlotRepository.findByIdAndIsDeletedFalse(slotId)
+                .orElseThrow(() -> new CustomException(RESERVATION_SLOT_NOT_FOUND));
     }
 
 }

@@ -4,6 +4,7 @@ import com.quit.store.application.dto.res.ReservationSlotResponse;
 import com.quit.store.application.service.ReservationSlotService;
 import com.quit.store.common.dto.ApiResponse;
 import com.quit.store.presentation.dto.CreateReservationSlotRequest;
+import com.quit.store.presentation.dto.UpdateReservationSlotRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +26,20 @@ public class ReservationSlotController {
         // todo:
         //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
         //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-
         String userId = "testUserId";
         return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSlot(storeId, request.toDto(), userId)));
     }
 
+    @PutMapping("/{slotId}")
+    public ResponseEntity<ApiResponse<ReservationSlotResponse>> updateSlot(@PathVariable(name = "storeId") UUID storeId,
+                                                                           @PathVariable(name = "slotId") UUID slotId,
+                                                                           @RequestBody UpdateReservationSlotRequest request) {
+        // todo:
+        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
+        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
+        String userId = "testUserId";
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.updateSlot(storeId, slotId, request.toDto(), userId)));
+    }
 
 
 }

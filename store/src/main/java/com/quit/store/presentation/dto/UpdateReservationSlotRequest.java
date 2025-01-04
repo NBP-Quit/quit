@@ -1,8 +1,7 @@
 package com.quit.store.presentation.dto;
 
 import com.quit.store.application.dto.ReservationSlotDto;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.quit.store.application.dto.UpdateReservationSlotDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,24 +12,19 @@ import java.time.LocalTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateReservationSlotRequest {
-    //todo: validation message 작성
+public class UpdateReservationSlotRequest {
 
-    @NotNull
     private LocalDate date;
-
-    @NotNull
     private LocalTime time;
-
-    @NotNull
-    @Positive
     private Integer maxCapacity;
+    private Boolean isAvailable;
 
-    public ReservationSlotDto toDto() {
-        return ReservationSlotDto.of(
+    public UpdateReservationSlotDto toDto() {
+        return UpdateReservationSlotDto.of(
                 this.date,
                 this.time,
-                this.maxCapacity
+                this.maxCapacity,
+                this.isAvailable
         );
     }
 
