@@ -7,13 +7,15 @@ import com.quit.store.common.util.PageableUtil;
 import com.quit.store.presentation.dto.CreateReservationSlotRequest;
 import com.quit.store.presentation.dto.UpdateReservationSlotRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @RestController
@@ -53,6 +55,13 @@ public class ReservationSlotController {
                                                                                       @RequestParam(defaultValue = "false") boolean isAsc) {
         Pageable pageable = PageableUtil.createPageableWithSorting(page, size, sortBy, isAsc);
         return ResponseEntity.ok(ApiResponse.success(reservationSlotService.getSlotsByStore(storeId, pageable)));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<ReservationSlotResponse>> getSlotByDateAndTime(@PathVariable(name = "storeId") UUID storeId,
+                                                                                     @RequestParam LocalDate date,
+                                                                                     @RequestParam LocalTime time) {
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.getSlotByDateAndTime(storeId, date, time)));
     }
 
     @DeleteMapping("/{slotId}")

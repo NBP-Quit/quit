@@ -51,11 +51,19 @@ public class ReservationSlotService {
         return ReservationSlotResponse.from(slot);
     }
 
+    @Transactional(readOnly = true)
     public Page<ReservationSlotResponse> getSlotsByStore(UUID storeId, Pageable pageable) {
         Store store = checkStore(storeId);
-        Page<ReservationSlot> reservationSlotPage =
-                reservationSlotRepository.findByStoreAndIsDeletedFalseAndIsAvailableTrue(store, pageable);
+        Page<ReservationSlot> reservationSlotPage = reservationSlotRepository.findByStoreId(store.getId(), pageable);
         return reservationSlotPage.map(ReservationSlotResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public ReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
+        Store store = checkStore(storeId);
+        ReservationSlot slot = reservationSlotRepository.findByDateAndTime(store.getId(), date, time)
+                .orElseThrow(() -> new CustomException(RESERVATION_SLOT_NOT_FOUND));
+        return ReservationSlotResponse.from(slot);
     }
 
     public void deleteSlot(UUID storeId, UUID slotId, String userId) {
