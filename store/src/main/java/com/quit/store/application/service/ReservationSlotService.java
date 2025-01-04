@@ -39,6 +39,7 @@ public class ReservationSlotService {
         // todo: 권한체크로직
         Store store = checkStore(storeId);
         ReservationSlot slot = checkSlot(slotId);
+        validateSlotBelongsToStore(store.getId(), slot);
         // 1. 현재 currentCapacity > 0 일 때 날짜, 시간 변경 X
         // 2. maxCapacity 가 현재 currentCapacity 보다 작을 경우 변경 X
         validateDate(slot, request.getDate());
@@ -46,6 +47,27 @@ public class ReservationSlotService {
         validateMaxCapacity(slot, request.getMaxCapacity());
         slot.update(request);
         return ReservationSlotResponse.from(slot);
+    }
+
+    public void deleteSlot(UUID storeId, UUID slotId, String userId) {
+        // todo: 권한체크로직
+        Store store = checkStore(storeId);
+        ReservationSlot slot = checkSlot(slotId);
+        validateSlotBelongsToStore(store.getId(), slot);
+        validateReservation(slot);
+        slot.delete(userId);
+    }
+
+    private void validateSlotBelongsToStore(UUID storeId, ReservationSlot slot) {
+        if (!slot.getStore().getId().equals(storeId)) {
+            throw new CustomException(RESERVATION_SLOT_STORE_MISMATCH);
+        }
+    }
+
+    private void validateReservation(ReservationSlot slot) {
+        if(slot.getCurrentCapacity() > 0) {
+            throw new CustomException(RESERVATION_SLOT_DELETE_NOT_ALLOWED);
+        }
     }
 
     private void validateMaxCapacity(ReservationSlot slot, Integer maxCapacity) {
