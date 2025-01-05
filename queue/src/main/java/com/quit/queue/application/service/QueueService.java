@@ -128,42 +128,50 @@ public class QueueService {
     public Mono<ApiResponse<String>> resetQueueForStore(UUID storeId) {
         // TODO 권한 검증 추가
 
+        if (storeId == null) {
+            return resetAllQueues();
+        } else {
+            return resetStoreQueue(storeId);
+        }
+    }
+
+    private Mono<ApiResponse<String>> resetAllQueues() {
+        String globalUserKey = "queue:global:users";
+
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:store:*:users").build())
+                .flatMap(reactiveRedisTemplate::delete)
+                .then(reactiveRedisTemplate.delete(globalUserKey))
+                .then(Mono.just(ApiResponse.<String>success("All store queues have been reset successfully.")))
+                .onErrorResume(e -> {
+                    log.error("Failed to reset all store queues", e);
+                    return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Failed to reset all store queues: " + e.getMessage()));
+                });
+    }
+
+    private Mono<ApiResponse<String>> resetStoreQueue(UUID storeId) {
         String key = "queue:store:" + storeId + ":users";
         String globalUserKey = "queue:global:users";
 
-        if (storeId == null) {
-            return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:store:*:users").build())
-                    .flatMap(reactiveRedisTemplate::delete)
-                    .then(reactiveRedisTemplate.delete(globalUserKey))
-                    .then(Mono.just(ApiResponse.<String>success("All store queues have been reset successfully.")))
-                    .onErrorResume(e -> {
-                        log.error("Failed to reset all store queues", e);
-                        return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                "Failed to reset all store queues: " + e.getMessage()));
-                    });
-        } else {
-            return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
-                    .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
-                    .flatMapSequential(queuedUserId -> {
-                        if (queuedUserId != null && !queuedUserId.isEmpty()) {
-                            return reactiveRedisTemplate.opsForSet().remove(globalUserKey, queuedUserId)
-                                    .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
-                                    .onErrorResume(e -> {
-                                        log.warn("Failed to remove {} from globalUserKey. Skipping.", queuedUserId, e);
-                                        return Mono.empty();
-                                    });
-                        } else {
-                            log.warn("Queued userId is null or empty, skipping: {}", queuedUserId);
-                            return Mono.empty();
-                        }
-                    })
-                    .then(reactiveRedisTemplate.delete(key))
-                    .then(Mono.just(ApiResponse.<String>success("Store queue has been reset successfully.")))
-                    .onErrorResume(e -> {
-                        log.error("Failed to reset store queue for storeId: {}", storeId, e);
-                        return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                "Failed to reset store queue: " + e.getMessage()));
-                    });
-        }
+        return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
+                .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
+                .flatMapSequential(queuedUserId -> removeFromGlobalQueue(globalUserKey, queuedUserId))
+                .then(reactiveRedisTemplate.delete(key))
+                .then(Mono.just(ApiResponse.<String>success("Store queue has been reset successfully.")))
+                .onErrorResume(e -> {
+                    log.error("Failed to reset store queue for storeId: {}", storeId, e);
+                    return Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Failed to reset store queue: " + e.getMessage()));
+                });
+    }
+
+    private Mono<Void> removeFromGlobalQueue(String globalUserKey, String queuedUserId) {
+        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, queuedUserId)
+                .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
+                .onErrorResume(e -> {
+                    log.warn("Failed to remove {} from globalUserKey. Skipping.", queuedUserId, e);
+                    return Mono.empty();
+                })
+                .then();
     }
 }
