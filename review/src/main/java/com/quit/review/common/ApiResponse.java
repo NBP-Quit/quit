@@ -20,9 +20,9 @@ public class ApiResponse<T> {
 	private String message;
 	private T data;
 
-	public static <T> ApiResponse<T> success(String message) {
+	public static <T> ApiResponse<T> success(HttpStatus httpStatus, String message) {
 		return ApiResponse.<T>builder()
-			.code(HttpStatus.OK.value())
+			.code(httpStatus.value())
 			.message(message)
 			.build();
 	}
@@ -34,9 +34,9 @@ public class ApiResponse<T> {
 			.build();
 	}
 
-	public static <T> ApiResponse<T> error(int code, String message) {
+	public static <T> ApiResponse<T> error(HttpStatus httpStatus, String message) {
 		return ApiResponse.<T>builder()
-			.code(code)
+			.code(httpStatus.value())
 			.message(message)
 			.build();
 	}

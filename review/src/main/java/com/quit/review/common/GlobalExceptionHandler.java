@@ -9,6 +9,6 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(CustomApiException.class)
 	public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomApiException ex) {
-		return ResponseEntity.status(ex.getHttpStatus()).body(ApiResponse.error(ex.getHttpStatus().value(), ex.getMessage()));
+		return ResponseEntity.status(ex.getHttpStatus()).body(ApiResponse.error(ex.getHttpStatus(), ex.getMessage()));
 	}
 }
