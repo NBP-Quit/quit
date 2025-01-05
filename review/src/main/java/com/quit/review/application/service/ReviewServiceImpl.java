@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewCreateDto;
@@ -26,12 +27,13 @@ public class ReviewServiceImpl implements ReviewService {
 
 	private final ReviewRepository reviewRepository;
 
+	private final ImageService imageService;
 	private final ReservationService reservationService;
 	private final UserService userService;
 
 	@Override
 	@Transactional
-	public void create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
+	public UUID create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
 		// 예약 정보를 조회하여 예약 상태와 권한을 검증
 		ReservationResponse reservation = reservationService.getById(dto.getReservationId());
 		validate(userId, reservation);
@@ -46,7 +48,13 @@ public class ReviewServiceImpl implements ReviewService {
 		// 평균 별점 계산 후 저장
 		review.applyAverageScore();
 
-		reviewRepository.save(review);
+		UUID reviewId = reviewRepository.save(review).getId();
+
+		if (!CollectionUtils.isEmpty(files)) {
+			files.forEach(file -> imageService.create(file, reviewId));
+		}
+
+		return reviewId;
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {

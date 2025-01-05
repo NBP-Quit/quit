@@ -1,8 +1,10 @@
 package com.quit.review.presentation.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.quit.review.application.service.ReviewService;
 import com.quit.review.common.ApiResponse;
@@ -29,13 +32,18 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping("/stores/{storeId}/reviews")
-	public ResponseEntity<ApiResponse<?>> create(
+	public ResponseEntity<ApiResponse<Void>> create(
 		@PathVariable UUID storeId,
 		@RequestHeader(value = "X-User-ID") String userId,
 		@RequestPart("review") @Valid ReviewCreateRequest request,
 		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
-		reviewService.create(storeId, Long.parseLong(userId), request.toDto(), files);
-		return null;
+		UUID reviewId = reviewService.create(storeId, Long.parseLong(userId), request.toDto(), files);
+		URI location = ServletUriComponentsBuilder
+			.fromCurrentRequest()
+			.path("/{reviewId}")
+			.buildAndExpand(reviewId)
+			.toUri();
+		return ResponseEntity.created(location).body(ApiResponse.success(HttpStatus.CREATED, "Review Created"));
 	}
 }

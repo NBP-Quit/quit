@@ -1,6 +1,8 @@
 package com.quit.review.domain.model;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.SQLRestriction;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import com.quit.review.common.BaseEntity;
 import com.quit.review.common.CustomApiException;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -17,6 +20,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -35,6 +39,9 @@ public class Review extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
+
+	@OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Image> images = new ArrayList<>();
 
 	@Column(nullable = false)
 	private UUID storeId;
@@ -97,5 +104,10 @@ public class Review extends BaseEntity {
 
 	public void applyAverageScore() {
 		this.averageScore = scores.calculateAverage();
+	}
+
+	public void addImage(Image image) {
+		images.add(image);
+		image.setReview(this);
 	}
 }

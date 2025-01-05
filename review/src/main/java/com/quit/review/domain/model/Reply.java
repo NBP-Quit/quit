@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.hibernate.annotations.SQLRestriction;
 
+import com.quit.review.common.BaseEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("is_deleted is false")
-public class Reply {
+public class Reply extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

@@ -1,7 +1,7 @@
 package com.quit.review.application.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -19,6 +19,7 @@ import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
+import com.quit.review.domain.model.Scores;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -38,7 +39,7 @@ class ReviewServiceTest {
 	private UserService userService;
 
 	@Test
-	@DisplayName("리뷰 생성 성공(사진 X)")
+	@DisplayName("리뷰 생성 성공")
 	void createReviewSuccessWithoutImages() {
 		// given
 		UUID storeId = UUID.randomUUID();
@@ -63,16 +64,34 @@ class ReviewServiceTest {
 
 		String mockNickname = "TestUser";
 
-		when(reservationService.getById(reservationId)).thenReturn(mockReservation);
-		when(userService.getNicknameById(userId)).thenReturn(mockNickname);
+		Review mockReview = Review.builder()
+			.id(UUID.randomUUID())  // ID 값을 생성
+			.storeId(storeId)
+			.userId(userId)
+			.content(dto.getContent())
+			.scores(
+				Scores.builder()
+					.taste(dto.getScores().getTaste())
+					.ambience(dto.getScores().getAmbience())
+					.cleanliness(dto.getScores().getCleanliness())
+					.kindness(dto.getScores().getKindness())
+					.build()
+			)
+			.nickname(mockNickname)
+			.build();
+
+		given(reservationService.getById(reservationId)).willReturn(mockReservation);
+		given(userService.getNicknameById(userId)).willReturn(mockNickname);
+		given(reviewRepository.save(any(Review.class))).willReturn(mockReview);
 
 		// when
-		reviewService.create(storeId, userId, dto, List.of());
+		UUID reviewId = reviewService.create(storeId, userId, dto, List.of());
 
 		// then
-		verify(reservationService).getById(reservationId);
-		verify(userService).getNicknameById(userId);
-		verify(reviewRepository).save(any(Review.class));
+		then(reservationService).should().getById(reservationId);
+		then(userService).should().getNicknameById(userId);
+		then(reviewRepository).should().save(any(Review.class));
+		assertThat(reviewId).isEqualTo(mockReview.getId());
 	}
 
 	@Test
@@ -99,7 +118,7 @@ class ReviewServiceTest {
 			.reservationTime(LocalTime.of(12, 0))
 			.build();
 
-		when(reservationService.getById(reservationId)).thenReturn(mockReservation);
+		given(reservationService.getById(reservationId)).willReturn(mockReservation);
 
 	    // when & then
 		assertThatThrownBy(() -> reviewService.create(storeId, userId, dto, List.of()))
@@ -131,7 +150,7 @@ class ReviewServiceTest {
 			.reservationTime(LocalTime.of(12, 0))
 			.build();
 
-		when(reservationService.getById(reservationId)).thenReturn(mockReservation);
+		given(reservationService.getById(reservationId)).willReturn(mockReservation);
 
 	    // when & then
 		assertThatThrownBy(() -> reviewService.create(storeId, userId, dto, List.of()))

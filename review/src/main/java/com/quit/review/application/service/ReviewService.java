@@ -8,5 +8,5 @@ import org.springframework.web.multipart.MultipartFile;
 import com.quit.review.application.dto.ReviewCreateDto;
 
 public interface ReviewService {
-	void create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
+	UUID create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
 }
