@@ -39,11 +39,7 @@ public class ReviewController {
 		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
 		UUID reviewId = reviewService.create(storeId, Long.parseLong(userId), request.toDto(), files);
-		URI location = ServletUriComponentsBuilder
-			.fromCurrentRequest()
-			.path("/{reviewId}")
-			.buildAndExpand(reviewId)
-			.toUri();
+		URI location = URI.create("/api/stores/" + storeId + "/reviews/" + reviewId);
 		return ResponseEntity.created(location).body(ApiResponse.success(HttpStatus.CREATED, "Review Created"));
 	}
 }
