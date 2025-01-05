@@ -1,12 +1,49 @@
-#회원 가입
+###회원 가입
 POST http://host.docker.internal:19092/api/auth/signup
 Content-Type: application/json
 Accept: application/json
 
 {
-  "email":"user2@email.com",
-  "password" :"User2222@",
-  "nickname":"사용자2",
-  "phone":"010-2222-2222",
-  "birthdate":"2000-01-01"
+  "email":"user5@email.com",
+  "password" :"User5555@",
+  "nickname":"사용자5",
+  "phone":"010-5555-5555",
+  "birthdate":"2000-05-05"
 }
+
+###로그인
+POST http://host.docker.internal:19092/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+"email":"user5@email.com",
+"password" :"User5555@"
+}
+
+###사용자 전체 조회
+GET http://host.docker.internal:19092/api/users
+Content-Type: application/json
+Accept: application/json
+
+###특정 사용자 조회
+GET http://host.docker.internal:19092/api/users/1
+Content-Type: application/json
+Accept: application/json
+
+###회원 정보 수정
+PUT http://host.docker.internal:19092/api/users/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user1@email.com",
+  "nickname":"갈매기살항정살",
+  "phone":"010-1111-4444",
+  "birthdate":"2000-05-05"
+}
+
+###사용자 탈퇴
+DELETE http://host.docker.internal:19092/api/users/152
+Content-Type: application/json
+Accept: application/json
