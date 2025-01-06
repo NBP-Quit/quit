@@ -14,7 +14,9 @@ public enum ErrorType {
     COMMON_SERVER_ERROR(INTERNAL_SERVER_ERROR, "서버에서 에러가 발생하였습니다."),
     COMMON_VALIDATION_ERROR(BAD_REQUEST, "요청 데이터가 유효하지 않습니다."),
     USER_NOT_SAME(BAD_REQUEST, "해당 작성자가 아닙니다."),
-
+    CUSTOMER_ID_NOT_SAME(BAD_REQUEST, "예약자 정보가 일치하지 않습니다."),
+    ACCESS_DENIED(UNAUTHORIZED, "작업을 수행하기 위한 권한이 없습니다."),
+    NOT_FOUND_RESERVATION(BAD_REQUEST, "해당하는 예약 정보를 찾을 수 없습니다.")
     ;
 
     private final HttpStatus httpStatus;

@@ -61,7 +61,7 @@ public class ReservationService {
         log.info("상태 변경 예약 UUID : {}", reservationId);
         log.info("변경할 상태: {}", request.getReservationStatus());
 
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         //TODO: 취소 상태가 들어올 경우에 대한 예외 처리 변경하기
@@ -85,7 +85,7 @@ public class ReservationService {
     public void cancelReservation(UUID reservationId, String customerId) {
         //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
         log.info("예약 취소 작업 시작");
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         if (reservation.getCustomerId().equals(customerId)) {
@@ -97,13 +97,14 @@ public class ReservationService {
         throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
     }
 
+    //TODO: 예약 정보 수정 기능 삭제 고려 -> 시스템 특성 상 예약 수정 기능의 필요성이 낮다고 판단 됨
     @Transactional
     public UpdateReservationResponse updateReservationDetails(UUID reservationId,
                                                               UpdateReservationDto request,
                                                               String customerId) {
         //TODO: 추후 Version 사용 데이터 검증 작업 추가
         log.info("예약 수정 작업 시작");
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
@@ -133,7 +134,7 @@ public class ReservationService {
             throw new IllegalArgumentException("예약을 삭제할 권한이 없습니다.");
         }
 
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)) {
