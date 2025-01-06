@@ -1,9 +1,11 @@
 package com.quit.review.application.service;
 
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewCreateDto;
+import com.quit.review.application.dto.ReviewResponse;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.repository.ReviewRepository;
@@ -55,6 +58,17 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 
 		return reviewId;
+	}
+
+	@Override
+	public Slice<ReviewResponse> getAll(UUID storeId, Pageable pageable, List<String> tags) {
+		Slice<Review> reviewSlice = reviewRepository.getSliceByStoreIdAndTags(storeId, pageable, tags);
+
+		List<ReviewResponse> reviewResponses = reviewSlice.getContent().stream()
+			.map(ReviewResponse::from)
+			.toList();
+
+		return new SliceImpl<>(reviewResponses, pageable, reviewSlice.hasNext());
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {
