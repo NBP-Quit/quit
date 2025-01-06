@@ -27,7 +27,7 @@ public class QueueController {
     }
 
     @DeleteMapping("/stores/{storeId}")
-    public Mono<ApiResponse<String>> removeUserFromQueueForStore(@PathVariable UUID storeId,
+    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(@PathVariable UUID storeId,
                                                                  @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.removeUserFromQueueForStore(storeId, userId);
     }
@@ -45,7 +45,7 @@ public class QueueController {
     }
 
     @DeleteMapping("/reset")
-    public Mono<ApiResponse<String>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
+    public Mono<ApiResponse<Object>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
                                                         @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.resetQueueForStore(storeId);
     }

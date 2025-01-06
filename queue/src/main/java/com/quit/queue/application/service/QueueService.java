@@ -26,14 +26,17 @@ public class QueueService {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
+        String userQueueKey = "queue:user:" + userId;
 
-        return reactiveRedisTemplate.opsForSet().isMember(globalUserKey, userId.toString())
-                .flatMap(isMember -> {
-                    if (isMember) {
-                        return Mono.error(new IllegalStateException("User already in another queue"));
+        return reactiveRedisTemplate.opsForValue().get(userQueueKey)
+                .switchIfEmpty(Mono.just(""))
+                .flatMap(currentQueue -> {
+                    if (currentQueue.equals(storeId.toString())) {
+                        return Mono.just(ApiResponse.success("User is already in the current queue"));
+                    } else if (!currentQueue.isEmpty() && !currentQueue.equals(storeId.toString())) {
+                        return Mono.error(new IllegalStateException("User is already in another queue"));
                     } else {
-                        return reactiveRedisTemplate.opsForSet().add(globalUserKey, userId.toString())
+                        return reactiveRedisTemplate.opsForValue().set(userQueueKey, storeId.toString())
                                 .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
                                         .next()
                                         .map(ZSetOperations.TypedTuple::getScore)
@@ -46,7 +49,6 @@ public class QueueService {
                                                         if (rank == null) {
                                                             return Mono.error(new IllegalStateException("Failed to get rank"));
                                                         }
-
                                                         return Mono.just(ApiResponse.success(rank + 1));
                                                     });
                                         })
@@ -114,56 +116,64 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<String>> removeUserFromQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
+        String userQueueKey = "queue:user:" + userId;
+        String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
 
-        return reactiveRedisTemplate.opsForZSet().remove(key, userId.toString())
-                .flatMap(result -> {
-                    if (result > 0) {
-                        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, userId.toString())
-                                .then(Mono.just(ApiResponse.<String>success("User removed from queue successfully")));
+        return reactiveRedisTemplate.opsForValue().get(userQueueKey)
+                .flatMap(currentQueue -> {
+                    if (currentQueue != null && !currentQueue.equals(storeId.toString())) {
+                        return Mono.error(new IllegalStateException("User not in the specified store queue"));
                     }
-                    return Mono.error(new IllegalArgumentException("User not found in queue"));
+
+                    return reactiveRedisTemplate.opsForZSet().remove(key, userId.toString())
+                            .flatMap(result -> {
+                                if (result > 0) {
+                                    return reactiveRedisTemplate.delete(userQueueKey, refreshKey)
+                                            .then(Mono.just(ApiResponse.success("User removed from queue successfully")));
+                                }
+                                return Mono.error(new IllegalArgumentException("User not found in queue"));
+                            });
                 })
                 .onErrorResume(e -> Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Failed to remove user from queue: " + e.getMessage())));
     }
 
-    public Mono<ApiResponse<String>> resetQueueForStore(UUID storeId) {
+    public Mono<ApiResponse<Object>> resetQueueForStore(UUID storeId) {
         // TODO 권한 검증 추가
 
         return (storeId == null) ? resetAllQueues() : resetStoreQueue(storeId);
     }
 
-    private Mono<ApiResponse<String>> resetAllQueues() {
-        String globalUserKey = "queue:global:users";
-
-        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:store:*:users").build())
+    private Mono<ApiResponse<Object>> resetAllQueues() {
+        // 모든 관련 키를 삭제 (queue:store:* 및 queue:user:*)
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:*").build())
                 .flatMap(reactiveRedisTemplate::delete)
-                .then(reactiveRedisTemplate.delete(globalUserKey))
-                .then(Mono.just(ApiResponse.<String>success("All store queues have been reset successfully.")))
-                .onErrorMap(e -> new RuntimeException("Failed to reset all store queues", e));
+                .then(Mono.just(ApiResponse.success("All queues have been reset successfully.")))
+                .onErrorMap(e -> new RuntimeException("Failed to reset all queues", e));
     }
 
-    private Mono<ApiResponse<String>> resetStoreQueue(UUID storeId) {
+    private Mono<ApiResponse<Object>> resetStoreQueue(UUID storeId) {
         String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
 
         return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
                 .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
-                .flatMapSequential(queuedUserId -> removeFromGlobalQueue(globalUserKey, queuedUserId))
+                .flatMapSequential(queuedUserId -> removeFromUserQueueAndRefreshKey(storeId, queuedUserId))
                 .then(reactiveRedisTemplate.delete(key))
-                .then(Mono.just(ApiResponse.<String>success("Store queue has been reset successfully.")))
+                .then(Mono.just(ApiResponse.success("Store queue has been reset successfully.")))
                 .onErrorMap(e -> new RuntimeException("Failed to reset store queue for storeId: " + storeId, e));
     }
 
-    private Mono<Void> removeFromGlobalQueue(String globalUserKey, String queuedUserId) {
-        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, queuedUserId)
-                .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
-                .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from globalUserKey.", e))
+    private Mono<Void> removeFromUserQueueAndRefreshKey(UUID storeId, String queuedUserId) {
+        String userQueueKey = "queue:user:" + queuedUserId;
+        String refreshKey = "queue:store:" + storeId + ":refresh:" + queuedUserId;
+
+        return reactiveRedisTemplate.delete(userQueueKey, refreshKey)
+                .doOnSuccess(count -> log.debug("Removed user {} and its refresh key from queue info", queuedUserId))
+                .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from its queue info.", e))
                 .then();
     }
 
