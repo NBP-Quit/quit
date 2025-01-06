@@ -1,11 +1,16 @@
 package com.quit.user.domain.service;
 
+import com.quit.user.application.dto.TokenDto;
 import com.quit.user.application.dto.UserDto;
+import com.quit.user.common.jwt.JwtUtil;
 import com.quit.user.domain.model.User;
 import com.quit.user.infrastructure.repository.UserRepository;
+import com.quit.user.presentation.request.LoginRequest;
 import com.quit.user.presentation.request.SignupRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +20,8 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     public UserDto signup(@Valid SignupRequest signupRequest) {
         // 비밀번호 암호화
@@ -38,4 +45,5 @@ public class AuthService {
         return UserDto.of(user);
 
     }
+
 }

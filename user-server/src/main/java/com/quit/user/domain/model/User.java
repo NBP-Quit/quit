@@ -54,7 +54,7 @@ public class User extends BaseEntity {
                               String phone,
                               String birthdate,
                               String address) {
-        return User.builder()
+        return com.quit.user.domain.model.User.builder()
                 .email(email)
                 .password(password)
                 .nickname(nickname)
@@ -63,5 +63,19 @@ public class User extends BaseEntity {
                 .birthdate(birthdate)
                 .address(address)
                 .build();
+    }
+
+    public void update(Long id,
+                       String email,
+                      String nickname,
+                      String phone,
+                      String birthdate,
+                      String address){
+        this.email = email;
+        this.nickname = nickname;
+        this.phone = phone;
+        this.birthdate = birthdate;
+        this.address = address;
+        markAsUpdated(String.valueOf(this.id));
     }
 }
