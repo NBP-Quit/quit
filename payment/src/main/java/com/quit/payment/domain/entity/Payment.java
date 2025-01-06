@@ -58,4 +58,10 @@ public class Payment {
                 .build();
     }
 
+    public void updateStatus(Status status) {
+        if(status != null) {
+            this.status = status;
+        }
+    }
+
 }
