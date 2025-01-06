@@ -1,7 +1,6 @@
 package com.quit.reservation.domain.model;
 
 import com.quit.reservation.domain.enums.ReservationStatus;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,6 +46,19 @@ public class Reservation implements Serializable {
     @Version
     private Integer version;
 
+    //TODO: isDeleted 필드 및 삭제 메서드 임시 사용 - Base Entity 연결 후 삭제 예정
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted;
+    public void markDeleted() {
+        this.isDeleted = true;
+    }
+    @PrePersist
+    private void prePersistence() {
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
+    }
+
     public static Reservation create(String customerId,
                                      UUID storeId,
                                      Integer guestCount,
@@ -64,5 +76,19 @@ public class Reservation implements Serializable {
                 .reservationStatus(reservationStatus)
                 .reservationPrice(reservationPrice)
                 .build();
+    }
+
+    public void changeStatus(ReservationStatus reservationStatus) {
+        this.reservationStatus = reservationStatus;
+    }
+
+    public void cancel() {
+        this.reservationStatus = ReservationStatus.CANCELED;
+    }
+
+    public void updateDetails(Integer guestCount, LocalDate reservationDate, LocalTime reservationTime) {
+        this.guestCount = guestCount;
+        this.reservationDate = reservationDate;
+        this.reservationTime = reservationTime;
     }
 }
