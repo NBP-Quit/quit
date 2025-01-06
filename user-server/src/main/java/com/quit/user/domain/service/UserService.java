@@ -53,6 +53,6 @@ public class UserService {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("해당하는 ID값을 갖는 사용자가 존재하지 않습니다."));
 
-        userRepository.delete(user);
+        user.markAsDeleted(String.valueOf(id));
     }
 }
