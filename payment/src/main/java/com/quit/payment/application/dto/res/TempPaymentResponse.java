@@ -12,20 +12,20 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TempPaymentResponse {
 
-    private UUID tempPaymentId;
+    private UUID id;
     private String orderId;
     private Integer amount;
 
     @Builder
-    private TempPaymentResponse(UUID tempPaymentId, String orderId, Integer amount) {
-        this.tempPaymentId = tempPaymentId;
+    private TempPaymentResponse(UUID id, String orderId, Integer amount) {
+        this.id = id;
         this.orderId = orderId;
         this.amount = amount;
     }
 
     public static TempPaymentResponse from(TempPayment tempPayment) {
         return TempPaymentResponse.builder()
-                .tempPaymentId(tempPayment.getId())
+                .id(tempPayment.getId())
                 .orderId(tempPayment.getOrderId())
                 .amount(tempPayment.getAmount())
                 .build();
