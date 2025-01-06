@@ -14,16 +14,15 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateReservationSlotRequest {
-    //todo: validation message 작성
 
-    @NotNull
+    @NotNull(message = "RESERVATION_SLOT_DATE_EMPTY")
     private LocalDate date;
 
-    @NotNull
+    @NotNull(message = "RESERVATION_SLOT_TIME_EMPTY")
     private LocalTime time;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "RESERVATION_SLOT_MAX_CAPACITY_EMPTY")
+    @Positive(message = "RESERVATION_SLOT_MAX_CAPACITY_INVALID")
     private Integer maxCapacity;
 
     public ReservationSlotDto toDto() {

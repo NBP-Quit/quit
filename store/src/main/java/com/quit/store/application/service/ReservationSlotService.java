@@ -89,19 +89,19 @@ public class ReservationSlotService {
 
     private void validateMaxCapacity(ReservationSlot slot, Integer maxCapacity) {
         if(maxCapacity != null && maxCapacity < slot.getCurrentCapacity()) {
-            throw new CustomException(RESERVATION_SLOT_MAX_CAPACITY_INVALID);
+            throw new CustomException(RESERVATION_SLOT_MAX_CAPACITY_NOT_ALLOWED);
         }
     }
 
     private void validateTime(ReservationSlot slot, LocalTime time) {
         if(slot.getCurrentCapacity() > 0 && time != null && !time.equals(slot.getTime())) {
-            throw new CustomException(RESERVATION_SLOT_TIME_CHANGE_NOT_ALLOWED);
+            throw new CustomException(RESERVATION_SLOT_TIME_NOT_ALLOWED);
         }
     }
 
     private void validateDate(ReservationSlot slot, LocalDate date) {
         if(slot.getCurrentCapacity() > 0 && date != null && !date.equals(slot.getDate())) {
-            throw new CustomException(RESERVATION_SLOT_DATE_CHANGE_NOT_ALLOWED);
+            throw new CustomException(RESERVATION_SLOT_DATE_NOT_ALLOWED);
         }
     }
 
