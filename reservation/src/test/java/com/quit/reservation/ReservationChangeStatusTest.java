@@ -90,7 +90,7 @@ public class ReservationChangeStatusTest {
                 reservationService.cancelReservation(reservationId, customerId)
         );
 
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         assertEquals(ReservationStatus.CANCELED, reservation.getReservationStatus());
