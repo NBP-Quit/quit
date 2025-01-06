@@ -15,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.quit.review.domain.model.Review;
-import com.quit.review.infrastructure.Util.QueryDslUtils;
+import com.quit.review.infrastructure.util.QueryDslUtils;
 
 import lombok.RequiredArgsConstructor;
 

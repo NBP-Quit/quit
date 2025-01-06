@@ -1,4 +1,4 @@
-package com.quit.review.infrastructure.Util;
+package com.quit.review.infrastructure.util;
 
 import org.springframework.data.domain.Pageable;
 
