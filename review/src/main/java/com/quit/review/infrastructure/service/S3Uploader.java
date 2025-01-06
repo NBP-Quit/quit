@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.quit.review.common.CustomApiException;
@@ -30,10 +31,19 @@ public class S3Uploader implements ImageUploader {
 		ObjectMetadata objectMetaData = getObjectMetaData(file);
 		try {
 			amazonS3.putObject(bucket, DIRECTORY + filename, file.getInputStream(), objectMetaData);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new CustomApiException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패하였습니다 : " + e.getMessage());
 		}
 		return amazonS3.getUrl(bucket, DIRECTORY + filename).toString();
+	}
+
+	@Override
+	public void delete(String key) {
+		try {
+			amazonS3.deleteObject(new DeleteObjectRequest(bucket, key));
+		} catch (Exception e) {
+			throw new CustomApiException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 삭제에 실패하였습니다. : " + e.getMessage());
+		}
 	}
 
 	private ObjectMetadata getObjectMetaData(MultipartFile file) {

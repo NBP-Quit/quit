@@ -35,4 +35,11 @@ public class Scores {
 	public double calculateAverage() {
 		return (taste + ambience + kindness + cleanliness) / 4.0;
 	}
+
+	public void update(int taste, int ambience, int kindness, int cleanliness) {
+		this.taste = taste;
+		this.ambience = ambience;
+		this.kindness = kindness;
+		this.cleanliness = cleanliness;
+	}
 }

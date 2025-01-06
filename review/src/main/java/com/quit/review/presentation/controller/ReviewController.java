@@ -10,9 +10,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +26,7 @@ import com.quit.review.application.dto.ReviewResponse;
 import com.quit.review.application.service.ReviewService;
 import com.quit.review.common.ApiResponse;
 import com.quit.review.presentation.request.ReviewCreateRequest;
+import com.quit.review.presentation.request.ReviewUpdateRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,5 +57,25 @@ public class ReviewController {
 		@RequestParam(required = false) List<String> tags
 	) {
 		return ResponseEntity.ok(ApiResponse.success(reviewService.getAll(storeId, pageable, tags)));
+	}
+
+	@PutMapping("/reviews/{reviewId}")
+	public ResponseEntity<ApiResponse<?>> update(
+		@PathVariable UUID reviewId,
+		@RequestHeader(value = "X-User-ID") String userId,
+		@RequestPart("review") @Valid ReviewUpdateRequest request,
+		@RequestPart(value = "files", required = false) List<MultipartFile> files
+	) {
+		reviewService.update(reviewId, Long.parseLong(userId), request.toDto(), files);
+		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Updated"));
+	}
+
+	@DeleteMapping("/reviews/{reviewId}")
+	public ResponseEntity<ApiResponse<?>> delete(
+		@PathVariable UUID reviewId,
+		@RequestHeader(value = "X-User-ID") String userId
+	) {
+		reviewService.delete(reviewId, Long.parseLong(userId));
+		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Deleted"));
 	}
 }

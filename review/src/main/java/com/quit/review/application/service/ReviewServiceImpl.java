@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewUpdateDto;
+import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.repository.ReviewRepository;
@@ -51,13 +53,13 @@ public class ReviewServiceImpl implements ReviewService {
 		// 평균 별점 계산 후 저장
 		review.applyAverageScore();
 
-		UUID reviewId = reviewRepository.save(review).getId();
+		Review savedReview = reviewRepository.save(review);
 
 		if (!CollectionUtils.isEmpty(files)) {
-			files.forEach(file -> imageService.create(file, reviewId));
+			files.forEach(file -> imageService.create(file, savedReview));
 		}
 
-		return reviewId;
+		return savedReview.getId();
 	}
 
 	@Override
@@ -69,6 +71,34 @@ public class ReviewServiceImpl implements ReviewService {
 			.toList();
 
 		return new SliceImpl<>(reviewResponses, pageable, reviewSlice.hasNext());
+	}
+
+	@Override
+	@Transactional
+	public void update(UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
+
+		ScoresDto scores = dto.getScores();
+		review.updateScores(scores.getTaste(), scores.getAmbience(), scores.getKindness(), scores.getCleanliness());
+		review.updateContent(dto.getContent());
+
+		// 이미지 파일이 있다면 해당 리뷰로 저장된 모든 이미지 삭제 후 재업로드
+		if (!CollectionUtils.isEmpty(files)) {
+			imageService.deleteAll(review);
+			files.forEach(file -> {
+				imageService.create(file, review);
+			});
+		}
+	}
+
+	@Override
+	@Transactional
+	public void delete(UUID reviewId, Long userId) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
+		review.delete();
+		imageService.deleteAll(review);
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {
