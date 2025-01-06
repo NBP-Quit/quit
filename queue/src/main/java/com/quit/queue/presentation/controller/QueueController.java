@@ -38,6 +38,12 @@ public class QueueController {
         return queueService.getUserPositionInQueueForStore(storeId, userId);
     }
 
+    @PostMapping("/stores/{storeId}/users/refresh")
+    public Mono<ApiResponse<Integer>> checkUserInQueueForStore(@PathVariable UUID storeId,
+                                                               @RequestHeader(value = "X-User-Id") Long userId) {
+        return queueService.checkUserInQueueForStore(storeId, userId);
+    }
+
     @DeleteMapping("/reset")
     public Mono<ApiResponse<String>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
                                                         @RequestHeader(value = "X-User-Id") Long userId) {

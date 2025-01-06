@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -157,5 +158,23 @@ public class QueueService {
                 .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
                 .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from globalUserKey.", e))
                 .then();
+    }
+
+    public Mono<ApiResponse<Integer>> checkUserInQueueForStore(UUID storeId, Long userId) {
+        // TODO 권한 검증 추가
+
+        String queueKey = "queue:store:" + storeId + ":users";
+        String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
+
+        return reactiveRedisTemplate.opsForZSet().rank(queueKey, userId.toString())
+                .flatMap(rank -> {
+                    if (rank == null) {
+                        return Mono.error(new IllegalStateException("User not found in queue"));
+                    }
+
+                    return reactiveRedisTemplate.opsForValue().set(refreshKey, String.valueOf(System.currentTimeMillis()))
+                            .then(reactiveRedisTemplate.expire(refreshKey, Duration.ofMinutes(5)))
+                            .then(Mono.just(ApiResponse.success(rank.intValue() + 1)));
+                });
     }
 }
