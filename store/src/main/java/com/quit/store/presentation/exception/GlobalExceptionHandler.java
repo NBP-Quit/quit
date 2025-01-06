@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -57,6 +58,14 @@ public class GlobalExceptionHandler {
             return createResponseEntity(customException.getErrorType());
         }
         return createResponseEntity(INTERNAL_SERVER_ERROR, ErrorType.COMMON_SERVER_ERROR.name(), e.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<CustomErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        logError(e);
+        String parameterName = e.getParameterName();
+        String errorMessage = String.format("필수 요청 파라미터인 '%s' 가 존재하지 않습니다.", parameterName);
+        return createResponseEntity(BAD_REQUEST, ErrorType.COMMON_INVALID_PARAMETER.name(), errorMessage);
     }
 
     private ErrorType errorMessageToErrorCode(String errorMessage, ErrorType defaultErrorCode) {

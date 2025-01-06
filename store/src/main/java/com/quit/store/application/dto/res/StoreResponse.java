@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -23,12 +24,18 @@ public class StoreResponse {
     private LocalTime closeTime;
     private LocalTime lastOrderTime;
     private Category category;
+    private LocalDateTime createdAt;
+    private String createdBy;
+    private LocalDateTime updatedAt;
+    private String updatedBy;
 
     @Builder
     private StoreResponse(UUID id, String name, String description, String address,
                           String contactNumber, Integer reservationDeposit,
                           LocalTime openTime, LocalTime closeTime,
-                          LocalTime lastOrderTime, Category category) {
+                          LocalTime lastOrderTime, Category category,
+                          LocalDateTime createdAt, String createdBy,
+                          LocalDateTime updatedAt, String updatedBy) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -39,6 +46,10 @@ public class StoreResponse {
         this.closeTime = closeTime;
         this.lastOrderTime = lastOrderTime;
         this.category = category;
+        this.createdAt = createdAt;
+        this.createdBy = createdBy;
+        this.updatedAt = updatedAt;
+        this.updatedBy = updatedBy;
     }
 
     public static StoreResponse from(Store store) {
@@ -53,6 +64,10 @@ public class StoreResponse {
                 .closeTime(store.getCloseTime())
                 .lastOrderTime(store.getLastOrderTime())
                 .category(store.getCategory())
+                .createdAt(store.getCreatedAt())
+                .createdBy(store.getCreatedBy())
+                .updatedAt(store.getUpdatedAt())
+                .updatedBy(store.getUpdatedBy())
                 .build();
     }
 
