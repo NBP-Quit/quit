@@ -22,7 +22,7 @@ import java.util.UUID;
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
-    public Mono<ApiResponse<Float>> addUserToQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
@@ -41,7 +41,14 @@ public class QueueService {
                                         .flatMap(highestScore -> {
                                             float newScore = (highestScore == 0.0) ? 1.0f : (float) (highestScore + 1);
                                             return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
-                                                    .then(Mono.just(ApiResponse.success(newScore)));
+                                                    .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
+                                                    .flatMap(rank -> {
+                                                        if (rank == null) {
+                                                            return Mono.error(new IllegalStateException("Failed to get rank"));
+                                                        }
+
+                                                        return Mono.just(ApiResponse.success(rank + 1));
+                                                    });
                                         })
                                 );
                     }
