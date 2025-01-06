@@ -47,14 +47,14 @@ public class PaymentService {
             2. 결제 생성 후 메세지 발행하기
          */
         UUID reservationId = UUID.randomUUID();
-        Payment payment = create(response, request, reservationId);
+        Payment payment = create(response, reservationId);
         paymentRepository.save(payment);
         return PaymentResponse.from(payment);
     }
 
-    private Payment create(ConfirmPaymentResponse response, PaymentDto request, UUID reservationId) {
+    private Payment create(ConfirmPaymentResponse response, UUID reservationId) {
         return Payment.of(
-                request.getAmount(),
+                response.getTotalAmount(),
                 Status.SUCCESS,
                 response.getPaymentKey(),
                 response.getOrderId(),
