@@ -28,12 +28,13 @@ public class JwtUtil {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
     }
 
-    public TokenDto createToken(Long id, UserRoleEnum role) {
+    public TokenDto createToken(String email, UserRoleEnum role, String nickname) {
 
         log.info("=========== 토큰 생성 시작 +++++++++++++++");
         return TokenDto.of(Jwts.builder()
-                .subject(String.valueOf(id))
+                .subject(email)
                 .claim("role", role)
+                .claim("nickname", nickname)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(secretKey)
