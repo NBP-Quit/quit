@@ -42,16 +42,23 @@ public class PaymentService {
         validateAmount(tempPayment, request.getAmount());
         ConfirmPaymentResponse response = paymentClient.confirmPayment(request);
         log.info("Confirm payment response: {}", response);
-        // todo: kafka 적용 후 예약 생성 구독해 예약 id 가져오기
+        /* todo:
+            1. kafka 적용 후 예약 생성 구독해 예약 id 가져오기
+            2. 결제 생성 후 메세지 발행하기
+         */
         UUID reservationId = UUID.randomUUID();
-        Payment payment = Payment.of(
+        Payment payment = create(response, request, reservationId);
+        paymentRepository.save(payment);
+        return PaymentResponse.from(payment);
+    }
+
+    private Payment create(ConfirmPaymentResponse response, PaymentDto request, UUID reservationId) {
+        return Payment.of(
                 request.getAmount(),
                 Status.SUCCESS,
                 response.getPaymentKey(),
                 response.getOrderId(),
                 reservationId);
-        paymentRepository.save(payment);
-        return PaymentResponse.from(payment);
     }
 
     private void validateAmount(TempPayment tempPayment, Integer amount) {
@@ -61,7 +68,8 @@ public class PaymentService {
     }
 
     private TempPayment ValidatePayment(String orderId) {
-        return tempPaymentRepository.findByOrderId(orderId).orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
+        return tempPaymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
     }
 
 }
