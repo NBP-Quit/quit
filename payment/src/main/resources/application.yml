@@ -20,3 +20,13 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:19090/eureka/
+
+payment:
+  secret-key: ${PAYMENT_SECRET_KEY}
+  base-url: https://api.tosspayments.com/v1/payments
+
+logging:
+  level:
+    root: INFO
+    com.quit.payment.infrastructure: DEBUG
+    feign: DEBUG
