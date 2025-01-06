@@ -30,15 +30,5 @@ public class AuthController {
                 .ok(ApiResponse.success(createdUser));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> login(@Valid @RequestBody LoginRequest loginRequest) {
-
-        try {
-            TokenDto token = authService.login(loginRequest);
-            return ResponseEntity.ok(ApiResponse.success(token));
-        } catch (Exception e) {
-            throw new IllegalArgumentException("로그인에 실패했습니다. 아이디와 비밀번호를 다시 확인해주세요.", e);
-        }
-    }
 }
 

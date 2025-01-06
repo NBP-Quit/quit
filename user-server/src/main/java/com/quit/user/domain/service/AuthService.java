@@ -46,22 +46,4 @@ public class AuthService {
 
     }
 
-    public TokenDto login(@Valid LoginRequest loginRequest) {
-
-        // 사용자 이메일 존재 여부 확인
-        User user = (User) userRepository.findByEmail(loginRequest.email()).orElseThrow(
-                () -> new IllegalArgumentException("아이디 혹은 비밀번호가 일치하지 않습니다.")
-        );
-
-        //비밀번호 확인
-        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-            throw new IllegalArgumentException("아이디 혹은 비밀번호가 일치하지 않습니다.");
-        }
-
-        //토큰 발행
-        TokenDto token = jwtUtil.createToken(user.getId(), user.getRole());
-        log.info("======== 발행된 토큰 : " + token + "==================");
-
-        return token;
-    }
 }
