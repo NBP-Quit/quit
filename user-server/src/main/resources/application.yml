@@ -28,3 +28,9 @@ eureka:
 jwt:
   access-expiration: "#{60 * 60 * 1000}"
   secret-key: ${JWT_SECRET_KEY}
+
+logging:
+  level:
+    org:
+      springframework:
+        security=DEBUG:
