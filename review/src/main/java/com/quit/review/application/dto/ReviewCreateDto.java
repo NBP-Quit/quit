@@ -16,16 +16,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class ReviewCreateDto {
-	private UUID reservationId;
 	private String content;
 	private ScoresDto scores;
 
-	public Review toEntity(UUID storeId, Long userId, String nickname) {
+	public Review toEntity(UUID reservationId, UUID storeId, Long userId, String nickname) {
 		return Review.builder()
+			.reservationId(reservationId)
 			.storeId(storeId)
 			.userId(userId)
 			.nickname(nickname)
-			.reservationId(reservationId)
 			.content(content)
 			.scores(
 				Scores.builder()

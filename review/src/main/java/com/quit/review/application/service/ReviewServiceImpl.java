@@ -36,14 +36,14 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public UUID create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
+	public UUID create(UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
 		// 예약 정보를 조회하여 예약 상태와 권한을 검증
-		ReservationResponse reservation = reservationService.getById(dto.getReservationId());
+		ReservationResponse reservation = reservationService.getById(reservationId);
 		validate(userId, reservation);
 
 		// 유저 서비스에서 유저 정보 조회 후 nickname 추출
 		String nickname = userService.getNicknameById(userId);
-		Review review = dto.toEntity(storeId, userId, nickname);
+		Review review = dto.toEntity(reservationId, reservation.getStoreId(), userId, nickname);
 
 		// 예약 시간을 기준으로 식사 유형(아침, 점심, 저녁)을 지정
 		review.decideMealType(reservation.getReservationTime());

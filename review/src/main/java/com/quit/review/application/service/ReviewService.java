@@ -11,7 +11,7 @@ import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
 
 public interface ReviewService {
-	UUID create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
+	UUID create(UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
 
 	Slice<ReviewResponse> getAll(UUID storeId, Pageable pageable, List<String> tags);
 }

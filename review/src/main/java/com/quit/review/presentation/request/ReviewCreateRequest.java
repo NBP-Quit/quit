@@ -21,9 +21,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReviewCreateRequest {
 
-	@NotNull
-	private UUID reservationId;
-
 	@NotBlank
 	@Size(min = 10, max = 1000)
 	private String content;
@@ -34,7 +31,6 @@ public class ReviewCreateRequest {
 
 	public ReviewCreateDto toDto() {
 		return ReviewCreateDto.builder()
-			.reservationId(reservationId)
 			.content(content)
 			.scores(
 				ScoresDto.builder()

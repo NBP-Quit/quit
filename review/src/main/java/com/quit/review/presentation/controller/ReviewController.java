@@ -35,15 +35,15 @@ public class ReviewController {
 
 	private final ReviewService reviewService;
 
-	@PostMapping("/stores/{storeId}/reviews")
+	@PostMapping("/reservations/{reservationId}/reviews")
 	public ResponseEntity<ApiResponse<Void>> create(
-		@PathVariable UUID storeId,
+		@PathVariable UUID reservationId,
 		@RequestHeader(value = "X-User-ID") String userId,
 		@RequestPart("review") @Valid ReviewCreateRequest request,
 		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
-		UUID reviewId = reviewService.create(storeId, Long.parseLong(userId), request.toDto(), files);
-		URI location = URI.create("/api/stores/" + storeId + "/reviews/" + reviewId);
+		UUID reviewId = reviewService.create(reservationId, Long.parseLong(userId), request.toDto(), files);
+		URI location = URI.create("/api/reviews/" + reviewId);
 		return ResponseEntity.created(location).body(ApiResponse.success(HttpStatus.CREATED, "Review Created"));
 	}
 
