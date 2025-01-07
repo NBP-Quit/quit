@@ -1,0 +1,20 @@
+package com.quit.reservation.infrastructure.client;
+
+import com.quit.reservation.common.dto.ApiResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.UUID;
+
+@FeignClient(name = "store")
+public interface StoreReservationSlotClient {
+
+    @GetMapping("/api/stores/{storeId}/reservation-slot")
+    ApiResponse<ReservationSlotResponse> getSlotByDateAndTime(@PathVariable("storeId") UUID storeId,
+                                                              @RequestParam LocalDate date,
+                                                              @RequestParam LocalTime time);
+}
