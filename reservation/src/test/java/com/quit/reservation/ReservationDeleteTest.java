@@ -38,7 +38,7 @@ public class ReservationDeleteTest {
 
         reservationService.deleteReservation(reservationId, managerId, role);
 
-        Reservation reservation = reservationRepository.findByReservationId(reservationId)
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
                 .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
 
         assertEquals(true, reservation.getIsDeleted());

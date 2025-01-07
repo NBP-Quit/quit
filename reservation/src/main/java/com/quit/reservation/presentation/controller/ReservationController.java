@@ -1,15 +1,19 @@
 package com.quit.reservation.presentation.controller;
 
-import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
-import com.quit.reservation.application.dto.CreateReservationResponse;
-import com.quit.reservation.application.dto.UpdateReservationResponse;
+import com.querydsl.core.types.Predicate;
+import com.quit.reservation.application.dto.*;
+import com.quit.reservation.application.service.ReservationQueryService;
 import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.common.dto.ApiResponse;
 import com.quit.reservation.domain.enums.Role;
+import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
 import com.quit.reservation.presentation.request.CreateReservationRequest;
 import com.quit.reservation.presentation.request.UpdateReservationRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final ReservationQueryService reservationQueryService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateReservationResponse>> createReservation(@RequestBody CreateReservationRequest request) {
@@ -49,6 +54,7 @@ public class ReservationController {
         return ResponseEntity.ok(ApiResponse.success("예약을 취소 했습니다."));
     }
 
+    //TODO: 예약 정보 수정 삭제 고려
     @PatchMapping("/{reservationId}/details")
     public ResponseEntity<ApiResponse<UpdateReservationResponse>> updateReservation(@PathVariable UUID reservationId,
                                                                                     @RequestBody UpdateReservationRequest request) {
@@ -64,5 +70,41 @@ public class ReservationController {
         String managerId = "testManager";
         reservationService.deleteReservation(reservationId, managerId, role);
         return ResponseEntity.ok(ApiResponse.success("예약을 삭제 했습니다."));
+    }
+
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ApiResponse<ReservationResponse>> getReservation(@PathVariable UUID reservationId) {
+
+        //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가) 3
+        String customerId = "testUser";
+        return ResponseEntity.ok(ApiResponse.success(reservationQueryService.getReservation(reservationId, customerId)));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<GetReservationResponse>> findReservations(@PageableDefault Pageable pageable) {
+        //TODO: customerId 임시값 사용 header 값으로 변경
+        String customerId = "testUser";
+        return ResponseEntity.ok(ApiResponse.success(
+                reservationQueryService.findReservations(customerId, pageable)));
+    }
+
+    @GetMapping("/store/{storeId}")
+    public ResponseEntity<ApiResponse<GetReservationResponse>> findReservationsByStore(@PathVariable UUID storeId,
+                                                                                       @PageableDefault Pageable pageable) {
+        //TODO: role 임시값 사용 - 본인 가게만 조회할 수 있도록 처리 고려
+        Role role = Role.OWNER;
+        return ResponseEntity.ok(ApiResponse.success(
+                reservationQueryService.findReservationsByStore(storeId, role, pageable)));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<GetReservationResponse>> findAllReservations(
+            @QuerydslPredicate(root = Reservation.class) Predicate predicate,
+            @PageableDefault Pageable pageable) {
+
+        //TODO: Role 임시 값 사용
+        Role role = Role.MASTER;
+        return ResponseEntity.ok(ApiResponse.success(
+                reservationQueryService.findAllReservations(role, predicate, pageable)));
     }
 }
