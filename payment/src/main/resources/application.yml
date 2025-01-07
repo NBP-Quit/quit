@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: store
+  profiles:
+    active: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+
+server:
+  port: 19095
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:19090/eureka/
+
+payment:
+  secret-key: ${PAYMENT_SECRET_KEY}
+  base-url: https://api.tosspayments.com/v1/payments
+
+logging:
+  level:
+    root: INFO
+    com.quit.payment.infrastructure: DEBUG
+    feign: DEBUG
