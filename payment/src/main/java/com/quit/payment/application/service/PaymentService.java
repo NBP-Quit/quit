@@ -10,6 +10,7 @@ import com.quit.payment.domain.entity.TempPayment;
 import com.quit.payment.domain.repository.PaymentRepository;
 import com.quit.payment.domain.repository.TempPaymentRepository;
 import com.quit.payment.infrastructure.client.PaymentClient;
+import com.quit.payment.infrastructure.client.PaymentGateway;
 import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
 import com.quit.payment.presentation.dto.CancelPaymentRequest;
@@ -33,7 +34,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final TempPaymentRepository tempPaymentRepository;
-    private final PaymentClient paymentClient;
+    private final PaymentGateway paymentGateway;
 
     public TempPaymentResponse createTempPayment(TempPaymentDto request) {
         TempPayment tempPayment = TempPayment.of(request.getAmount(), request.getOrderId());
@@ -44,7 +45,7 @@ public class PaymentService {
     public PaymentResponse createPayment(PaymentDto request) {
         TempPayment tempPayment = ValidatePayment(request.getOrderId());
         validateAmount(tempPayment, request.getAmount());
-        ConfirmPaymentResponse response = paymentClient.confirmPayment(request);
+        ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
         log.info("Confirm payment response: {}", response);
         /* todo:
             1. kafka 적용 후 예약 생성 구독해 예약 id 가져오기
@@ -58,7 +59,7 @@ public class PaymentService {
 
     public PaymentResponse cancelPayment(UUID paymentsId, CancelPaymentRequest request) {
         Payment payment = checkPayment(paymentsId);
-        CancelPaymentResponse response = paymentClient.cancelPayment(payment.getPaymentKey(), request);
+        CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
         /* todo:
             1. kafka 적용 결제 취소 후 메세지 발행하기
