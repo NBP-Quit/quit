@@ -1,6 +1,9 @@
 package com.quit.queue.application.service.dto.res;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +21,7 @@ public class QueueResponse {
     @AllArgsConstructor
     public static class UserScore {
         private Long userId;
-        private Float score;
+        private Integer score;
     }
 
     public QueueResponse(UUID storeId) {
@@ -26,7 +29,7 @@ public class QueueResponse {
         this.userScores = new ArrayList<>();
     }
 
-    public void addUserScore(Long userId, Float score) {
+    public void addUserScore(Long userId, Integer score) {
         if (this.userScores == null) {
             this.userScores = new ArrayList<>();
         }

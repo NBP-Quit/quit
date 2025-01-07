@@ -33,8 +33,8 @@ public class QueueController {
     }
 
     @GetMapping("/stores/{storeId}/users/position")
-    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
-                                                                   @RequestHeader(value = "X-User-Id") Long userId) {
+    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
+                                                                     @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.getUserPositionInQueueForStore(storeId, userId);
     }
 

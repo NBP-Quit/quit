@@ -57,17 +57,18 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
 
-        return reactiveRedisTemplate.opsForZSet().score(key, userId.toString())
-                .flatMap(score -> {
-                    if (score == null) {
+        return reactiveRedisTemplate.opsForZSet().rank(key, userId.toString())
+                .switchIfEmpty(Mono.just(-1L))
+                .flatMap(rank -> {
+                    if (rank == null || rank == -1) {
                         return Mono.error(new IllegalStateException("User not found in queue"));
                     }
-                    return Mono.just(ApiResponse.success(score.floatValue()));
+                    return Mono.just(ApiResponse.success(rank.intValue()));
                 });
     }
 
@@ -88,7 +89,7 @@ public class QueueService {
                             .map(entries -> {
                                 QueueResponse response = new QueueResponse(storeId);
                                 entries.forEach(entry ->
-                                        response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue()));
+                                        response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().intValue()));
                                 return response;
                             });
                 })
@@ -106,7 +107,7 @@ public class QueueService {
                                 .map(entries -> {
                                     QueueResponse response = new QueueResponse(storeId);
                                     entries.forEach(entry ->
-                                            response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue()));
+                                            response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().intValue()));
                                     return response;
                                 })
                                 .map(ApiResponse::success);
@@ -184,8 +185,9 @@ public class QueueService {
         String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
 
         return reactiveRedisTemplate.opsForZSet().rank(queueKey, userId.toString())
+                .switchIfEmpty(Mono.just(-1L))
                 .flatMap(rank -> {
-                    if (rank == null) {
+                    if (rank == null || rank == -1) {
                         return Mono.error(new IllegalStateException("User not found in queue"));
                     }
 
