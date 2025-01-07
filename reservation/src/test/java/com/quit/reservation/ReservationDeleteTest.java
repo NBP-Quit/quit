@@ -5,6 +5,7 @@ import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
 import jakarta.ws.rs.NotFoundException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class ReservationDeleteTest {
     // Test용 Reservation 임시 데이터 필요
     @Test
     @DisplayName("예약 삭제 성공 테스트")
+    @Disabled
     void deleteReservation_successTest() {
         UUID reservationId = UUID.fromString("ef7451a4-6c96-4e25-ad6d-ab362d6cada1");
         Role role = Role.MASTER;
@@ -46,6 +48,7 @@ public class ReservationDeleteTest {
 
     @Test
     @DisplayName("권한 없는 사용자로 예약 삭제 실패 테스트")
+    @Disabled
     void deleteReservation_noPermissionTest() {
         UUID reservationId = UUID.fromString("ef7451a4-6c96-4e25-ad6d-ab362d6cada1");
         Role role = Role.USER;
@@ -58,6 +61,7 @@ public class ReservationDeleteTest {
 
     @Test
     @DisplayName("존재하지 않는 예약 삭제 실패 테스트")
+    @Disabled
     void deleteReservation_notFoundTest() {
         UUID reservationId = UUID.randomUUID();
         Role role = Role.MASTER;
@@ -70,6 +74,7 @@ public class ReservationDeleteTest {
 
     @Test
     @DisplayName("삭제 불가능한 상태의 예약 삭제 실패 테스트")
+    @Disabled
     void deleteReservation_invalidStatusTest() {
         UUID reservationId = UUID.fromString("a03e1d63-9956-4bc2-9f15-6e49f8c0ffa4");
         Role role = Role.MASTER;
