@@ -46,6 +46,8 @@ public class ReservationService {
                         request.getReservationTime())
                         .getData();
 
+        log.info("예약 슬롯 ID: {}", response.getSlotId());
+
         validateCreateReservationRequest(request);
         Boolean isAvailable = response.getIsAvailable();
         int availableCapacity = response.getMaxCapacity() - response.getCurrentCapacity();
@@ -57,7 +59,7 @@ public class ReservationService {
                             ReservationStatus.PENDING, 0)
             );
 
-            //TODO: Kafka를 사용해 store와 payment로 메시지 전송
+            //TODO: Kafka를 사용해 store와 payment로 메시지 전송 - 에약 slot id와 guest count 전송
             log.info("예약 UUID : {}", reservation.getReservationId());
             log.info("예약 정보 생성 완료");
             return CreateReservationResponse.of(reservation.getReservationId());

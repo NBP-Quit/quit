@@ -10,10 +10,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-@FeignClient(name = "store")
+@FeignClient(name = "store", url = "${FEIGN_URL}")
 public interface StoreReservationSlotClient {
 
-    @GetMapping("/api/stores/{storeId}/reservation-slot")
+    @GetMapping("/api/stores/{storeId}/reservation-slots/search")
     ApiResponse<ReservationSlotResponse> getSlotByDateAndTime(@PathVariable("storeId") UUID storeId,
                                                               @RequestParam LocalDate date,
                                                               @RequestParam LocalTime time);
