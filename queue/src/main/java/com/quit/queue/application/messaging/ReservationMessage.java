@@ -1,11 +1,6 @@
 package com.quit.queue.application.messaging;
 
-import com.quit.queue.application.dto.ReservationDto;
 import lombok.*;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -13,18 +8,18 @@ import java.util.UUID;
 @Builder(access = AccessLevel.PRIVATE)
 public class ReservationMessage {
     private String userId;
-    private UUID storeId;
-    private Integer guestCount;
-    private LocalDate reservationDate;
-    private LocalTime reservationTime;
+    private String storeId;
+    private String guestCount;
+    private String reservationDate;
+    private String reservationTime;
 
-    public static ReservationMessage of(ReservationDto dto, String userId, UUID storeId) {
+    public static ReservationMessage of(String userId, String storeId, String guestCount, String reservationDate, String reservationTime) {
         return ReservationMessage.builder()
                 .userId(userId)
                 .storeId(storeId)
-                .guestCount(dto.getGuestCount())
-                .reservationDate(dto.getReservationDate())
-                .reservationTime(dto.getReservationTime())
+                .guestCount(guestCount)
+                .reservationDate(reservationDate)
+                .reservationTime(reservationTime)
                 .build();
     }
 }
