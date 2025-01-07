@@ -2,6 +2,7 @@ package com.quit.queue.presentation.controller;
 
 import com.quit.queue.application.service.QueueService;
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.presentation.request.ReservationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -22,8 +23,9 @@ public class QueueController {
 
     @PostMapping("/stores/{storeId}")
     public Mono<ApiResponse<?>> addUserToQueueForStore(@PathVariable UUID storeId,
+                                                       @RequestBody ReservationRequest requset,
                                                        @RequestHeader(value = "X-User-Id") Long userId) {
-        return queueService.addUserToQueueForStore(storeId, userId);
+        return queueService.addUserToQueueForStore(storeId, requset, userId);
     }
 
     @DeleteMapping("/stores/{storeId}")

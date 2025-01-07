@@ -58,7 +58,7 @@ class QueueServiceTest {
         when(valueOperations.increment(counterKey, 1)).thenReturn(Mono.just(1L));  // Mono로 반환하도록 수정
         when(zSetOperations.add(key, userId.toString(), 1.0)).thenReturn(Mono.just(true));  // Mocking Mono<Boolean>
 
-        queueService.addUserToQueueForStore(storeId, userId).block();  // 비동기 메서드를 block으로 동기화하여 실행
+        queueService.addUserToQueueForStore(storeId, null, userId).block();  // 비동기 메서드를 block으로 동기화하여 실행
 
         // Then
         // ZSet에 추가되는지 확인

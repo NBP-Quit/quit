@@ -1,7 +1,9 @@
 package com.quit.queue.application.service;
 
+import com.quit.queue.application.dto.ReservationDto;
 import com.quit.queue.application.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.presentation.request.ReservationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Range;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -22,39 +25,61 @@ import java.util.UUID;
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
-    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, Long userId) {
         // TODO 권한 검증 추가
 
-        String key = "queue:store:" + storeId + ":users";
-        String userQueueKey = "queue:user:" + userId;
+        return validateReservationRequest(reservationRequest)
+                .switchIfEmpty(Mono.defer(() -> {
+                    String key = "queue:store:" + storeId + ":users";
+                    String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+                    String userQueueKey = "queue:user:" + userId;
 
-        return reactiveRedisTemplate.opsForValue().get(userQueueKey)
-                .switchIfEmpty(Mono.just(""))
-                .flatMap(currentQueue -> {
-                    if (currentQueue.equals(storeId.toString())) {
-                        return Mono.just(ApiResponse.success("User is already in the current queue"));
-                    } else if (!currentQueue.isEmpty() && !currentQueue.equals(storeId.toString())) {
-                        return Mono.error(new IllegalStateException("User is already in another queue"));
-                    } else {
-                        return reactiveRedisTemplate.opsForValue().set(userQueueKey, storeId.toString())
-                                .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
-                                        .next()
-                                        .map(ZSetOperations.TypedTuple::getScore)
-                                        .switchIfEmpty(Mono.just(0.0))
-                                        .flatMap(highestScore -> {
-                                            float newScore = (highestScore == 0.0) ? 1.0f : (float) (highestScore + 1);
-                                            return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
-                                                    .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
-                                                    .flatMap(rank -> {
-                                                        if (rank == null) {
-                                                            return Mono.error(new IllegalStateException("Failed to get rank"));
-                                                        }
-                                                        return Mono.just(ApiResponse.success(rank + 1));
-                                                    });
-                                        })
-                                );
-                    }
-                });
+                    ReservationDto reservationDto = reservationRequest.toDTO();
+
+                    return reactiveRedisTemplate.opsForValue().get(userQueueKey)
+                            .switchIfEmpty(Mono.just(""))
+                            .flatMap(currentQueue -> {
+                                if (currentQueue.equals(storeId.toString())) {
+                                    return Mono.just(ApiResponse.success("User is already in the current queue"));
+                                } else if (!currentQueue.isEmpty() && !currentQueue.equals(storeId.toString())) {
+                                    return Mono.error(new IllegalStateException("User is already in another queue"));
+                                } else {
+                                    return reactiveRedisTemplate.opsForValue().set(userQueueKey, storeId.toString())
+                                            .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
+                                                    .next()
+                                                    .map(ZSetOperations.TypedTuple::getScore)
+                                                    .switchIfEmpty(Mono.just(0.0))
+                                                    .flatMap(highestScore -> {
+                                                        double newScore = (highestScore == 0.0) ? 1.0 : highestScore + 1;
+                                                        return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
+                                                                .then(reactiveRedisTemplate.opsForHash().putAll(reservationKey, Map.of(
+                                                                        "guestCount", reservationDto.getGuestCount().toString(),
+                                                                        "reservationDate", reservationDto.getReservationDate().toString(),
+                                                                        "reservationTime", reservationDto.getReservationTime().toString()
+                                                                )))
+                                                                .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
+                                                                .flatMap(rank -> {
+                                                                    if (rank == null) {
+                                                                        return Mono.error(new IllegalStateException("Failed to get rank"));
+                                                                    }
+                                                                    return Mono.just(ApiResponse.success(rank + 1));
+                                                                });
+                                                    }));
+                                }
+                            });
+                }));
+    }
+
+    private Mono<ApiResponse<?>> validateReservationRequest(ReservationRequest reservationRequest) {
+        if (reservationRequest.getGuestCount() < 0) {
+            return Mono.error(new IllegalArgumentException("Guest count must be at least 1"));
+        }
+
+        if (reservationRequest.getReservationDate() == null || reservationRequest.getReservationTime() == null) {
+            return Mono.error(new IllegalArgumentException("Reservation date and time must not be null"));
+        }
+
+        return Mono.empty();
     }
 
     public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
