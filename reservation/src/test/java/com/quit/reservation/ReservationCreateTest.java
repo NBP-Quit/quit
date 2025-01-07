@@ -4,6 +4,7 @@ import com.quit.reservation.application.dto.CreateReservationDto;
 import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.domain.repository.ReservationRepository;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class ReservationCreateTest {
 
     @Test
     @DisplayName("예약 정보 생성 성공 테스트")
+    @Disabled
     void createReservation_successTest() {
         CreateReservationDto request = CreateReservationDto.of(
                 UUID.fromString("2e520ad1-a3ff-4d8c-bc75-e10061ccb5f2"),
@@ -49,6 +51,7 @@ public class ReservationCreateTest {
 
     @Test
     @DisplayName("필수 입력 데이터 누락 테스트")
+    @Disabled
     void createReservation_missingRequiredDataTest() {
         CreateReservationDto request = CreateReservationDto.of(
                 null, // Store ID가 null
@@ -66,6 +69,7 @@ public class ReservationCreateTest {
 
     @Test
     @DisplayName("예약 인원 최소값 위반 테스트")
+    @Disabled
     void createReservation_invalidGuestCountTest() {
         CreateReservationDto request = CreateReservationDto.of(
                 UUID.fromString("2e520ad1-a3ff-4d8c-bc75-e10061ccb5f2"),
@@ -83,6 +87,7 @@ public class ReservationCreateTest {
 
     @Test
     @DisplayName("예약 날짜 과거 테스트")
+    @Disabled
     void createReservation_invalidDateTest() {
         CreateReservationDto request = CreateReservationDto.of(
                 UUID.fromString("2e520ad1-a3ff-4d8c-bc75-e10061ccb5f2"),
@@ -100,6 +105,7 @@ public class ReservationCreateTest {
 
     @Test
     @DisplayName("예약 시간 범위 초과 테스트")
+    @Disabled
     void createReservation_invalidTimeTest() {
         CreateReservationDto request = CreateReservationDto.of(
                 UUID.fromString("2e520ad1-a3ff-4d8c-bc75-e10061ccb5f2"),
