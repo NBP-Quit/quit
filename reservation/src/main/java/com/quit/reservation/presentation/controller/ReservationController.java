@@ -9,7 +9,6 @@ import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
 import com.quit.reservation.presentation.request.CreateReservationRequest;
-import com.quit.reservation.presentation.request.UpdateReservationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -52,15 +51,6 @@ public class ReservationController {
         String customerId = "testUser";
         reservationService.cancelReservation(reservationId, customerId);
         return ResponseEntity.ok(ApiResponse.success("예약을 취소 했습니다."));
-    }
-
-    //TODO: 예약 정보 수정 삭제 고려
-    @PatchMapping("/{reservationId}/details")
-    public ResponseEntity<ApiResponse<UpdateReservationResponse>> updateReservation(@PathVariable UUID reservationId,
-                                                                                    @RequestBody UpdateReservationRequest request) {
-        //TODO: customerId 임시값 사용 -> header 값으로 변경 (log 추가) 2
-        String customerId = "testUser";
-        return ResponseEntity.ok(ApiResponse.success(reservationService.updateReservationDetails(reservationId, request.toDto(), customerId)));
     }
 
     @DeleteMapping("/{reservationId}")

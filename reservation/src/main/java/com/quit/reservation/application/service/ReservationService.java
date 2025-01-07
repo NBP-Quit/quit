@@ -97,34 +97,6 @@ public class ReservationService {
         throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
     }
 
-    //TODO: 예약 정보 수정 기능 삭제 고려 -> 시스템 특성 상 예약 수정 기능의 필요성이 낮다고 판단 됨
-    @Transactional
-    public UpdateReservationResponse updateReservationDetails(UUID reservationId,
-                                                              UpdateReservationDto request,
-                                                              String customerId) {
-        //TODO: 추후 Version 사용 데이터 검증 작업 추가
-        log.info("예약 수정 작업 시작");
-        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
-
-        if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
-                || reservation.getIsDeleted().equals(true)) {
-            throw new IllegalArgumentException("수정할 수 없는 상태의 예약 입니다.");
-        }
-
-        if (reservation.getCustomerId().equals(customerId)) {
-            //TODO: 가게의 예약 정보를 확인해 변경 가능 여부 확인하는 메서드 추가
-            validateReservationRequest(request.getGuestCount(),
-                    request.getReservationDate(), request.getReservationTime());
-            reservation.updateDetails(request.getGuestCount(),
-                    request.getReservationDate(), request.getReservationTime());
-            log.info("예약 수정 작업 완료");
-            return UpdateReservationResponse.fromReservation(reservation);
-        }
-
-        throw new IllegalArgumentException("예약을 변경할 권한이 없습니다.");
-    }
-
     @Transactional
     public void deleteReservation(UUID reservationId, String managerId, Role role) {
         log.info("예약 삭제 작업 시작");
