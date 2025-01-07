@@ -1,7 +1,9 @@
 package com.quit.queue.application.service;
 
-import com.quit.queue.application.service.dto.res.QueueResponse;
+import com.quit.queue.application.dto.ReservationDto;
+import com.quit.queue.application.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.presentation.request.ReservationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Range;
@@ -10,10 +12,12 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -22,50 +26,75 @@ import java.util.UUID;
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
-    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, Long userId) {
         // TODO 권한 검증 추가
 
-        String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
+        return validateReservationRequest(reservationRequest)
+                .switchIfEmpty(Mono.defer(() -> {
+                    String key = "queue:store:" + storeId + ":users";
+                    String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+                    String userQueueKey = "queue:user:" + userId;
 
-        return reactiveRedisTemplate.opsForSet().isMember(globalUserKey, userId.toString())
-                .flatMap(isMember -> {
-                    if (isMember) {
-                        return Mono.error(new IllegalStateException("User already in another queue"));
-                    } else {
-                        return reactiveRedisTemplate.opsForSet().add(globalUserKey, userId.toString())
-                                .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
-                                        .next()
-                                        .map(ZSetOperations.TypedTuple::getScore)
-                                        .switchIfEmpty(Mono.just(0.0))
-                                        .flatMap(highestScore -> {
-                                            float newScore = (highestScore == 0.0) ? 1.0f : (float) (highestScore + 1);
-                                            return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
-                                                    .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
-                                                    .flatMap(rank -> {
-                                                        if (rank == null) {
-                                                            return Mono.error(new IllegalStateException("Failed to get rank"));
-                                                        }
+                    ReservationDto reservationDto = reservationRequest.toDTO();
 
-                                                        return Mono.just(ApiResponse.success(rank + 1));
-                                                    });
-                                        })
-                                );
-                    }
-                });
+                    return reactiveRedisTemplate.opsForValue().get(userQueueKey)
+                            .switchIfEmpty(Mono.just(""))
+                            .flatMap(currentQueue -> {
+                                if (currentQueue.equals(storeId.toString())) {
+                                    return Mono.just(ApiResponse.success("User is already in the current queue"));
+                                } else if (!currentQueue.isEmpty() && !currentQueue.equals(storeId.toString())) {
+                                    return Mono.error(new IllegalStateException("User is already in another queue"));
+                                } else {
+                                    return reactiveRedisTemplate.opsForValue().set(userQueueKey, storeId.toString())
+                                            .then(reactiveRedisTemplate.opsForZSet().reverseRangeWithScores(key, Range.closed(0L, 0L))
+                                                    .next()
+                                                    .map(ZSetOperations.TypedTuple::getScore)
+                                                    .switchIfEmpty(Mono.just(0.0))
+                                                    .flatMap(highestScore -> {
+                                                        double newScore = (highestScore == 0.0) ? 1.0 : highestScore + 1;
+                                                        return reactiveRedisTemplate.opsForZSet().add(key, userId.toString(), newScore)
+                                                                .then(reactiveRedisTemplate.opsForHash().putAll(reservationKey, Map.of(
+                                                                        "guestCount", reservationDto.getGuestCount().toString(),
+                                                                        "reservationDate", reservationDto.getReservationDate().toString(),
+                                                                        "reservationTime", reservationDto.getReservationTime().toString()
+                                                                )))
+                                                                .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
+                                                                .flatMap(rank -> {
+                                                                    if (rank == null) {
+                                                                        return Mono.error(new IllegalStateException("Failed to get rank"));
+                                                                    }
+                                                                    return Mono.just(ApiResponse.success(rank + 1));
+                                                                });
+                                                    }));
+                                }
+                            });
+                }));
     }
 
-    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
+    private Mono<ApiResponse<?>> validateReservationRequest(ReservationRequest reservationRequest) {
+        if (reservationRequest.getGuestCount() < 0) {
+            return Mono.error(new IllegalArgumentException("Guest count must be at least 1"));
+        }
+
+        if (reservationRequest.getReservationDate() == null || reservationRequest.getReservationTime() == null) {
+            return Mono.error(new IllegalArgumentException("Reservation date and time must not be null"));
+        }
+
+        return Mono.empty();
+    }
+
+    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
 
-        return reactiveRedisTemplate.opsForZSet().score(key, userId.toString())
-                .flatMap(score -> {
-                    if (score == null) {
+        return reactiveRedisTemplate.opsForZSet().rank(key, userId.toString())
+                .switchIfEmpty(Mono.just(-1L))
+                .flatMap(rank -> {
+                    if (rank == null || rank == -1) {
                         return Mono.error(new IllegalStateException("User not found in queue"));
                     }
-                    return Mono.just(ApiResponse.success(score.floatValue()));
+                    return Mono.just(ApiResponse.success(rank.intValue()));
                 });
     }
 
@@ -86,7 +115,7 @@ public class QueueService {
                             .map(entries -> {
                                 QueueResponse response = new QueueResponse(storeId);
                                 entries.forEach(entry ->
-                                        response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue()));
+                                        response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().intValue()));
                                 return response;
                             });
                 })
@@ -104,7 +133,7 @@ public class QueueService {
                                 .map(entries -> {
                                     QueueResponse response = new QueueResponse(storeId);
                                     entries.forEach(entry ->
-                                            response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().floatValue()));
+                                            response.addUserScore(Long.valueOf(entry.getValue()), entry.getScore().intValue()));
                                     return response;
                                 })
                                 .map(ApiResponse::success);
@@ -114,57 +143,85 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<String>> removeUserFromQueueForStore(UUID storeId, Long userId) {
+    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(UUID storeId, Long userId) {
         // TODO 권한 검증 추가
 
         String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
+        String userQueueKey = "queue:user:" + userId;
+        String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
 
-        return reactiveRedisTemplate.opsForZSet().remove(key, userId.toString())
-                .flatMap(result -> {
-                    if (result > 0) {
-                        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, userId.toString())
-                                .then(Mono.just(ApiResponse.<String>success("User removed from queue successfully")));
+        return reactiveRedisTemplate.opsForValue().get(userQueueKey)
+                .flatMap(currentQueue -> {
+                    if (currentQueue != null && !currentQueue.equals(storeId.toString())) {
+                        return Mono.error(new IllegalStateException("User not in the specified store queue"));
                     }
-                    return Mono.error(new IllegalArgumentException("User not found in queue"));
+
+                    return reactiveRedisTemplate.opsForZSet().remove(key, userId.toString())
+                            .flatMap(result -> {
+                                if (result > 0) {
+                                    return reactiveRedisTemplate.delete(userQueueKey, refreshKey)
+                                            .then(Mono.just(ApiResponse.success("User removed from queue successfully")));
+                                }
+                                return Mono.error(new IllegalArgumentException("User not found in queue"));
+                            });
                 })
                 .onErrorResume(e -> Mono.just(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Failed to remove user from queue: " + e.getMessage())));
     }
 
-    public Mono<ApiResponse<String>> resetQueueForStore(UUID storeId) {
+    public Mono<ApiResponse<Object>> resetQueueForStore(UUID storeId) {
         // TODO 권한 검증 추가
 
         return (storeId == null) ? resetAllQueues() : resetStoreQueue(storeId);
     }
 
-    private Mono<ApiResponse<String>> resetAllQueues() {
-        String globalUserKey = "queue:global:users";
-
-        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:store:*:users").build())
-                .flatMap(reactiveRedisTemplate::delete)
-                .then(reactiveRedisTemplate.delete(globalUserKey))
-                .then(Mono.just(ApiResponse.<String>success("All store queues have been reset successfully.")))
-                .onErrorMap(e -> new RuntimeException("Failed to reset all store queues", e));
+    private Mono<ApiResponse<Object>> resetAllQueues() {
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:*").count(1000).build())
+                .buffer(100)
+                .flatMap(keys -> {
+                    if (!keys.isEmpty()) {
+                        return reactiveRedisTemplate.delete(Flux.fromIterable(keys).limitRate(10))
+                                .then();
+                    }
+                    return Mono.empty();
+                })
+                .then(Mono.just(ApiResponse.success("All queues have been reset successfully.")))
+                .onErrorMap(e -> new RuntimeException("Failed to reset all queues", e));
     }
 
-    private Mono<ApiResponse<String>> resetStoreQueue(UUID storeId) {
+    private Mono<ApiResponse<Object>> resetStoreQueue(UUID storeId) {
         String key = "queue:store:" + storeId + ":users";
-        String globalUserKey = "queue:global:users";
+        String patternKey = "queue:store:" + storeId + ":*";
 
         return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
                 .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
-                .flatMapSequential(queuedUserId -> removeFromGlobalQueue(globalUserKey, queuedUserId))
-                .then(reactiveRedisTemplate.delete(key))
-                .then(Mono.just(ApiResponse.<String>success("Store queue has been reset successfully.")))
+                .flatMapSequential(this::removeFromUserQueue)
+                .then(deleteKeysWithPattern(patternKey))
+                .then(Mono.just(ApiResponse.success("Store queue has been reset successfully.")))
                 .onErrorMap(e -> new RuntimeException("Failed to reset store queue for storeId: " + storeId, e));
     }
 
-    private Mono<Void> removeFromGlobalQueue(String globalUserKey, String queuedUserId) {
-        return reactiveRedisTemplate.opsForSet().remove(globalUserKey, queuedUserId)
-                .doOnSuccess(count -> log.debug("Removed {} from globalUserKey, result count: {}", queuedUserId, count))
-                .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from globalUserKey.", e))
+    private Mono<Void> removeFromUserQueue(String queuedUserId) {
+        String userQueueKey = "queue:user:" + queuedUserId;
+
+        return reactiveRedisTemplate.delete(userQueueKey)
+                .doOnSuccess(count -> log.debug("Removed user {} and its refresh key from queue info", queuedUserId))
+                .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from its queue info.", e))
                 .then();
+    }
+
+    private Mono<Void> deleteKeysWithPattern(String patternKey) {
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match(patternKey).count(1000).build())
+                .buffer(100)
+                .flatMap(keys -> {
+                    if (!keys.isEmpty()) {
+                        return reactiveRedisTemplate.delete(Flux.fromIterable(keys).limitRate(10))
+                                .then();
+                    }
+                    return Mono.empty();
+                })
+                .then()
+                .onErrorMap(e -> new RuntimeException("Failed to delete keys with pattern: " + patternKey, e));
     }
 
     public Mono<ApiResponse<Integer>> checkUserInQueueForStore(UUID storeId, Long userId) {
@@ -174,8 +231,9 @@ public class QueueService {
         String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
 
         return reactiveRedisTemplate.opsForZSet().rank(queueKey, userId.toString())
+                .switchIfEmpty(Mono.just(-1L))
                 .flatMap(rank -> {
-                    if (rank == null) {
+                    if (rank == null || rank == -1) {
                         return Mono.error(new IllegalStateException("User not found in queue"));
                     }
 

@@ -2,6 +2,7 @@ package com.quit.queue.presentation.controller;
 
 import com.quit.queue.application.service.QueueService;
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.presentation.request.ReservationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -22,19 +23,20 @@ public class QueueController {
 
     @PostMapping("/stores/{storeId}")
     public Mono<ApiResponse<?>> addUserToQueueForStore(@PathVariable UUID storeId,
+                                                       @RequestBody ReservationRequest requset,
                                                        @RequestHeader(value = "X-User-Id") Long userId) {
-        return queueService.addUserToQueueForStore(storeId, userId);
+        return queueService.addUserToQueueForStore(storeId, requset, userId);
     }
 
     @DeleteMapping("/stores/{storeId}")
-    public Mono<ApiResponse<String>> removeUserFromQueueForStore(@PathVariable UUID storeId,
+    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(@PathVariable UUID storeId,
                                                                  @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.removeUserFromQueueForStore(storeId, userId);
     }
 
     @GetMapping("/stores/{storeId}/users/position")
-    public Mono<ApiResponse<Float>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
-                                                                   @RequestHeader(value = "X-User-Id") Long userId) {
+    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
+                                                                     @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.getUserPositionInQueueForStore(storeId, userId);
     }
 
@@ -45,7 +47,7 @@ public class QueueController {
     }
 
     @DeleteMapping("/reset")
-    public Mono<ApiResponse<String>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
+    public Mono<ApiResponse<Object>> resetQueueForStore(@RequestParam(value = "storeId", required = false) UUID storeId,
                                                         @RequestHeader(value = "X-User-Id") Long userId) {
         return queueService.resetQueueForStore(storeId);
     }
