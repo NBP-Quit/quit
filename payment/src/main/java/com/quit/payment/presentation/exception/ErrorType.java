@@ -15,7 +15,7 @@ public enum ErrorType {
     COMMON_VALIDATION_ERROR(BAD_REQUEST, "요청 데이터가 유효하지 않습니다."),
 
     PAYMENT_DATA_INVALID(NOT_FOUND, "해당 결제 데이터가 존재하지 않습니다."),
-
+    PAYMENT_NOT_FOUND(NOT_FOUND, "결제가 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;

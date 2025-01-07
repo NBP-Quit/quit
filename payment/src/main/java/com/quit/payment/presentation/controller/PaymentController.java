@@ -4,15 +4,15 @@ import com.quit.payment.application.dto.res.PaymentResponse;
 import com.quit.payment.application.dto.res.TempPaymentResponse;
 import com.quit.payment.application.service.PaymentService;
 import com.quit.payment.common.dto.ApiResponse;
+import com.quit.payment.presentation.dto.CancelPaymentRequest;
 import com.quit.payment.presentation.dto.CreatePaymentRequest;
 import com.quit.payment.presentation.dto.CreateTempPaymentRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,5 +33,11 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(paymentService.createPayment(request.toDto())));
     }
 
+    @PostMapping("/{paymentsId}/cancel")
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(
+            @PathVariable UUID paymentsId,
+            @Valid @RequestBody CancelPaymentRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentsId, request)));
+    }
 
 }

@@ -10,8 +10,11 @@ import com.quit.payment.domain.entity.TempPayment;
 import com.quit.payment.domain.repository.PaymentRepository;
 import com.quit.payment.domain.repository.TempPaymentRepository;
 import com.quit.payment.infrastructure.client.PaymentClient;
+import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
+import com.quit.payment.presentation.dto.CancelPaymentRequest;
 import com.quit.payment.presentation.exception.CustomException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.quit.payment.presentation.exception.ErrorType.PAYMENT_DATA_INVALID;
+import static com.quit.payment.presentation.exception.ErrorType.PAYMENT_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -50,6 +54,21 @@ public class PaymentService {
         Payment payment = create(response, reservationId);
         paymentRepository.save(payment);
         return PaymentResponse.from(payment);
+    }
+
+    public PaymentResponse cancelPayment(UUID paymentsId, CancelPaymentRequest request) {
+        Payment payment = checkPayment(paymentsId);
+        CancelPaymentResponse response = paymentClient.cancelPayment(payment.getPaymentKey(), request);
+        log.info("Cancel payment response: {}", response);
+        /* todo:
+            1. kafka 적용 결제 취소 후 메세지 발행하기
+         */
+        payment.cancel(Status.CANCELED, request.getCancelReason());
+        return PaymentResponse.from(payment);
+    }
+
+    private Payment checkPayment(UUID paymentsId) {
+        return paymentRepository.findById(paymentsId).orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
     }
 
     private Payment create(ConfirmPaymentResponse response, UUID reservationId) {

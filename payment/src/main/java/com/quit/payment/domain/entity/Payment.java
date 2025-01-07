@@ -58,9 +58,20 @@ public class Payment {
                 .build();
     }
 
-    public void updateStatus(Status status) {
+    public void cancel(Status status, String cancelReason) {
+        updateStatus(status);
+        updateCancelReason(cancelReason);
+    }
+
+    private void updateStatus(Status status) {
         if(status != null) {
             this.status = status;
+        }
+    }
+
+    private void updateCancelReason(String cancelReason) {
+        if(cancelReason != null) {
+            this.cancelReason = cancelReason;
         }
     }
 
