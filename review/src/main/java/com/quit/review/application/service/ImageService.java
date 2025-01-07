@@ -1,9 +1,11 @@
 package com.quit.review.application.service;
 
-import java.util.UUID;
-
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quit.review.domain.model.Review;
+
 public interface ImageService {
-	void create(MultipartFile file, UUID reviewId);
+	void create(MultipartFile file, Review review);
+
+	void deleteAll(Review review);
 }

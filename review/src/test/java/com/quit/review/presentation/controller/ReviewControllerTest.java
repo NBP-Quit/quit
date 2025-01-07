@@ -36,11 +36,10 @@ class ReviewControllerTest {
 	@DisplayName("리뷰 생성 API")
 	void create() throws Exception {
 		// given
-		UUID storeId = UUID.randomUUID();
+		UUID reservationId = UUID.randomUUID();
 		String userId = "1";
 		UUID reviewId = UUID.randomUUID();
 		ReviewCreateRequest request = ReviewCreateRequest.builder()
-			.reservationId(UUID.randomUUID())
 			.content("정말 맛있었습니다! 또 올게요!")
 			.scores(new ScoresRequest(5, 4, 3, 5))
 			.build();
@@ -63,19 +62,19 @@ class ReviewControllerTest {
 			.willReturn(reviewId);
 
 		// when & then
-		mockMvc.perform(multipart("/api/stores/{storeId}/reviews", storeId)
+		mockMvc.perform(multipart("/api/reservations/{reservationId}/reviews", reservationId)
 				.file(reviewPart)
 				.file(filePart)
 				.header("X-User-ID", userId)
 				.contentType(MediaType.MULTIPART_FORM_DATA))
 			.andDo(print())
 			.andExpect(status().isCreated())
-			.andExpect(header().string("Location", "/api/stores/" + storeId + "/reviews/" + reviewId))
+			.andExpect(header().string("Location", "/api/reviews/"+ reviewId))
 			.andExpect(jsonPath("$.message").value("Review Created"))
 			.andExpect(jsonPath("$.code").value(201));
 
 		then(reviewService).should().create(
-			eq(storeId),
+			eq(reservationId),
 			eq(Long.parseLong(userId)),
 			any(ReviewCreateDto.class),
 			anyList()

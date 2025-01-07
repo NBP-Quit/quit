@@ -1,8 +1,7 @@
 package com.quit.review.presentation.request;
 
-import java.util.UUID;
-
 import com.quit.review.application.dto.ReviewCreateDto;
+import com.quit.review.application.dto.ReviewUpdateDto;
 import com.quit.review.application.dto.ScoresDto;
 
 import jakarta.validation.Valid;
@@ -19,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ReviewCreateRequest {
+public class ReviewUpdateRequest {
 
 	@NotBlank
 	@Size(min = 10, max = 1000)
@@ -29,8 +28,8 @@ public class ReviewCreateRequest {
 	@Valid
 	private ScoresRequest scores;
 
-	public ReviewCreateDto toDto() {
-		return ReviewCreateDto.builder()
+	public ReviewUpdateDto toDto() {
+		return ReviewUpdateDto.builder()
 			.content(content)
 			.scores(
 				ScoresDto.builder()
