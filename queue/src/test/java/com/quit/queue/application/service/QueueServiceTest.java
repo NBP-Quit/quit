@@ -1,6 +1,6 @@
 package com.quit.queue.application.service;
 
-import com.quit.queue.application.service.dto.res.QueueResponse;
+import com.quit.queue.application.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

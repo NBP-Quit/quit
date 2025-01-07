@@ -1,6 +1,6 @@
 package com.quit.queue.application.service;
 
-import com.quit.queue.application.service.dto.res.QueueResponse;
+import com.quit.queue.application.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

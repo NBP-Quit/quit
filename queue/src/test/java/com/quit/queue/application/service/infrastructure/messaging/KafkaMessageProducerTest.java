@@ -1,5 +1,6 @@
 package com.quit.queue.application.service.infrastructure.messaging;
 
+import com.quit.queue.infrastructure.messaging.KafkaMessageProducer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.kafka.core.KafkaTemplate;

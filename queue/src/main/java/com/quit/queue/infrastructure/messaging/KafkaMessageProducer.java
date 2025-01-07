@@ -1,4 +1,4 @@
-package com.quit.queue.application.service.infrastructure.messaging;
+package com.quit.queue.infrastructure.messaging;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;

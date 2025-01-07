@@ -1,4 +1,4 @@
-package com.quit.queue.application.service.dto.res;
+package com.quit.queue.application.dto.res;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
