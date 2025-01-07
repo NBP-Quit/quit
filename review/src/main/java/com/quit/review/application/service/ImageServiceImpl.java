@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quit.review.common.BaseEntity;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Image;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.service.ImageUploader;
+import com.quit.review.infrastructure.service.S3Uploader;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,13 +25,9 @@ public class ImageServiceImpl implements ImageService {
 
 	private final ImageUploader imageUploader;
 
-	private final ReviewRepository reviewRepository;
-
+	@Override
 	@Transactional
-	public void create(MultipartFile file, UUID reviewId) {
-		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."));
-
+	public void create(MultipartFile file, Review review) {
 		String originalFilename = file.getOriginalFilename();
 		String extension = extractExtension(originalFilename);
 		validateExtension(extension);
@@ -40,6 +38,16 @@ public class ImageServiceImpl implements ImageService {
 
 		Image image = Image.create(url, filename, originalFilename, file.getContentType(), file.getSize());
 		review.addImage(image);
+	}
+
+	@Override
+	@Transactional
+	public void deleteAll(Review review) {
+		review.getImages().forEach(image -> {
+			image.delete();
+			imageUploader.delete(image.getUrl());
+		});
+
 	}
 
 	private String extractExtension(String filename) {

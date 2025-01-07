@@ -110,4 +110,13 @@ public class Review extends BaseEntity {
 		images.add(image);
 		image.setReview(this);
 	}
+
+	public void updateScores(int taste, int ambience, int kindness, int cleanliness) {
+		scores.update(taste, ambience, kindness, cleanliness);
+		applyAverageScore();
+	}
+
+	public void updateContent(String content) {
+		this.content = content;
+	}
 }

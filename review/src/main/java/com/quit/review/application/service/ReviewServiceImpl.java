@@ -1,9 +1,11 @@
 package com.quit.review.application.service;
 
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewCreateDto;
+import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewUpdateDto;
+import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.repository.ReviewRepository;
@@ -33,14 +38,14 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public UUID create(UUID storeId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
+	public UUID create(UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
 		// 예약 정보를 조회하여 예약 상태와 권한을 검증
-		ReservationResponse reservation = reservationService.getById(dto.getReservationId());
+		ReservationResponse reservation = reservationService.getById(reservationId);
 		validate(userId, reservation);
 
 		// 유저 서비스에서 유저 정보 조회 후 nickname 추출
 		String nickname = userService.getNicknameById(userId);
-		Review review = dto.toEntity(storeId, userId, nickname);
+		Review review = dto.toEntity(reservationId, reservation.getStoreId(), userId, nickname);
 
 		// 예약 시간을 기준으로 식사 유형(아침, 점심, 저녁)을 지정
 		review.decideMealType(reservation.getReservationTime());
@@ -48,13 +53,52 @@ public class ReviewServiceImpl implements ReviewService {
 		// 평균 별점 계산 후 저장
 		review.applyAverageScore();
 
-		UUID reviewId = reviewRepository.save(review).getId();
+		Review savedReview = reviewRepository.save(review);
 
 		if (!CollectionUtils.isEmpty(files)) {
-			files.forEach(file -> imageService.create(file, reviewId));
+			files.forEach(file -> imageService.create(file, savedReview));
 		}
 
-		return reviewId;
+		return savedReview.getId();
+	}
+
+	@Override
+	public Slice<ReviewResponse> getAll(UUID storeId, Pageable pageable, List<String> tags) {
+		Slice<Review> reviewSlice = reviewRepository.getSliceByStoreIdAndTags(storeId, pageable, tags);
+
+		List<ReviewResponse> reviewResponses = reviewSlice.getContent().stream()
+			.map(ReviewResponse::from)
+			.toList();
+
+		return new SliceImpl<>(reviewResponses, pageable, reviewSlice.hasNext());
+	}
+
+	@Override
+	@Transactional
+	public void update(UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
+
+		ScoresDto scores = dto.getScores();
+		review.updateScores(scores.getTaste(), scores.getAmbience(), scores.getKindness(), scores.getCleanliness());
+		review.updateContent(dto.getContent());
+
+		// 이미지 파일이 있다면 해당 리뷰로 저장된 모든 이미지 삭제 후 재업로드
+		if (!CollectionUtils.isEmpty(files)) {
+			imageService.deleteAll(review);
+			files.forEach(file -> {
+				imageService.create(file, review);
+			});
+		}
+	}
+
+	@Override
+	@Transactional
+	public void delete(UUID reviewId, Long userId) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
+		review.delete();
+		imageService.deleteAll(review);
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {

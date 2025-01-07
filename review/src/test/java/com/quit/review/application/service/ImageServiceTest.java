@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +18,6 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.service.ImageUploader;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,10 +25,7 @@ class ImageServiceTest {
 	
 	@InjectMocks
 	ImageServiceImpl imageService;
-	
-	@Mock
-	private ReviewRepository reviewRepository;
-	
+
 	@Mock
 	private ImageUploader imageUploader;
 	
@@ -47,39 +42,16 @@ class ImageServiceTest {
 		UUID reviewId = UUID.randomUUID();
 		Review review = mock(Review.class);
 
-		given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 		given(imageUploader.upload(any(), any())).willReturn("https://amzn-s3-quit-bucket/images/image.jpg");
 		
 		// when
-		imageService.create(mockFile, reviewId);
+		imageService.create(mockFile, review);
 	    
 	    // then
 		assertThat(mockFile.getOriginalFilename()).isEqualTo("test.jpg");
 		assertThat(mockFile.getContentType()).isEqualTo("test/jpg");
 
-		then(reviewRepository).should().findById(reviewId);
 		then(review).should().addImage(any());
-	}
-	
-	@Test
-	@DisplayName("리뷰를 찾을 수 없다면 CustomApiException이 발생한다.")
-	void create_review_not_fount_occur_CustomApiException() throws IOException {
-	    // given
-		MockMultipartFile mockFile = new MockMultipartFile(
-			"test",
-			"test.jpg",
-			"test/jpg",
-			new FileInputStream("src/test/resources/test.jpg")
-		);
-		UUID reviewId = UUID.randomUUID();
-		given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
-		
-		// when & then
-		assertThatThrownBy(() -> imageService.create(mockFile, reviewId))
-			.isInstanceOf(CustomApiException.class)
-			.hasMessage("리뷰를 찾을 수 없습니다.")
-			.extracting("httpStatus")
-			.isEqualTo(HttpStatus.NOT_FOUND);
 	}
 	
 	@Test
@@ -93,13 +65,10 @@ class ImageServiceTest {
 			new FileInputStream("src/test/resources/test")
 		);
 
-		UUID reviewId = UUID.randomUUID();
 		Review review = mock(Review.class);
 
-		given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-
 		// when & then
-		assertThatThrownBy(() -> imageService.create(mockFile, reviewId))
+		assertThatThrownBy(() -> imageService.create(mockFile, review))
 			.isInstanceOf(CustomApiException.class)
 			.hasMessage("이미지 파일의 확장자를 찾을 수 없습니다.")
 			.extracting("httpStatus")
@@ -117,13 +86,10 @@ class ImageServiceTest {
 			new FileInputStream("src/test/resources/test.txt")
 		);
 
-		UUID reviewId = UUID.randomUUID();
 		Review review = mock(Review.class);
 
-		given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-
 		// when & then
-		assertThatThrownBy(() -> imageService.create(mockFile, reviewId))
+		assertThatThrownBy(() -> imageService.create(mockFile, review))
 			.isInstanceOf(CustomApiException.class)
 			.hasMessage("이미지 파일만 업로드할 수 있습니다.")
 			.extracting("httpStatus")

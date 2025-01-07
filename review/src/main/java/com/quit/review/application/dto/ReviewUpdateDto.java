@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class ReviewCreateDto {
+public class ReviewUpdateDto {
 	private String content;
 	private ScoresDto scores;
 
