@@ -1,10 +1,15 @@
 package com.quit.reservation.application.service;
 
-import com.quit.reservation.application.dto.*;
+import com.quit.reservation.application.dto.ChangeReservationStatusResponse;
+import com.quit.reservation.application.dto.CreateReservationDto;
+import com.quit.reservation.application.dto.CreateReservationResponse;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
+import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
+import com.quit.reservation.presentation.exception.CustomException;
+import com.quit.reservation.presentation.exception.error.ErrorType;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +27,7 @@ import java.util.UUID;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-
+    private final ReservationSlotClientService reservationSlotClientService;
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
      * 2. 예약 정보 임시 저장하기
@@ -36,21 +41,32 @@ public class ReservationService {
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
         //TODO: Store application에서 예약 관련 정보 feign client로 받아오기
+        ReservationSlotResponse response = reservationSlotClientService
+                .getSlotByDateAndTime(request.getStoreId(),
+                        request.getReservationDate(),
+                        request.getReservationTime())
+                        .getData();
 
         //TODO: 데이터 검증 작업 : 추후 Store 정보 가져와서 비교해서 검증하는 것으로 변경
         validateCreateReservationRequest(request);
 
-        Reservation reservation = reservationRepository.save(
-                Reservation.create(customerId, request.getStoreId(),
-                        request.getGuestCount(), request.getReservationDate(), request.getReservationTime(),
-                        ReservationStatus.PENDING, 0)
-        );
+        Boolean isAvailable = response.getIsAvailable();
+        int availableCapacity = response.getMaxCapacity() - response.getCurrentCapacity();
+        if (isAvailable.equals(true) && availableCapacity >= request.getGuestCount()) {
+            Reservation reservation = reservationRepository.save(
+                    Reservation.create(customerId, request.getStoreId(),
+                            request.getGuestCount(), request.getReservationDate(), request.getReservationTime(),
+                            ReservationStatus.PENDING, 0)
+            );
 
-        //TODO: Kafka를 사용해 store와 payment로 메시지 전송
+            //TODO: Kafka를 사용해 store와 payment로 메시지 전송
+            log.info("예약 UUID : {}", reservation.getReservationId());
+            log.info("예약 정보 생성 완료");
+            return CreateReservationResponse.of(reservation.getReservationId());
+        }
 
-        log.info("예약 UUID : {}", reservation.getReservationId());
-        log.info("예약 정보 생성 완료");
-        return CreateReservationResponse.of(reservation.getReservationId());
+        log.info("예약 정보 생성 실패 - 예약 불가능");
+        throw new CustomException(ErrorType.FAILED_CREATED_RESERVATION);
     }
 
     @Transactional
@@ -126,23 +142,18 @@ public class ReservationService {
             throw new IllegalArgumentException("필수 입력 데이터가 누락되었습니다.");
         }
 
-        validateReservationRequest(request.getGuestCount(),
-                request.getReservationDate(), request.getReservationTime());
-    }
-
-    private void validateReservationRequest(Integer guestCount,
-                                            LocalDate reservationDate,
-                                            LocalTime reservationTime) {
+        int guestCount = request.getGuestCount();
         if (guestCount <= 0) {
             throw new IllegalArgumentException("예약 인원은 최소 1명 이상이어야 합니다.");
         }
 
         LocalDate today = LocalDate.now();
-
+        LocalDate reservationDate = request.getReservationDate();
         if (reservationDate.isBefore(today) || reservationDate.isEqual(today)) {
             throw new IllegalArgumentException("예약할 수 없는 예약 날짜 입니다.");
         }
 
+        LocalTime reservationTime = request.getReservationTime();
         if (reservationTime.isBefore(LocalTime.of(0, 0))
                 || reservationTime.isAfter(LocalTime.of(23, 59))) {
             throw new IllegalArgumentException("예약할 수 없는 예약 시간 입니다.");
