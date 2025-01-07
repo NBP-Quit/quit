@@ -40,4 +40,9 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentsId, request)));
     }
 
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByReservation(@PathVariable UUID reservationId) {
+        return ResponseEntity.ok(ApiResponse.success(paymentService.getPaymentByReservation(reservationId)));
+    }
+
 }

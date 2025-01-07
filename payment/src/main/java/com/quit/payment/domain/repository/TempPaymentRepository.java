@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TempPaymentRepository extends JpaRepository<TempPayment, UUID> {
-    Optional<TempPayment> findByOrderId(String orderId);
+    Optional<TempPayment> findByOrderIdAndIsDeletedFalse(String orderId);
 }

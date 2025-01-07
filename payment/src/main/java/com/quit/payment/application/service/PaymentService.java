@@ -67,8 +67,15 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentByReservation(UUID reservationId) {
+        Payment payment = paymentRepository.findByReservationIdAndIsDeletedFalse(reservationId)
+                .orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+        return PaymentResponse.from(payment);
+    }
+
     private Payment checkPayment(UUID paymentsId) {
-        return paymentRepository.findById(paymentsId).orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+        return paymentRepository.findByIdAndIsDeletedFalse(paymentsId).orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
     }
 
     private Payment create(ConfirmPaymentResponse response, UUID reservationId) {
@@ -87,7 +94,7 @@ public class PaymentService {
     }
 
     private TempPayment ValidatePayment(String orderId) {
-        return tempPaymentRepository.findByOrderId(orderId)
+        return tempPaymentRepository.findByOrderIdAndIsDeletedFalse(orderId)
                 .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
     }
 
