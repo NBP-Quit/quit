@@ -14,9 +14,13 @@ import com.quit.review.application.dto.ReviewUpdateDto;
 public interface ReviewService {
 	UUID create(UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
 
-	Slice<ReviewResponse> getAll(UUID storeId, Pageable pageable, List<String> tags);
+	Slice<ReviewResponse> getAll(UUID storeId, Long userId, Pageable pageable, List<String> tags);
 
 	void update(UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files);
 
 	void delete(UUID reviewId, Long userId);
+
+	void like(UUID storeId, UUID reviewId, Long userId);
+
+	void unlike(UUID storeId, UUID reviewId, Long userId);
 }

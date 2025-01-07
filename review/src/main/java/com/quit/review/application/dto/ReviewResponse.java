@@ -27,9 +27,10 @@ public class ReviewResponse {
 	private String content;
 	private MealType mealType;
 	private int likeCount;
+	private boolean isLiked;
 	private int replyCount;
 
-	public static ReviewResponse from(Review review) {
+	public static ReviewResponse from(Review review, int likeCount, boolean isLiked) {
 		List<String> images = review.getImages().stream()
 			.map(Image::getUrl)
 			.toList();
@@ -42,7 +43,8 @@ public class ReviewResponse {
 			.nickname(review.getNickname())
 			.content(review.getContent())
 			.mealType(review.getMealType())
-			.likeCount(review.getLikeCount())
+			.likeCount(likeCount)
+			.isLiked(isLiked)
 			.replyCount(review.getReplyCount())
 			.build();
 	}

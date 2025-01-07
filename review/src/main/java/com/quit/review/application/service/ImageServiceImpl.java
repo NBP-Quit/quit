@@ -8,13 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.quit.review.common.BaseEntity;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Image;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.repository.ReviewRepository;
-import com.quit.review.infrastructure.service.ImageUploader;
-import com.quit.review.infrastructure.service.S3Uploader;
 
 import lombok.RequiredArgsConstructor;
 

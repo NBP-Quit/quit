@@ -18,6 +18,7 @@ import com.quit.review.application.dto.ReviewUpdateDto;
 import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
+import com.quit.review.domain.repository.LikeRepository;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -31,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewServiceImpl implements ReviewService {
 
 	private final ReviewRepository reviewRepository;
+
+	private final LikeRepository likeRepository;
 
 	private final ImageService imageService;
 	private final ReservationService reservationService;
@@ -63,11 +66,15 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
-	public Slice<ReviewResponse> getAll(UUID storeId, Pageable pageable, List<String> tags) {
+	public Slice<ReviewResponse> getAll(UUID storeId, Long userId, Pageable pageable, List<String> tags) {
 		Slice<Review> reviewSlice = reviewRepository.getSliceByStoreIdAndTags(storeId, pageable, tags);
 
 		List<ReviewResponse> reviewResponses = reviewSlice.getContent().stream()
-			.map(ReviewResponse::from)
+			.map(review -> {
+				int likeCount = likeRepository.count(storeId, review.getId());
+				boolean isLiked = likeRepository.exist(review.getId(), userId);
+				return ReviewResponse.from(review, likeCount, isLiked);
+			})
 			.toList();
 
 		return new SliceImpl<>(reviewResponses, pageable, reviewSlice.hasNext());
@@ -99,6 +106,24 @@ public class ReviewServiceImpl implements ReviewService {
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
 		review.delete();
 		imageService.deleteAll(review);
+	}
+
+	@Override
+	@Transactional
+	public void like(UUID storeId, UUID reviewId, Long userId) {
+		Long added = likeRepository.add(reviewId, userId);
+		if (added != null && added > 0) {
+			likeRepository.incrementScore(storeId, reviewId);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void unlike(UUID storeId, UUID reviewId, Long userId) {
+		Long removed = likeRepository.remove(reviewId, userId);
+		if (removed != null && removed > 0) {
+			likeRepository.decrementScore(storeId, reviewId);
+		}
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {
