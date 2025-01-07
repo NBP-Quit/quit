@@ -11,7 +11,6 @@ import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
-import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,22 +35,21 @@ public class ReservationService {
 
     //TODO: Kafka event 추가 및 동시성 제어 구현 필요
     //TODO: 검증 메서드 클래스로 분리 or 서비스 클래스 분리 고려(Kafka 사용/미사용)
+    //TODO: 코드 리팩토링!!!
 
     @Transactional
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
-        //TODO: Store application에서 예약 관련 정보 feign client로 받아오기
         ReservationSlotResponse response = reservationSlotClientService
                 .getSlotByDateAndTime(request.getStoreId(),
                         request.getReservationDate(),
                         request.getReservationTime())
                         .getData();
 
-        //TODO: 데이터 검증 작업 : 추후 Store 정보 가져와서 비교해서 검증하는 것으로 변경
         validateCreateReservationRequest(request);
-
         Boolean isAvailable = response.getIsAvailable();
         int availableCapacity = response.getMaxCapacity() - response.getCurrentCapacity();
+
         if (isAvailable.equals(true) && availableCapacity >= request.getGuestCount()) {
             Reservation reservation = reservationRepository.save(
                     Reservation.create(customerId, request.getStoreId(),
@@ -78,13 +76,13 @@ public class ReservationService {
         log.info("변경할 상태: {}", request.getReservationStatus());
 
         Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
 
         //TODO: 취소 상태가 들어올 경우에 대한 예외 처리 변경하기
         if (request.getReservationStatus().equals(ReservationStatus.CANCELED)
                 || reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
                 || reservation.getReservationStatus().equals(ReservationStatus.COMPLETED)) {
-            throw new IllegalArgumentException("예약 진행 작업을 수행할 수 없는 예약 상태 입니다.");
+            throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
         }
 
         //TODO: OWNER 이상의 권한을 가진 사람은 상태 변경을 할 수 있도록 수정
@@ -94,7 +92,7 @@ public class ReservationService {
             return ChangeReservationStatusResponse.fromReservation(reservation);
         }
 
-        throw new IllegalArgumentException("예약 상태를 변경할 권한이 없습니다.");
+        throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
     @Transactional
@@ -102,7 +100,7 @@ public class ReservationService {
         //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
         log.info("예약 취소 작업 시작");
         Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
 
         if (reservation.getCustomerId().equals(customerId)) {
             reservation.cancel();
@@ -110,7 +108,7 @@ public class ReservationService {
             return;
         }
 
-        throw new IllegalArgumentException("예약을 취소할 권한이 없습니다");
+        throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
     @Transactional
@@ -119,11 +117,11 @@ public class ReservationService {
         log.info("관리자: {}", managerId);
 
         if (!(role.equals(Role.MANAGER) || role.equals(Role.MASTER))) {
-            throw new IllegalArgumentException("예약을 삭제할 권한이 없습니다.");
+            throw new CustomException(ErrorType.ACCESS_DENIED);
         }
 
         Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new NotFoundException("예약을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
 
         if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)) {
             //TODO: BaseEntity 연결 후 삭제 시 관리자 아이디 추가(deletedBy)
@@ -132,31 +130,31 @@ public class ReservationService {
             return;
         }
 
-        throw new IllegalArgumentException("예약을 삭제할 수 없는 예약 상태입니다.");
+        throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
     }
 
     //TODO: 검증 메서드 리팩토링 작업 필요
     private void validateCreateReservationRequest(CreateReservationDto request) {
         if (request.getStoreId() == null || request.getGuestCount() == null ||
                 request.getReservationDate() == null || request.getReservationTime() == null) {
-            throw new IllegalArgumentException("필수 입력 데이터가 누락되었습니다.");
+            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "필수 입력값이 누락되었습니다.");
         }
 
         int guestCount = request.getGuestCount();
         if (guestCount <= 0) {
-            throw new IllegalArgumentException("예약 인원은 최소 1명 이상이어야 합니다.");
+            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "예약 인원은 최소 1명 이상이어야 합니다.");
         }
 
         LocalDate today = LocalDate.now();
         LocalDate reservationDate = request.getReservationDate();
         if (reservationDate.isBefore(today) || reservationDate.isEqual(today)) {
-            throw new IllegalArgumentException("예약할 수 없는 예약 날짜 입니다.");
+            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "잘못된 날짜 값입니다.");
         }
 
         LocalTime reservationTime = request.getReservationTime();
         if (reservationTime.isBefore(LocalTime.of(0, 0))
                 || reservationTime.isAfter(LocalTime.of(23, 59))) {
-            throw new IllegalArgumentException("예약할 수 없는 예약 시간 입니다.");
+            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "잘못된 시간 값입니다.");
         }
     }
 }
