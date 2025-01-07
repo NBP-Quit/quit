@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -175,32 +176,52 @@ public class QueueService {
     }
 
     private Mono<ApiResponse<Object>> resetAllQueues() {
-        // 모든 관련 키를 삭제 (queue:store:* 및 queue:user:*)
-        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:*").build())
-                .flatMap(reactiveRedisTemplate::delete)
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match("queue:*").count(1000).build())
+                .buffer(100)
+                .flatMap(keys -> {
+                    if (!keys.isEmpty()) {
+                        return reactiveRedisTemplate.delete(Flux.fromIterable(keys).limitRate(10))
+                                .then();
+                    }
+                    return Mono.empty();
+                })
                 .then(Mono.just(ApiResponse.success("All queues have been reset successfully.")))
                 .onErrorMap(e -> new RuntimeException("Failed to reset all queues", e));
     }
 
     private Mono<ApiResponse<Object>> resetStoreQueue(UUID storeId) {
         String key = "queue:store:" + storeId + ":users";
+        String patternKey = "queue:store:" + storeId + ":*";
 
         return reactiveRedisTemplate.opsForZSet().range(key, Range.closed(0L, -1L))
                 .filter(queuedUserId -> queuedUserId != null && !queuedUserId.isEmpty())
-                .flatMapSequential(queuedUserId -> removeFromUserQueueAndRefreshKey(storeId, queuedUserId))
-                .then(reactiveRedisTemplate.delete(key))
+                .flatMapSequential(this::removeFromUserQueue)
+                .then(deleteKeysWithPattern(patternKey))
                 .then(Mono.just(ApiResponse.success("Store queue has been reset successfully.")))
                 .onErrorMap(e -> new RuntimeException("Failed to reset store queue for storeId: " + storeId, e));
     }
 
-    private Mono<Void> removeFromUserQueueAndRefreshKey(UUID storeId, String queuedUserId) {
+    private Mono<Void> removeFromUserQueue(String queuedUserId) {
         String userQueueKey = "queue:user:" + queuedUserId;
-        String refreshKey = "queue:store:" + storeId + ":refresh:" + queuedUserId;
 
-        return reactiveRedisTemplate.delete(userQueueKey, refreshKey)
+        return reactiveRedisTemplate.delete(userQueueKey)
                 .doOnSuccess(count -> log.debug("Removed user {} and its refresh key from queue info", queuedUserId))
                 .onErrorMap(e -> new RuntimeException("Failed to remove " + queuedUserId + " from its queue info.", e))
                 .then();
+    }
+
+    private Mono<Void> deleteKeysWithPattern(String patternKey) {
+        return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match(patternKey).count(1000).build())
+                .buffer(100)
+                .flatMap(keys -> {
+                    if (!keys.isEmpty()) {
+                        return reactiveRedisTemplate.delete(Flux.fromIterable(keys).limitRate(10))
+                                .then();
+                    }
+                    return Mono.empty();
+                })
+                .then()
+                .onErrorMap(e -> new RuntimeException("Failed to delete keys with pattern: " + patternKey, e));
     }
 
     public Mono<ApiResponse<Integer>> checkUserInQueueForStore(UUID storeId, Long userId) {
