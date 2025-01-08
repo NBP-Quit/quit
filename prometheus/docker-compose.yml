@@ -1,0 +1,19 @@
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: quit-prometheus-container
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: quit-loki-container
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki:/mnt/config
+    command: --config.file=/mnt/config/loki-config.yml
+    restart: always
