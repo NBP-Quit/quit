@@ -65,8 +65,8 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    public PaymentResponse cancelPayment(UUID paymentsId, UUID reservationId, CancelPaymentRequest request) {
-        Payment payment = checkPayment(paymentsId);
+    public PaymentResponse cancelPayment(UUID paymentId, UUID reservationId, CancelPaymentRequest request) {
+        Payment payment = checkPayment(paymentId);
         checkReservation(payment, reservationId);
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
