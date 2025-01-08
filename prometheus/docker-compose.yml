@@ -8,12 +8,9 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
 
-  loki:
-    image: grafana/loki:3.2.1
-    container_name: quit-loki-container
+  grafana:
+    image: grafana/grafana
+    container_name: quit-grafana-container
     ports:
-      - "3100:3100"
-    volumes:
-      - ./loki:/mnt/config
-    command: --config.file=/mnt/config/loki-config.yml
+      - "3000:3000"
     restart: always
