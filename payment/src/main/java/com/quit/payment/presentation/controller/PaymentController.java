@@ -34,11 +34,12 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(paymentService.createPayment(reservationId, request.toDto())));
     }
 
-    @PostMapping("/{paymentsId}/cancel")
+    @PostMapping("/{paymentsId}/cancel/{reservationId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(
-            @PathVariable UUID paymentsId,
+            @PathVariable(name = "paymentsId") UUID paymentsId,
+            @PathVariable(name = "reservationId") UUID reservationId,
             @Valid @RequestBody CancelPaymentRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentsId, request)));
+        return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentsId, reservationId, request)));
     }
 
     @GetMapping("/{reservationId}")
