@@ -1,6 +1,8 @@
 package com.quit.reservation.domain.model;
 
 import com.quit.reservation.domain.enums.ReservationStatus;
+import com.quit.reservation.presentation.exception.CustomException;
+import com.quit.reservation.presentation.exception.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,14 +45,17 @@ public class Reservation implements Serializable {
     @Column(name = "reservation_price")
     private Integer reservationPrice;
 
-    @Version
-    private Integer version;
+    @Column(name = "slot_id")
+    private UUID slotId;
 
-    //TODO: isDeleted 필드 및 삭제 메서드 임시 사용 - Base Entity 연결 후 삭제 예정
+    //TODO: isDeleted 필드 및 임시 사용 - BaseEntity 연결 후 삭제
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
     public void markDeleted() {
-        this.isDeleted = true;
+        if (this.getReservationStatus().equals(ReservationStatus.CANCELED)) {
+            this.isDeleted = true;
+        }
+        throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
     }
     @PrePersist
     private void prePersistence() {
@@ -65,7 +70,8 @@ public class Reservation implements Serializable {
                                      LocalDate reservationDate,
                                      LocalTime reservationTime,
                                      ReservationStatus reservationStatus,
-                                     Integer reservationPrice) {
+                                     Integer reservationPrice,
+                                     UUID slotId) {
 
         return Reservation.builder()
                 .customerId(customerId)
@@ -75,6 +81,7 @@ public class Reservation implements Serializable {
                 .reservationTime(reservationTime)
                 .reservationStatus(reservationStatus)
                 .reservationPrice(reservationPrice)
+                .slotId(slotId)
                 .build();
     }
 
@@ -84,5 +91,9 @@ public class Reservation implements Serializable {
 
     public void cancel() {
         this.reservationStatus = ReservationStatus.CANCELED;
+    }
+
+    public void updateReservationPrice(Integer reservationPrice) {
+        this.reservationPrice = reservationPrice;
     }
 }

@@ -7,7 +7,9 @@ import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
+import com.quit.reservation.domain.service.ReservationValidationService;
 import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
+import com.quit.reservation.infrastructure.messaging.MessageProducer;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
@@ -16,16 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final ReservationValidationService validationService;
+    private final MessageProducer messageProducer;
     private final ReservationSlotClientService reservationSlotClientService;
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
@@ -37,14 +40,11 @@ public class ReservationService {
     //TODO: 검증 메서드 클래스로 분리 or 서비스 클래스 분리 고려(Kafka 사용/미사용)
     //TODO: 코드 리팩토링!!!
 
-    @Transactional
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
         ReservationSlotResponse response = reservationSlotClientService
-                .getSlotByDateAndTime(request.getStoreId(),
-                        request.getReservationDate(),
-                        request.getReservationTime())
-                        .getData();
+                .getSlotByDateAndTime(request.getStoreId(), request.getReservationDate(), request.getReservationTime())
+                .getData();
 
         log.info("예약 슬롯 ID: {}", response.getSlotId());
 
@@ -55,37 +55,29 @@ public class ReservationService {
         if (isAvailable.equals(true) && availableCapacity >= request.getGuestCount()) {
             Reservation reservation = reservationRepository.save(
                     Reservation.create(customerId, request.getStoreId(),
-                            request.getGuestCount(), request.getReservationDate(), request.getReservationTime(),
-                            ReservationStatus.PENDING, 0)
+                            request.getGuestCount(), request.getReservationDate(),
+                            request.getReservationTime(), ReservationStatus.PENDING,
+                            0, response.getSlotId())
             );
 
-            //TODO: Kafka를 사용해 store와 payment로 메시지 전송 - 에약 slot id와 guest count 전송
             log.info("예약 UUID : {}", reservation.getReservationId());
             log.info("예약 정보 생성 완료");
             return CreateReservationResponse.of(reservation.getReservationId());
         }
 
-        log.info("예약 정보 생성 실패 - 예약 불가능");
+        log.info("예약 정보 생성 실패");
         throw new CustomException(ErrorType.FAILED_CREATED_RESERVATION);
     }
 
-    @Transactional
     public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId,
                                                                    ChangeReservationStatusRequest request,
                                                                    String customerId) {
         log.info("예약 상태 변경 작업 시작");
         log.info("상태 변경 예약 UUID : {}", reservationId);
         log.info("변경할 상태: {}", request.getReservationStatus());
-
-        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
-
-        //TODO: 취소 상태가 들어올 경우에 대한 예외 처리 변경하기
-        if (request.getReservationStatus().equals(ReservationStatus.CANCELED)
-                || reservation.getReservationStatus().equals(ReservationStatus.CANCELED)
-                || reservation.getReservationStatus().equals(ReservationStatus.COMPLETED)) {
-            throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
-        }
+        Reservation reservation = findReservation(reservationId);
+        validationService.validateChangeReservationStatus(
+                request.getReservationStatus(), reservation.getReservationStatus());
 
         //TODO: OWNER 이상의 권한을 가진 사람은 상태 변경을 할 수 있도록 수정
         if (reservation.getCustomerId().equals(customerId)) {
@@ -97,12 +89,22 @@ public class ReservationService {
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
-    @Transactional
+    public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status) {
+        log.info("비동기 예약 상태 변경 시작");
+        Reservation reservation = findReservation(reservationId);
+        validationService.validateChangeReservationStatus(status, reservation.getReservationStatus());
+
+        reservation.changeStatus(status);
+        log.info("예약 정보 메시지 전송");
+        messageProducer.sendReservationData(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("비동기 예약 상태 변경 완료");
+    }
+
     public void cancelReservation(UUID reservationId, String customerId) {
         //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
         log.info("예약 취소 작업 시작");
-        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
+        Reservation reservation = findReservation(reservationId);
+        validationService.validateCancelReservationStatus(reservation.getReservationStatus());
 
         if (reservation.getCustomerId().equals(customerId)) {
             reservation.cancel();
@@ -113,7 +115,14 @@ public class ReservationService {
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
-    @Transactional
+    public void cancelReservationAsync(UUID reservationId) {
+        log.info("비동기 예약 취소 작업 시작");
+        Reservation reservation = findReservation(reservationId);
+        validationService.validateCancelReservationStatus(reservation.getReservationStatus());
+        reservation.cancel();
+        log.info("비동기 예약 취소 작업 완료");
+    }
+
     public void deleteReservation(UUID reservationId, String managerId, Role role) {
         log.info("예약 삭제 작업 시작");
         log.info("관리자: {}", managerId);
@@ -122,17 +131,18 @@ public class ReservationService {
             throw new CustomException(ErrorType.ACCESS_DENIED);
         }
 
-        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
+        Reservation reservation = findReservation(reservationId);
+        reservation.markDeleted();
+        log.info("예약 삭제 작업 완료");
+    }
 
-        if (reservation.getReservationStatus().equals(ReservationStatus.CANCELED)) {
-            //TODO: BaseEntity 연결 후 삭제 시 관리자 아이디 추가(deletedBy)
-            reservation.markDeleted();
-            log.info("예약 삭제 작업 완료");
-            return;
-        }
+    public void updateReservationPayment(UUID reservationId, Integer amount) {
+        log.info("예약 호출");
+        Reservation reservation = findReservation(reservationId);
 
-        throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
+        log.info("예약 금액 업데이트 시작");
+        reservation.updateReservationPrice(amount);
+        log.info("예약 금액 업데이트 완료");
     }
 
     //TODO: 검증 메서드 리팩토링 작업 필요
@@ -142,21 +152,13 @@ public class ReservationService {
             throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "필수 입력값이 누락되었습니다.");
         }
 
-        int guestCount = request.getGuestCount();
-        if (guestCount <= 0) {
-            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "예약 인원은 최소 1명 이상이어야 합니다.");
-        }
+        validationService.validateGuestCount(request.getGuestCount());
+        validationService.validateReservationDate(request.getReservationDate());
+        validationService.validateReservationTime(request.getReservationTime());
+    }
 
-        LocalDate today = LocalDate.now();
-        LocalDate reservationDate = request.getReservationDate();
-        if (reservationDate.isBefore(today) || reservationDate.isEqual(today)) {
-            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "잘못된 날짜 값입니다.");
-        }
-
-        LocalTime reservationTime = request.getReservationTime();
-        if (reservationTime.isBefore(LocalTime.of(0, 0))
-                || reservationTime.isAfter(LocalTime.of(23, 59))) {
-            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "잘못된 시간 값입니다.");
-        }
+    private Reservation findReservation(UUID reservationId) {
+        return reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
     }
 }
