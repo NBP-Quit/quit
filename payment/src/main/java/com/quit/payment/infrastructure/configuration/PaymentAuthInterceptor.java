@@ -1,4 +1,4 @@
-package com.quit.payment.configuration;
+package com.quit.payment.infrastructure.configuration;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

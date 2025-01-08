@@ -1,4 +1,4 @@
-package com.quit.payment.configuration;
+package com.quit.payment.infrastructure.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
