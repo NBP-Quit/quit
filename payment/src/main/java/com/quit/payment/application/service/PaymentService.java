@@ -38,8 +38,8 @@ public class PaymentService {
     private final ReservationGateway reservationGateway;
     private final PaymentGateway paymentGateway;
     private final KafkaProducer kafkaProducer;
-    private static final String PAYMENT_CREATE_SUCCESS = "payment.create.success";
-    private static final String PAYMENT_CREATE_FAILED = "payment.create.failed";
+    private static final String PAYMENT_SUCCESS_TOPIC = "payment.create.success";
+    private static final String PAYMENT_FAILED_TOPIC = "payment.create.failed";
 
     public TempPaymentResponse createTempPayment(TempPaymentDto request) {
         TempPayment tempPayment = TempPayment.of(request.getAmount(), request.getOrderId());
@@ -56,7 +56,7 @@ public class PaymentService {
         log.info("Confirm payment response: {}", response);
         Payment payment = create(response, reservationResponse.getReservationId());
         paymentRepository.save(payment);
-        sendKafkaMessage(PAYMENT_CREATE_SUCCESS,"paymentId:" + payment.getId(), PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
+        sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
@@ -65,7 +65,7 @@ public class PaymentService {
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
         payment.cancel(Status.CANCELED, request.getCancelReason());
-        sendKafkaMessage(PAYMENT_CREATE_FAILED, "paymentId:" + payment.getId(), PaymentEvent.of(payment.getReservationId(), payment.getId(), payment.getAmount()));
+        sendKafkaMessage(PAYMENT_FAILED_TOPIC, "paymentId:" + payment.getId(), PaymentEvent.of(payment.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
