@@ -3,7 +3,6 @@ spring:
     name: store
   profiles:
     active: dev
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -12,6 +11,11 @@ spring:
         show_sql: true
         format_sql: true
         use_sql_comments: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 19095
