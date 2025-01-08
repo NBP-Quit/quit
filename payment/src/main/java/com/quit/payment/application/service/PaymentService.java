@@ -48,8 +48,7 @@ public class PaymentService {
     }
 
     public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
-        TempPayment tempPayment = ValidatePayment(request.getOrderId());
-        validateAmount(tempPayment, request.getAmount());
+        TempPayment tempPayment = validateTempPayment(request);
         // todo: errorDecoder 로 예외처리, fallbackmethod 처리
         ReservationResponse reservationResponse = reservationGateway.getReservation(reservationId).getData();
         log.info("reservationId= {}", reservationResponse.getReservationId());
@@ -57,34 +56,17 @@ public class PaymentService {
         log.info("Confirm payment response: {}", response);
         Payment payment = create(response, reservationResponse.getReservationId());
         paymentRepository.save(payment);
-        String key = "paymentId:" + payment.getId();
-        kafkaProducer.sendMessage(
-                PAYMENT_CREATE_SUCCESS,
-                key,
-                PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
+        sendKafkaMessage(PAYMENT_CREATE_SUCCESS,"paymentId:" + payment.getId(), PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
     public PaymentResponse cancelPayment(UUID paymentId, UUID reservationId, CancelPaymentRequest request) {
-        Payment payment = checkPayment(paymentId);
-        checkReservation(payment, reservationId);
+        Payment payment = validatePayment(paymentId, reservationId);
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
         payment.cancel(Status.CANCELED, request.getCancelReason());
-        String key = "paymentId:" + payment.getId();
-        kafkaProducer.sendMessage(
-                PAYMENT_CREATE_FAILED,
-                key,
-                PaymentEvent.of(reservationId, payment.getId(), payment.getAmount())
-        );
+        sendKafkaMessage(PAYMENT_CREATE_FAILED, "paymentId:" + payment.getId(), PaymentEvent.of(payment.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
-    }
-
-    private void checkReservation(Payment payment, UUID reservationId) {
-        if(!payment.getReservationId().equals(reservationId)) {
-            throw new CustomException(RESERVATION_ID_MISMATCH);
-        }
-
     }
 
     @Transactional(readOnly = true)
@@ -94,8 +76,21 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    private Payment checkPayment(UUID paymentsId) {
-        return paymentRepository.findByIdAndIsDeletedFalse(paymentsId).orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+    private TempPayment validateTempPayment(PaymentDto request) {
+        TempPayment tempPayment = checkTempPayment(request);
+        validateAmount(tempPayment, request.getAmount());
+        return tempPayment;
+    }
+
+    private TempPayment checkTempPayment(PaymentDto request) {
+        return tempPaymentRepository.findByOrderIdAndIsDeletedFalse(request.getOrderId())
+                .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
+    }
+
+    private void validateAmount(TempPayment tempPayment, Integer amount) {
+        if(!tempPayment.getAmount().equals(amount)) {
+            throw new CustomException(PAYMENT_DATA_INVALID);
+        }
     }
 
     private Payment create(ConfirmPaymentResponse response, UUID reservationId) {
@@ -107,15 +102,30 @@ public class PaymentService {
                 reservationId);
     }
 
-    private void validateAmount(TempPayment tempPayment, Integer amount) {
-        if(!tempPayment.getAmount().equals(amount)) {
-            throw new CustomException(PAYMENT_DATA_INVALID);
+    private Payment validatePayment(UUID paymentId, UUID reservationId) {
+        Payment payment = checkPayment(paymentId);
+        validateReservation(payment, reservationId);
+        return payment;
+    }
+
+    private Payment checkPayment(UUID paymentsId) {
+        return paymentRepository.findByIdAndIsDeletedFalse(paymentsId)
+                .orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+    }
+
+    private void validateReservation(Payment payment, UUID reservationId) {
+        if(!payment.getReservationId().equals(reservationId)) {
+            throw new CustomException(RESERVATION_ID_MISMATCH);
         }
     }
 
-    private TempPayment ValidatePayment(String orderId) {
-        return tempPaymentRepository.findByOrderIdAndIsDeletedFalse(orderId)
-                .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
+    private void sendKafkaMessage(String topic, String key, PaymentEvent event) {
+        try {
+            kafkaProducer.sendMessage(topic, key, event);
+        } catch (Exception e) {
+            log.error("Failed to send Kafka message: topic= {}, key= {}", topic, key);
+            throw new CustomException(KAFKA_MESSAGE_SEND_FAILED);
+        }
     }
 
 }
