@@ -1,6 +1,7 @@
 package com.quit.payment.application.service;
 
 import com.quit.payment.application.dto.PaymentDto;
+import com.quit.payment.application.dto.PaymentEvent;
 import com.quit.payment.application.dto.TempPaymentDto;
 import com.quit.payment.application.dto.res.PaymentResponse;
 import com.quit.payment.application.dto.res.TempPaymentResponse;
@@ -9,13 +10,12 @@ import com.quit.payment.domain.entity.Status;
 import com.quit.payment.domain.entity.TempPayment;
 import com.quit.payment.domain.repository.PaymentRepository;
 import com.quit.payment.domain.repository.TempPaymentRepository;
-import com.quit.payment.infrastructure.client.PaymentClient;
 import com.quit.payment.infrastructure.client.PaymentGateway;
 import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
+import com.quit.payment.infrastructure.kafka.KafkaProducer;
 import com.quit.payment.presentation.dto.CancelPaymentRequest;
 import com.quit.payment.presentation.exception.CustomException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +35,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final TempPaymentRepository tempPaymentRepository;
     private final PaymentGateway paymentGateway;
+    private final KafkaProducer kafkaProducer;
+    private static final String PAYMENT_CREATE_SUCCESS = "payment.create.success";
+    private static final String PAYMENT_CREATE_FAILED = "payment.create.failed";
 
     public TempPaymentResponse createTempPayment(TempPaymentDto request) {
         TempPayment tempPayment = TempPayment.of(request.getAmount(), request.getOrderId());
@@ -42,18 +45,17 @@ public class PaymentService {
         return TempPaymentResponse.from(tempPayment);
     }
 
-    public PaymentResponse createPayment(PaymentDto request) {
+    public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
         TempPayment tempPayment = ValidatePayment(request.getOrderId());
         validateAmount(tempPayment, request.getAmount());
         ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
         log.info("Confirm payment response: {}", response);
-        /* todo:
-            1. kafka 적용 후 예약 생성 구독해 예약 id 가져오기
-            2. 결제 생성 후 메세지 발행하기
-         */
-        UUID reservationId = UUID.randomUUID();
         Payment payment = create(response, reservationId);
         paymentRepository.save(payment);
+        kafkaProducer.sendMessage(
+                PAYMENT_CREATE_SUCCESS,
+                payment.getId().toString(),
+                PaymentEvent.of(payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
@@ -61,10 +63,12 @@ public class PaymentService {
         Payment payment = checkPayment(paymentsId);
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
-        /* todo:
-            1. kafka 적용 결제 취소 후 메세지 발행하기
-         */
         payment.cancel(Status.CANCELED, request.getCancelReason());
+        kafkaProducer.sendMessage(
+                PAYMENT_CREATE_FAILED,
+                payment.getId().toString(),
+                PaymentEvent.of(payment.getId(), payment.getAmount())
+        );
         return PaymentResponse.from(payment);
     }
 
