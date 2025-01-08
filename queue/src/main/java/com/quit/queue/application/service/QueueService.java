@@ -33,6 +33,7 @@ public class QueueService {
                 .switchIfEmpty(Mono.defer(() -> {
                     String key = "queue:store:" + storeId + ":users";
                     String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+                    String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
                     String userQueueKey = "queue:user:" + userId;
 
                     ReservationDto reservationDto = reservationRequest.toDTO();
@@ -58,6 +59,8 @@ public class QueueService {
                                                                         "reservationDate", reservationDto.getReservationDate().toString(),
                                                                         "reservationTime", reservationDto.getReservationTime().toString()
                                                                 )))
+                                                                .then(reactiveRedisTemplate.opsForValue().set(refreshKey, String.valueOf(System.currentTimeMillis())))
+                                                                .then(reactiveRedisTemplate.expire(refreshKey, Duration.ofMinutes(5)))
                                                                 .then(reactiveRedisTemplate.opsForZSet().rank(key, userId.toString()))
                                                                 .flatMap(rank -> {
                                                                     if (rank == null) {
