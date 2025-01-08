@@ -16,6 +16,8 @@ public enum ErrorType {
 
     PAYMENT_DATA_INVALID(NOT_FOUND, "해당 결제 데이터가 존재하지 않습니다."),
     PAYMENT_NOT_FOUND(NOT_FOUND, "결제가 존재하지 않습니다."),
+
+    RESERVATION_ID_MISMATCH(BAD_REQUEST, "결제 데이터와 예약 ID가 일치하지 않습니다.")
     ;
 
     private final HttpStatus httpStatus;
