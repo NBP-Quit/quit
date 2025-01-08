@@ -52,9 +52,10 @@ public class PaymentService {
         log.info("Confirm payment response: {}", response);
         Payment payment = create(response, reservationId);
         paymentRepository.save(payment);
+        String key = "paymentId:" + payment.getId();
         kafkaProducer.sendMessage(
                 PAYMENT_CREATE_SUCCESS,
-                payment.getId().toString(),
+                key,
                 PaymentEvent.of(reservationId, payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
@@ -64,9 +65,10 @@ public class PaymentService {
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
         payment.cancel(Status.CANCELED, request.getCancelReason());
+        String key = "paymentId:" + payment.getId();
         kafkaProducer.sendMessage(
                 PAYMENT_CREATE_FAILED,
-                payment.getId().toString(),
+                key,
                 PaymentEvent.of(reservationId, payment.getId(), payment.getAmount())
         );
         return PaymentResponse.from(payment);
