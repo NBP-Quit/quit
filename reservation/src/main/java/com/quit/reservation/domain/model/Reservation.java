@@ -51,12 +51,11 @@ public class Reservation implements Serializable {
     //TODO: isDeleted 필드 및 임시 사용 - BaseEntity 연결 후 삭제
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
+
     public void markDeleted() {
-        if (this.getReservationStatus().equals(ReservationStatus.CANCELED)) {
-            this.isDeleted = true;
-        }
-        throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
+        this.isDeleted = true;
     }
+
     @PrePersist
     private void prePersistence() {
         if (isDeleted == null) {

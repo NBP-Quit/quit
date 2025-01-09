@@ -43,4 +43,10 @@ public class ReservationValidationService {
             throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
         }
     }
+
+    public void validateReservationStatusForDelete(ReservationStatus status) {
+        if (!status.equals(ReservationStatus.CANCELED)) {
+            throw new CustomException(ErrorType.FAILED_CHANGE_RESERVATION_STATUS);
+        }
+    }
 }
