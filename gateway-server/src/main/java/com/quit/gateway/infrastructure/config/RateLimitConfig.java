@@ -16,7 +16,7 @@ public class RateLimitConfig {
                 String ipAddress = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
                 return Mono.just(ipAddress);
             }
-            return Mono.empty(); // 기본 키 값 설정 (필요한 경우)
+            return Mono.just("default"); // 기본 키 값 설정 (필요한 경우)
         };
     }
 }

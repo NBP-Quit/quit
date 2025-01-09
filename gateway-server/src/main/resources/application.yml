@@ -19,15 +19,17 @@ spring:
           predicates:
             - Path=/api/users/**, /api/auth/**
           filters:
-            - RemoveRequestHeader=Cookie
-            - PreserveHostHeader
             - name: RequestRateLimiter
               args:
-                  redis-rate-limiter.replenishRate: 1
-                  redis-rate-limiter.burstCapacity: 10
-                  redis-rate-limiter.requestedTokens: 1
-                  key-resolver: "#{@userKeyResolver}"
-
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+        - id: queue
+          uri: lb://queue
+          predicates:
+            - Path=/api/queues, /api/queues/**
+           
 eureka:
   client:
     register-with-eureka: true
