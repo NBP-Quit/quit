@@ -18,7 +18,7 @@ public class UserService {
 
     //사용자 전체 조회
     public List<UserDto> getUserList(String role){
-        if (role.equals(UserRoleEnum.MASTER.toString())) {
+        if ( UserRoleEnum.fromRole(role) == UserRoleEnum.MASTER) {
             List<User> users = userRepository.findAll();
             List<UserDto> userDtos = new ArrayList<>();
             for (User user : users) {
