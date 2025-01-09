@@ -20,6 +20,10 @@ public enum ErrorType {
     RESERVATION_ID_MISMATCH(BAD_REQUEST, "결제 데이터와 예약 ID가 일치하지 않습니다."),
 
     KAFKA_MESSAGE_SEND_FAILED(INTERNAL_SERVER_ERROR, "Kafka 메시지 발행에 실패하였습니다."),
+
+    FEIGN_CLIENT_INVALID_REQUEST(BAD_REQUEST, "FeignClient 요청에서 잘못된 요청이 발생했습니다."),
+    FEIGN_CLIENT_RESOURCE_NOT_FOUND(NOT_FOUND, "FeignClient 요청에서 리소스를 찾을 수 없습니다."),
+    FEIGN_CLIENT_UNKNOWN_ERROR(INTERNAL_SERVER_ERROR, "FeignClient 요청 중 알 수 없는 에러가 발생했습니다."),
     ;
 
     private final HttpStatus httpStatus;
