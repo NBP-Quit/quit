@@ -1,6 +1,7 @@
 package com.quit.queue.presentation.exception.handler;
 
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.presentation.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public Mono<ApiResponse<?>> handleRuntimeException(RuntimeException ex) {
         log.warn("Runtime exception: ", ex);
+        return Mono.just(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public Mono<ApiResponse<?>> handleUnauthorizedException(UnauthorizedException ex) {
+        log.warn("UnauthorizedException exception: ", ex);
         return Mono.just(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 }

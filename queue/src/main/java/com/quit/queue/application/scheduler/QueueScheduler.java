@@ -58,14 +58,14 @@ public class QueueScheduler {
                                                 return Mono.empty();
                                             }
 
-                                            return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("guestCount", "reservationDate", "reservationTime"))
+                                            return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("userEmail", "guestCount", "reservationDate", "reservationTime"))
                                                     .flatMap(values -> {
-                                                        if (values.size() != 3 || values.contains(null)) {
+                                                        if (values.size() != 4 || values.contains(null)) {
                                                             return Mono.empty();
                                                         }
 
                                                         ReservationMessage reservationMessage = ReservationMessage.of(
-                                                                userId, storeId.toString(), (String) values.get(0), (String) values.get(1), (String) values.get(2));
+                                                                userId, (String) values.get(0), storeId.toString(), (String) values.get(1), (String) values.get(2), (String) values.get(3));
                                                         return sendToReservationService(reservationMessage);
                                                     });
                                         });
