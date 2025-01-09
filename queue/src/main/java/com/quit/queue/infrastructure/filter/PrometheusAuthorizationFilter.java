@@ -16,14 +16,17 @@ public class PrometheusAuthorizationFilter implements WebFilter {
         String path = exchange.getRequest().getURI().getPath();
 
         if (path.equals("/actuator/prometheus")) {
-            String userAgent = exchange.getRequest().getHeaders().getFirst("User-Agent");
+            String method = exchange.getRequest().getMethod().name();
+            if (!method.equals("GET")) {
+                return chain.filter(exchange);
+            }
 
+            String userAgent = exchange.getRequest().getHeaders().getFirst("User-Agent");
             if (userAgent != null && userAgent.contains("Prometheus")) {
                 return chain.filter(exchange);
             }
 
             String headerValue = exchange.getRequest().getHeaders().getFirst("X-User-Role");
-
             if (headerValue == null || !headerValue.equals("MASTER")) {
                 return Mono.error(new RuntimeException("Unauthorized"));
             }
