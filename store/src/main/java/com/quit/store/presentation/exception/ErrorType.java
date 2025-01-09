@@ -28,6 +28,9 @@ public enum ErrorType {
     STORE_CATEGORY_EMPTY(BAD_REQUEST, "가게 카테고리가 존재하지 않습니다."),
 
     RESERVATION_SLOT_NOT_FOUND(NOT_FOUND, "예약 스케줄이 존재하지 않습니다."),
+    RESERVATION_SLOT_NOT_AVAILABLE(BAD_REQUEST, "예약 슬롯이 활성화되어 있지 않습니다."),
+    RESERVATION_SLOT_CURRENT_CAPACITY_INVALID(BAD_REQUEST, "현재 예약 인원이 0보다 작을 수 없습니다."),
+    RESERVATION_SLOT_MAX_CAPACITY_LIMIT_EXCEEDED(BAD_REQUEST, "최대 예약 가능 인원을 초과할 수 없습니다."),
     RESERVATION_SLOT_DATE_NOT_ALLOWED(BAD_REQUEST, "현재 예약된 인원이 있어 날짜를 변경할 수 없습니다."),
     RESERVATION_SLOT_TIME_NOT_ALLOWED(BAD_REQUEST, "현재 예약된 인원이 있어 시간을 변경할 수 없습니다."),
     RESERVATION_SLOT_MAX_CAPACITY_NOT_ALLOWED(BAD_REQUEST, "최대 예약 가능 인원이 현재 예약된 인원보다 적을 수 없습니다."),
@@ -37,7 +40,6 @@ public enum ErrorType {
     RESERVATION_SLOT_TIME_EMPTY(BAD_REQUEST, "예약 스케줄 시간이 존재하지 않습니다."),
     RESERVATION_SLOT_MAX_CAPACITY_EMPTY(BAD_REQUEST, "예약스케줄 최대 예약 가능 인원이 존재하지 않습니다."),
     RESERVATION_SLOT_MAX_CAPACITY_INVALID(BAD_REQUEST, "예약스케줄 최대 예약 가능 인원이 유효하지 않습니다."),
-
     ;
 
     private final HttpStatus httpStatus;
