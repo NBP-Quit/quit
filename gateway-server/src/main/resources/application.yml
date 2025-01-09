@@ -29,6 +29,11 @@ spring:
           uri: lb://queue
           predicates:
             - Path=/api/queues, /api/queues/**
+        - id: reservation
+          uri: lb://reservation
+          predicates:
+            - Path=/api/reservations, /api/reservations/**
+
            
 eureka:
   client:
