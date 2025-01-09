@@ -1,4 +1,4 @@
-package com.quit.user.infrastructure.config;
+package com.quit.gateway.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

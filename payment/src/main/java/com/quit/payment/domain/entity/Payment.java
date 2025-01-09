@@ -35,7 +35,7 @@ public class Payment extends BaseEntity {
     @Column(name = "cancel_reason")
     private String cancelReason;
 
-    @Column(name = "reservation_id", nullable = false)
+    @Column(name = "reservation_id", nullable = false, unique = true)
     private UUID reservationId;
 
     @Builder

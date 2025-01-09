@@ -1,10 +1,8 @@
 package com.quit.user.presentation.controller;
 
-import com.quit.user.application.dto.TokenDto;
 import com.quit.user.application.dto.UserDto;
 import com.quit.user.common.dto.ApiResponse;
-import com.quit.user.domain.service.AuthService;
-import com.quit.user.presentation.request.LoginRequest;
+import com.quit.user.application.service.AuthService;
 import com.quit.user.presentation.request.SignupRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

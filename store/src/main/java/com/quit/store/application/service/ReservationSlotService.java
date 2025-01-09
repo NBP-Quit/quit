@@ -1,5 +1,6 @@
 package com.quit.store.application.service;
 
+import com.quit.store.application.dto.ReservationEvent;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
@@ -9,8 +10,10 @@ import com.quit.store.domain.repository.ReservationSlotRepository;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,7 @@ import java.util.UUID;
 
 import static com.quit.store.presentation.exception.ErrorType.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,6 +32,7 @@ public class ReservationSlotService {
     private final ReservationSlotRepository reservationSlotRepository;
     private final StoreRepository storeRepository;
 
+    @Transactional
     public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId) {
         // todo: 권한체크로직
         Store store = checkStore(storeId);
@@ -36,6 +41,7 @@ public class ReservationSlotService {
         return ReservationSlotResponse.from(slot);
     }
 
+    @Transactional
     public ReservationSlotResponse updateSlot(UUID storeId, UUID slotId,
                                               UpdateReservationSlotDto request, String userId) {
         // todo: 권한체크로직
@@ -66,6 +72,7 @@ public class ReservationSlotService {
         return ReservationSlotResponse.from(slot);
     }
 
+    @Transactional
     public void deleteSlot(UUID storeId, UUID slotId, String userId) {
         // todo: 권한체크로직
         Store store = checkStore(storeId);
@@ -73,6 +80,46 @@ public class ReservationSlotService {
         validateSlotBelongsToStore(store.getId(), slot);
         validateReservation(slot);
         slot.delete(userId);
+    }
+
+    @Transactional
+    @KafkaListener(topics = "reservation.confirm.success", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
+    public void increaseCapacity(ReservationEvent reservationEvent) {
+        log.info(">>>>>>> increaseCapacity <<<<<<<<<");
+        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
+        validateSlotIsAvailable(reservationSlot);
+        validateCapacityLimit(reservationSlot, reservationEvent.getCurrentCapacity());
+        reservationSlot.increaseCapacity(reservationEvent.getCurrentCapacity());
+        log.info("<<<<<<< reservation slot increased <<<<<<<<<");
+    }
+
+    @Transactional
+    @KafkaListener(topics = "reservation.confirm.failed", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
+    public void restoreCapacity(ReservationEvent reservationEvent) {
+        log.info(">>>>>>> restoreCapacity <<<<<<<<<");
+        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
+        validateSlotIsAvailable(reservationSlot);
+        validateSufficientCapacity(reservationSlot, reservationEvent.getCurrentCapacity());
+        reservationSlot.restoreCapacity(reservationEvent.getCurrentCapacity());
+        log.info("<<<<<<< reservation slot restored <<<<<<<<<");
+    }
+
+    private void validateSlotIsAvailable(ReservationSlot slot) {
+        if (!slot.getIsAvailable()) {
+            throw new CustomException(RESERVATION_SLOT_NOT_AVAILABLE);
+        }
+    }
+
+    private void validateCapacityLimit(ReservationSlot slot, int increment) {
+        if ((slot.getCurrentCapacity() + increment) > slot.getMaxCapacity()) {
+            throw new CustomException(RESERVATION_SLOT_MAX_CAPACITY_LIMIT_EXCEEDED);
+        }
+    }
+
+    private void validateSufficientCapacity(ReservationSlot slot, int decrement) {
+        if ((slot.getCurrentCapacity() - decrement) < 0) {
+            throw new CustomException(RESERVATION_SLOT_CURRENT_CAPACITY_INVALID);
+        }
     }
 
     private void validateSlotBelongsToStore(UUID storeId, ReservationSlot slot) {

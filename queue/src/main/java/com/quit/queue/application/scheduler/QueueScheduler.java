@@ -50,16 +50,24 @@ public class QueueScheduler {
                             .flatMap(entry -> {
                                 String userId = entry.getValue();
                                 String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+                                String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
 
-                                return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("guestCount", "reservationDate", "reservationTime"))
-                                        .flatMap(values -> {
-                                            if (values.size() != 3 || values.contains(null)) {
+                                return reactiveRedisTemplate.hasKey(refreshKey)
+                                        .flatMap(refreshExists -> {
+                                            if (!refreshExists) {
                                                 return Mono.empty();
                                             }
 
-                                            ReservationMessage reservationMessage = ReservationMessage.of(
-                                                    userId, storeId.toString(), (String) values.get(0), (String) values.get(1), (String) values.get(2));
-                                            return sendToReservationService(reservationMessage);
+                                            return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("guestCount", "reservationDate", "reservationTime"))
+                                                    .flatMap(values -> {
+                                                        if (values.size() != 3 || values.contains(null)) {
+                                                            return Mono.empty();
+                                                        }
+
+                                                        ReservationMessage reservationMessage = ReservationMessage.of(
+                                                                userId, storeId.toString(), (String) values.get(0), (String) values.get(1), (String) values.get(2));
+                                                        return sendToReservationService(reservationMessage);
+                                                    });
                                         });
                             })
                             .then(removeUsersFromQueue(queueKey, entries));
@@ -68,7 +76,7 @@ public class QueueScheduler {
 
     private Mono<Void> sendToReservationService(ReservationMessage reservation) {
         String key = reservation.getStoreId() + ":" + reservation.getUserId();
-        return kafkaMessageProducer.sendMessage("queue.reservation", key, reservation);
+        return kafkaMessageProducer.sendMessage("reservation.create.success", key, reservation);
     }
 
     private Mono<Void> removeUsersFromQueue(String queueKey, List<ZSetOperations.TypedTuple<String>> entries) {
@@ -83,9 +91,11 @@ public class QueueScheduler {
 
         userIds.forEach(userId -> {
             String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+            String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
             String userQueueKey = "queue:user:" + userId;
 
             removalTasks.add(reactiveRedisTemplate.delete(reservationKey).then());
+            removalTasks.add(reactiveRedisTemplate.delete(refreshKey).then());
             removalTasks.add(reactiveRedisTemplate.delete(userQueueKey).then());
         });
 

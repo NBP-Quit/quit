@@ -27,17 +27,19 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(paymentService.createTempPayment(request.toDto())));
     }
 
-    @PostMapping
+    @PostMapping("/{reservationId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
+            @PathVariable UUID reservationId,
             @Valid @RequestBody CreatePaymentRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(paymentService.createPayment(request.toDto())));
+        return ResponseEntity.ok(ApiResponse.success(paymentService.createPayment(reservationId, request.toDto())));
     }
 
-    @PostMapping("/{paymentsId}/cancel")
+    @PostMapping("/{paymentId}/cancel/{reservationId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(
-            @PathVariable UUID paymentsId,
+            @PathVariable(name = "paymentId") UUID paymentId,
+            @PathVariable(name = "reservationId") UUID reservationId,
             @Valid @RequestBody CancelPaymentRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentsId, request)));
+        return ResponseEntity.ok(ApiResponse.success(paymentService.cancelPayment(paymentId, reservationId, request)));
     }
 
     @GetMapping("/{reservationId}")
