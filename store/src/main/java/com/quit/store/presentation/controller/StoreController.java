@@ -26,8 +26,8 @@ public class StoreController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateStoreResponse>> createStore(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @Valid @RequestBody CreateStoreRequest request) {
         CreateStoreResponse response = storeService.createStore(request.toDto(), userId, userRole);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -35,8 +35,8 @@ public class StoreController {
 
     @PutMapping("/{storeId}")
     public ResponseEntity<ApiResponse<StoreResponse>> updateStore(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId,
             @RequestBody UpdateStoreRequest request) {
         StoreResponse response = storeService.updateStore(storeId, request.toDto(), userId, userRole);
@@ -60,8 +60,8 @@ public class StoreController {
 
     @DeleteMapping("/{storeId}")
     public ResponseEntity<ApiResponse<String>> deleteStore(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId) {
         storeService.deleteStore(storeId, userId, userRole);
         return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));

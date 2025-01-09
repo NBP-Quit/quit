@@ -27,8 +27,8 @@ public class ReservationSlotController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ReservationSlotResponse>> createSlot(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId,
             @Valid @RequestBody CreateReservationSlotRequest request) {
         return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSlot(storeId, request.toDto(), userId, userRole)));
@@ -36,8 +36,8 @@ public class ReservationSlotController {
 
     @PutMapping("/{slotId}")
     public ResponseEntity<ApiResponse<ReservationSlotResponse>> updateSlot(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId,
             @PathVariable(name = "slotId") UUID slotId,
             @RequestBody UpdateReservationSlotRequest request) {
@@ -63,8 +63,8 @@ public class ReservationSlotController {
 
     @DeleteMapping("/{slotId}")
     public ResponseEntity<ApiResponse<String>> deleteSlot(
-            @RequestHeader(name = "X-user-email") String userId,
-            @RequestHeader(name = "X-user-role") String userRole,
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId,
             @PathVariable(name = "slotId") UUID slotId) {
         reservationSlotService.deleteSlot(storeId, slotId, userId, userRole);
