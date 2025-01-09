@@ -54,11 +54,12 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{reservationId}")
-    public ResponseEntity<ApiResponse<String>> deleteReservation(@PathVariable UUID reservationId, @RequestBody Role role) {
+    public ResponseEntity<ApiResponse<String>> deleteReservation(@PathVariable UUID reservationId) {
 
         //TODO: managerId 임시 값 사용, Role 값 추후 헤더 값으로 변경 예정(임시로 RequestBody 값 사용)
         String managerId = "testManager";
-        reservationService.deleteReservation(reservationId, managerId, role);
+        Role managerRole = Role.MASTER;
+        reservationService.deleteReservation(reservationId, managerId, managerRole);
         return ResponseEntity.ok(ApiResponse.success("예약을 삭제 했습니다."));
     }
 
@@ -96,5 +97,10 @@ public class ReservationController {
         Role role = Role.MASTER;
         return ResponseEntity.ok(ApiResponse.success(
                 reservationQueryService.findAllReservations(role, predicate, pageable)));
+    }
+
+    @GetMapping("/{reservationId}/find")
+    public ResponseEntity<ApiResponse<UUID>> findReservation(@PathVariable UUID reservationId) {
+        return ResponseEntity.ok(ApiResponse.success(reservationQueryService.getReservation(reservationId)));
     }
 }

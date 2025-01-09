@@ -41,6 +41,13 @@ public class ReservationQueryService {
         throw new CustomException(ErrorType.CUSTOMER_ID_NOT_SAME);
     }
 
+    public UUID getReservation(UUID reservationId) {
+        log.info("예약 단 건 조회");
+        Reservation reservation = reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
+        return reservation.getReservationId();
+    }
+
     public GetReservationResponse findReservations(String customerId, Pageable pageable) {
         log.info("예약 목록 조회 시작");
         Page<Reservation> reservationPage = reservationRepository

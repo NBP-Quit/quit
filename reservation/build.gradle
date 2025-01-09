@@ -28,6 +28,9 @@ ext {
 }
 
 dependencies {
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     // org.json 라이브러리 (JSON 처리)
     implementation 'org.json:json:20231013'
     // QueryDSL
