@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReservationMessage {
     private String userId;
+    private String userEmail;
     private String storeId;
     private String guestCount;
     private String reservationDate;

@@ -42,7 +42,7 @@ public class ReservationMessagingConsumer {
         CreateReservationDto request = CreateReservationDto
                 .of(storeId, guestCount, reservationDate, reservationTime);
         log.info("예약 정보 메시지 처리 호출");
-        reservationService.createReservation(request, message.getUserId());
+        reservationService.createReservation(request, message.getUserEmail());
     }
 
     // 결제 -> 예약 서비스 메시지 수신 처리(성공)
