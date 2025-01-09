@@ -74,22 +74,20 @@ public class ReservationService {
 
     public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId,
                                                                    ChangeReservationStatusRequest request,
-                                                                   String customerId) {
+                                                                   String customerId,
+                                                                   String userRole) {
         log.info("예약 상태 변경 작업 시작");
         log.info("상태 변경 예약 UUID : {}", reservationId);
         log.info("변경할 상태: {}", request.getReservationStatus());
         Reservation reservation = findReservation(reservationId);
+
         validationService.validateChangeReservationStatus(
                 request.getReservationStatus(), reservation.getReservationStatus());
+        assertPermission(reservation.getCustomerId(), customerId, userRole);
 
-        //TODO: OWNER 이상의 권한을 가진 사람은 상태 변경을 할 수 있도록 수정
-        if (reservation.getCustomerId().equals(customerId)) {
-            reservation.changeStatus(request.getReservationStatus());
-            log.info("예약 상태 변경 작업 완료");
-            return ChangeReservationStatusResponse.fromReservation(reservation);
-        }
-
-        throw new CustomException(ErrorType.ACCESS_DENIED);
+        reservation.changeStatus(request.getReservationStatus());
+        log.info("예약 상태 변경 작업 완료");
+        return ChangeReservationStatusResponse.fromReservation(reservation);
     }
 
     public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status) {
@@ -103,19 +101,15 @@ public class ReservationService {
         log.info("비동기 예약 상태 변경 완료");
     }
 
-    public void cancelReservation(UUID reservationId, String customerId) {
-        //TODO: Owner 이상의 권한을 가지면 예약 취소 가능하도록 검증 추가
+    public void cancelReservation(UUID reservationId, String customerId, String userRole) {
         log.info("예약 취소 작업 시작");
         Reservation reservation = findReservation(reservationId);
+
         validationService.validateCancelReservationStatus(reservation.getReservationStatus());
+        assertPermission(reservation.getCustomerId(), customerId, userRole);
 
-        if (reservation.getCustomerId().equals(customerId)) {
-            reservation.cancel();
-            log.info("예약 취소 작업 완료");
-            return;
-        }
-
-        throw new CustomException(ErrorType.ACCESS_DENIED);
+        reservation.cancel();
+        log.info("예약 취소 작업 완료");
     }
 
     public void cancelReservationAsync(UUID reservationId) {
@@ -126,20 +120,21 @@ public class ReservationService {
         log.info("비동기 예약 취소 작업 완료");
     }
 
-    public void deleteReservation(UUID reservationId, String managerId, Role role) {
+    public void deleteReservation(UUID reservationId, String managerId, String userRole) {
         log.info("예약 삭제 작업 시작");
         log.info("관리자: {}", managerId);
 
-        if (!(role.equals(Role.MANAGER) || role.equals(Role.MASTER))) {
-            throw new CustomException(ErrorType.ACCESS_DENIED);
+        if (userRole.equals(Role.MASTER.name())) {
+            Reservation reservation = findReservation(reservationId);
+            log.info("예약 상태 확인: {}", reservation.getReservationStatus());
+            reservationValidationService.validateReservationStatusForDelete(reservation.getReservationStatus());
+            reservation.markDeleted();
+            log.info("예약 삭제 작업 완료");
+            reservationMessagingProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
+            log.info("예약 삭제 정보 메시지 송신 완료");
         }
 
-        Reservation reservation = findReservation(reservationId);
-        reservationMessagingProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
-        log.info("예약 상태 확인: {}", reservation.getReservationStatus());
-        reservationValidationService.validateReservationStatusForDelete(reservation.getReservationStatus());
-        reservation.markDeleted();
-        log.info("예약 삭제 작업 완료");
+        throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
     public void updateReservationPayment(UUID reservationId, Integer amount) {
@@ -149,6 +144,11 @@ public class ReservationService {
         log.info("예약 금액 업데이트 시작");
         reservation.updateReservationPrice(amount);
         log.info("예약 금액 업데이트 완료");
+    }
+
+    private Reservation findReservation(UUID reservationId) {
+        return reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
     }
 
     //TODO: 검증 메서드 리팩토링 작업 필요
@@ -163,8 +163,12 @@ public class ReservationService {
         validationService.validateReservationTime(request.getReservationTime());
     }
 
-    private Reservation findReservation(UUID reservationId) {
-        return reservationRepository.findByReservationIdIsDeletedFalse(reservationId)
-                .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
+    private void assertPermission(String requestCustomerId, String customerId, String userRole) {
+        if (requestCustomerId.equals(customerId)
+                || userRole.equals(Role.OWNER.name())
+                || userRole.equals(Role.MASTER.name())) {
+            return;
+        }
+        throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 }
