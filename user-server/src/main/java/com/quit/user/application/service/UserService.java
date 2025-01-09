@@ -78,7 +78,9 @@ public class UserService {
     }
 
     private boolean hasAccess(String role, String userId, Long id) {
-        return UserRoleEnum.MASTER.toString().equals(role) ||
-                (UserRoleEnum.USER.toString().equals(role) && userId.equals(id.toString()));
+        UserRoleEnum userRole = UserRoleEnum.fromRole(role);
+
+        return userRole == UserRoleEnum.MASTER ||
+                (userRole == UserRoleEnum.USER && userId.equals(id.toString()));
     }
 }
