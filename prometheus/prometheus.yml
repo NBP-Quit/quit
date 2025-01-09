@@ -14,3 +14,6 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: [ 'host.docker.internal:19096' ]
+  - job_name: 'node'
+    static_configs:
+      - targets: [ 'host.docker.internal:9100' ]
