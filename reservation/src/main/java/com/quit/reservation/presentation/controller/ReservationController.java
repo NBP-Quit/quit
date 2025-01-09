@@ -97,4 +97,9 @@ public class ReservationController {
         return ResponseEntity.ok(ApiResponse.success(
                 reservationQueryService.findAllReservations(role, predicate, pageable)));
     }
+
+    @GetMapping("/{reservationId}/find")
+    public ResponseEntity<ApiResponse<UUID>> findReservation(@PathVariable UUID reservationId) {
+        return ResponseEntity.ok(ApiResponse.success(reservationQueryService.getReservation(reservationId)));
+    }
 }
