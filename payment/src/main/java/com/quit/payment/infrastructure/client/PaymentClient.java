@@ -1,7 +1,7 @@
 package com.quit.payment.infrastructure.client;
 
 import com.quit.payment.application.dto.PaymentDto;
-import com.quit.payment.configuration.PaymentFeignConfig;
+import com.quit.payment.infrastructure.configuration.PaymentFeignConfig;
 import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
 import com.quit.payment.presentation.dto.CancelPaymentRequest;

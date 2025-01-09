@@ -1,6 +1,7 @@
 package com.quit.payment.application.service;
 
 import com.quit.payment.application.dto.PaymentDto;
+import com.quit.payment.application.dto.PaymentEvent;
 import com.quit.payment.application.dto.TempPaymentDto;
 import com.quit.payment.application.dto.res.PaymentResponse;
 import com.quit.payment.application.dto.res.TempPaymentResponse;
@@ -9,13 +10,14 @@ import com.quit.payment.domain.entity.Status;
 import com.quit.payment.domain.entity.TempPayment;
 import com.quit.payment.domain.repository.PaymentRepository;
 import com.quit.payment.domain.repository.TempPaymentRepository;
-import com.quit.payment.infrastructure.client.PaymentClient;
 import com.quit.payment.infrastructure.client.PaymentGateway;
+import com.quit.payment.infrastructure.client.ReservationGateway;
 import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
+import com.quit.payment.infrastructure.dto.ReservationResponse;
+import com.quit.payment.infrastructure.kafka.KafkaProducer;
 import com.quit.payment.presentation.dto.CancelPaymentRequest;
 import com.quit.payment.presentation.exception.CustomException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static com.quit.payment.presentation.exception.ErrorType.PAYMENT_DATA_INVALID;
-import static com.quit.payment.presentation.exception.ErrorType.PAYMENT_NOT_FOUND;
+import static com.quit.payment.presentation.exception.ErrorType.*;
 
 @Slf4j
 @Service
@@ -34,7 +35,11 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final TempPaymentRepository tempPaymentRepository;
+    private final ReservationGateway reservationGateway;
     private final PaymentGateway paymentGateway;
+    private final KafkaProducer kafkaProducer;
+    private static final String PAYMENT_SUCCESS_TOPIC = "payment.create.success";
+    private static final String PAYMENT_FAILED_TOPIC = "payment.create.failed";
 
     public TempPaymentResponse createTempPayment(TempPaymentDto request) {
         TempPayment tempPayment = TempPayment.of(request.getAmount(), request.getOrderId());
@@ -42,29 +47,25 @@ public class PaymentService {
         return TempPaymentResponse.from(tempPayment);
     }
 
-    public PaymentResponse createPayment(PaymentDto request) {
-        TempPayment tempPayment = ValidatePayment(request.getOrderId());
-        validateAmount(tempPayment, request.getAmount());
+    public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
+        TempPayment tempPayment = validateTempPayment(request);
+        // todo: errorDecoder 로 예외처리, fallbackmethod 처리
+        ReservationResponse reservationResponse = reservationGateway.getReservation(reservationId).getData();
+        log.info("reservationId= {}", reservationResponse.getReservationId());
         ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
         log.info("Confirm payment response: {}", response);
-        /* todo:
-            1. kafka 적용 후 예약 생성 구독해 예약 id 가져오기
-            2. 결제 생성 후 메세지 발행하기
-         */
-        UUID reservationId = UUID.randomUUID();
-        Payment payment = create(response, reservationId);
+        Payment payment = create(response, reservationResponse.getReservationId());
         paymentRepository.save(payment);
+        sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
-    public PaymentResponse cancelPayment(UUID paymentsId, CancelPaymentRequest request) {
-        Payment payment = checkPayment(paymentsId);
+    public PaymentResponse cancelPayment(UUID paymentId, UUID reservationId, CancelPaymentRequest request) {
+        Payment payment = validatePayment(paymentId, reservationId);
         CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
-        /* todo:
-            1. kafka 적용 결제 취소 후 메세지 발행하기
-         */
         payment.cancel(Status.CANCELED, request.getCancelReason());
+        sendKafkaMessage(PAYMENT_FAILED_TOPIC, "paymentId:" + payment.getId(), PaymentEvent.of(payment.getReservationId(), payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 
@@ -75,8 +76,21 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    private Payment checkPayment(UUID paymentsId) {
-        return paymentRepository.findByIdAndIsDeletedFalse(paymentsId).orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+    private TempPayment validateTempPayment(PaymentDto request) {
+        TempPayment tempPayment = checkTempPayment(request);
+        validateAmount(tempPayment, request.getAmount());
+        return tempPayment;
+    }
+
+    private TempPayment checkTempPayment(PaymentDto request) {
+        return tempPaymentRepository.findByOrderIdAndIsDeletedFalse(request.getOrderId())
+                .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
+    }
+
+    private void validateAmount(TempPayment tempPayment, Integer amount) {
+        if(!tempPayment.getAmount().equals(amount)) {
+            throw new CustomException(PAYMENT_DATA_INVALID);
+        }
     }
 
     private Payment create(ConfirmPaymentResponse response, UUID reservationId) {
@@ -88,15 +102,30 @@ public class PaymentService {
                 reservationId);
     }
 
-    private void validateAmount(TempPayment tempPayment, Integer amount) {
-        if(!tempPayment.getAmount().equals(amount)) {
-            throw new CustomException(PAYMENT_DATA_INVALID);
+    private Payment validatePayment(UUID paymentId, UUID reservationId) {
+        Payment payment = checkPayment(paymentId);
+        validateReservation(payment, reservationId);
+        return payment;
+    }
+
+    private Payment checkPayment(UUID paymentsId) {
+        return paymentRepository.findByIdAndIsDeletedFalse(paymentsId)
+                .orElseThrow(() -> new CustomException(PAYMENT_NOT_FOUND));
+    }
+
+    private void validateReservation(Payment payment, UUID reservationId) {
+        if(!payment.getReservationId().equals(reservationId)) {
+            throw new CustomException(RESERVATION_ID_MISMATCH);
         }
     }
 
-    private TempPayment ValidatePayment(String orderId) {
-        return tempPaymentRepository.findByOrderIdAndIsDeletedFalse(orderId)
-                .orElseThrow(() -> new CustomException(PAYMENT_DATA_INVALID));
+    private void sendKafkaMessage(String topic, String key, PaymentEvent event) {
+        try {
+            kafkaProducer.sendMessage(topic, key, event);
+        } catch (Exception e) {
+            log.error("Failed to send Kafka message: topic= {}, key= {}", topic, key);
+            throw new CustomException(KAFKA_MESSAGE_SEND_FAILED);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package com.quit.payment.configuration;
+package com.quit.payment.infrastructure.configuration;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
