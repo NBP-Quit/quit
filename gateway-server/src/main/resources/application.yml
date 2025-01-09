@@ -19,8 +19,6 @@ spring:
           predicates:
             - Path=/api/users/**, /api/auth/**
           filters:
-            - RemoveRequestHeader=Cookie
-            - PreserveHostHeader
             - name: RequestRateLimiter
               args:
                   redis-rate-limiter.replenishRate: 1
