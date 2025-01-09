@@ -81,23 +81,21 @@ public class ReviewController {
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Deleted"));
 	}
 
-	@PostMapping("/stores/{storeId}/reviews/{reviewId}/likes")
+	@PostMapping("/reviews/{reviewId}/likes")
 	public ResponseEntity<ApiResponse<Void>> like(
-		@PathVariable UUID storeId,
 		@PathVariable UUID reviewId,
 		@RequestHeader(value = "X-User-ID") String userId
 	) {
-		reviewService.like(storeId, reviewId, Long.parseLong(userId));
+		reviewService.like(reviewId, Long.parseLong(userId));
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Like Completed"));
 	}
 
-	@DeleteMapping("/stores/{storeId}/reviews/{reviewId}/likes")
+	@DeleteMapping("/reviews/{reviewId}/likes")
 	public ResponseEntity<ApiResponse<Void>> unlike(
-		@PathVariable UUID storeId,
 		@PathVariable UUID reviewId,
 		@RequestHeader(value = "X-User-ID") String userId
 	) {
-		reviewService.unlike(storeId, reviewId, Long.parseLong(userId));
+		reviewService.unlike(reviewId, Long.parseLong(userId));
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Unlike Completed"));
 	}
 

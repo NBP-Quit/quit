@@ -1,18 +1,13 @@
 package com.quit.review.domain.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
-public interface LikeRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
 
-	Long add(UUID reviewId, Long userId);
+import com.quit.review.domain.model.Like;
+import com.quit.review.domain.model.Review;
 
-	Long remove(UUID reviewId, Long userId);
-
-	boolean exist(UUID reviewId, Long userId);
-
-	int count(UUID storeId, UUID reviewId);
-
-	void incrementScore(UUID storeId, UUID reviewId);
-
-	void decrementScore(UUID storeId, UUID reviewId);
+public interface LikeRepository extends JpaRepository<Like, UUID> {
+	Optional<Like> findByReviewAndUserId(Review review, Long userId);
 }

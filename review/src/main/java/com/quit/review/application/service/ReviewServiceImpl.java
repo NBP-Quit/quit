@@ -18,7 +18,6 @@ import com.quit.review.application.dto.ReviewUpdateDto;
 import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.repository.LikeRepository;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -33,7 +32,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 	private final ReviewRepository reviewRepository;
 
-	private final LikeRepository likeRepository;
+	private final CacheService cacheService;
+	private final MessagePublisher messagePublisher;
 
 	private final ImageService imageService;
 	private final ReservationService reservationService;
@@ -46,9 +46,11 @@ public class ReviewServiceImpl implements ReviewService {
 		ReservationResponse reservation = reservationService.getById(reservationId);
 		validate(userId, reservation);
 
+		UUID storeId = reservation.getStoreId();
+
 		// 유저 서비스에서 유저 정보 조회 후 nickname 추출
 		String nickname = userService.getNicknameById(userId);
-		Review review = dto.toEntity(reservationId, reservation.getStoreId(), userId, nickname);
+		Review review = dto.toEntity(reservationId, storeId, userId, nickname);
 
 		// 예약 시간을 기준으로 식사 유형(아침, 점심, 저녁)을 지정
 		review.decideMealType(reservation.getReservationTime());
@@ -71,8 +73,10 @@ public class ReviewServiceImpl implements ReviewService {
 
 		List<ReviewResponse> reviewResponses = reviewSlice.getContent().stream()
 			.map(review -> {
-				int likeCount = likeRepository.count(storeId, review.getId());
-				boolean isLiked = likeRepository.exist(review.getId(), userId);
+				// TODO: 추후에 요청을 하나로 묶는 Redis Pipeline 으로 최적화 고려해볼 것
+				String key = "review:" + review.getId() + ":likes";
+				int likeCount = cacheService.getSetSize(key).intValue();
+				boolean isLiked = cacheService.isMemberOfSet(key, userId);
 				return ReviewResponse.from(review, likeCount, isLiked);
 			})
 			.toList();
@@ -110,19 +114,25 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public void like(UUID storeId, UUID reviewId, Long userId) {
-		Long added = likeRepository.add(reviewId, userId);
-		if (added != null && added > 0) {
-			likeRepository.incrementScore(storeId, reviewId);
+	public void like(UUID reviewId, Long userId) {
+		String key = "review:" + reviewId + ":likes";
+		Long added = cacheService.addToSet(key, userId);
+
+		if (added > 0) {
+			LikeEvent likeEvent = LikeEvent.create(reviewId, userId, LikeAction.LIKE);
+			messagePublisher.publishLikeEvent(likeEvent);
 		}
 	}
 
 	@Override
 	@Transactional
-	public void unlike(UUID storeId, UUID reviewId, Long userId) {
-		Long removed = likeRepository.remove(reviewId, userId);
-		if (removed != null && removed > 0) {
-			likeRepository.decrementScore(storeId, reviewId);
+	public void unlike(UUID reviewId, Long userId) {
+		String key = "review:" + reviewId + ":likes";
+		Long removed = cacheService.removeFromSet(key, userId);
+
+		if (removed > 0) {
+			LikeEvent likeEvent = LikeEvent.create(reviewId, userId, LikeAction.UNLIKE);
+			messagePublisher.publishLikeEvent(likeEvent);
 		}
 	}
 

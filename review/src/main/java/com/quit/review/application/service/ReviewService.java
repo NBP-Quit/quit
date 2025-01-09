@@ -20,7 +20,7 @@ public interface ReviewService {
 
 	void delete(UUID reviewId, Long userId);
 
-	void like(UUID storeId, UUID reviewId, Long userId);
+	void like(UUID reviewId, Long userId);
 
-	void unlike(UUID storeId, UUID reviewId, Long userId);
+	void unlike(UUID reviewId, Long userId);
 }
