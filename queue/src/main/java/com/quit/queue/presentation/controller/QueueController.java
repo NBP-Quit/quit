@@ -23,9 +23,9 @@ public class QueueController {
 
     @PostMapping("/stores/{storeId}")
     public Mono<ApiResponse<?>> addUserToQueueForStore(@PathVariable UUID storeId,
-                                                       @RequestBody ReservationRequest requset,
+                                                       @RequestBody ReservationRequest request,
                                                        @RequestHeader(value = "X-User-Id") String userId) {
-        return queueService.addUserToQueueForStore(storeId, requset, userId);
+        return queueService.addUserToQueueForStore(storeId, request, userId);
     }
 
     @DeleteMapping("/stores/{storeId}")
