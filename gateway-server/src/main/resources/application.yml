@@ -21,7 +21,12 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - PreserveHostHeader
-
+            - name: RequestRateLimiter
+              args:
+                  redis-rate-limiter.replenishRate: 1
+                  redis-rate-limiter.burstCapacity: 10
+                  redis-rate-limiter.requestedTokens: 1
+                  key-resolver: "#{@userKeyResolver}"
 
 eureka:
   client:
