@@ -29,6 +29,16 @@ spring:
           uri: lb://queue
           predicates:
             - Path=/api/queues, /api/queues/**
+
+        - id: store
+          uri: lb://store
+          predicates:
+            - Path=/api/stores/**
+
+        - id: payment
+          uri: lb://payment
+          predicates:
+            - Path=/api/payments/**
            
 eureka:
   client:
@@ -43,3 +53,7 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
