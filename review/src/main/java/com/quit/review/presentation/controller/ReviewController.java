@@ -23,13 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.service.ReviewService;
 import com.quit.review.common.ApiResponse;
 import com.quit.review.presentation.request.ReviewCreateRequest;
 import com.quit.review.presentation.request.ReviewUpdateRequest;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Path;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -99,10 +99,12 @@ public class ReviewController {
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Unlike Completed"));
 	}
 
-	// @GetMapping("/stores/{storeId}/reviews/summary")
-	// public ResponseEntity<ApiResponse<?>> getSummary(
-	// 	@PathVariable UUID storeId
-	// ) {
-	// 	reviewService.getSummary()
-	// }
+	@GetMapping("/stores/{storeId}/reviews/summary")
+	public ResponseEntity<ApiResponse<ReviewSummeryResponse>> getSummary(
+		@PathVariable UUID storeId,
+		@RequestHeader(value = "X-User-ID") String userId
+	) {
+		return ResponseEntity.ok(ApiResponse.success(reviewService.getSummary(storeId, Long.parseLong(userId))));
+
+	}
 }

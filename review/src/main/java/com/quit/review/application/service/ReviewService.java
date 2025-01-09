@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.dto.ReviewUpdateDto;
 
 public interface ReviewService {
@@ -23,4 +24,6 @@ public interface ReviewService {
 	void like(UUID reviewId, Long userId);
 
 	void unlike(UUID reviewId, Long userId);
+
+	ReviewSummeryResponse getSummary(UUID storeId, Long userId);
 }

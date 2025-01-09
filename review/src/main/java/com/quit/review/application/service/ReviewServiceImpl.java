@@ -1,8 +1,11 @@
 package com.quit.review.application.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -12,12 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quit.review.application.dto.AvgScoresDto;
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.dto.ReviewUpdateDto;
 import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
+import com.quit.review.domain.model.Scores;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -63,6 +69,9 @@ public class ReviewServiceImpl implements ReviewService {
 		if (!CollectionUtils.isEmpty(files)) {
 			files.forEach(file -> imageService.create(file, savedReview));
 		}
+
+		// 가게의 총 평균 별점 및 항목 별 평균 별점 업데이트
+		updateStoreScores(storeId, review.getScores());
 
 		return savedReview.getId();
 	}
@@ -134,6 +143,64 @@ public class ReviewServiceImpl implements ReviewService {
 			LikeEvent likeEvent = LikeEvent.create(reviewId, userId, LikeAction.UNLIKE);
 			messagePublisher.publishLikeEvent(likeEvent);
 		}
+	}
+
+	@Override
+	public ReviewSummeryResponse getSummary(UUID storeId, Long userId) {
+		String avgKey = "store:" + storeId + ":averages";
+		String countKey = "store:" + storeId + ":scores";
+
+		Map<Object, Object> averages = cacheService.getAll(avgKey);
+
+		AvgScoresDto avgScoresDto = AvgScoresDto.from(averages);
+
+		Long count = (Long) cacheService.getValue(countKey);
+
+		Pageable pageable = PageRequest.of(0, 5);
+		List<Review> reviews = reviewRepository.findTop5ReviewByLikeCount(pageable);
+		List<ReviewResponse> reviewResponses = reviews.stream()
+			.map(review -> {
+				String key = "review:" + review.getId() + ":likes";
+				int likeCount = cacheService.getSetSize(key).intValue();
+				boolean isLiked = cacheService.isMemberOfSet(key, userId);
+				return ReviewResponse.from(review, likeCount, isLiked);
+			})
+			.toList();
+
+		return ReviewSummeryResponse.from(avgScoresDto, count.intValue(), reviewResponses);
+	}
+
+	private void updateStoreScores(UUID storeId, Scores scores) {
+		String key = "store:" + storeId + ":scores";
+		String countKey = "store:" + storeId + ":count";
+
+		cacheService.increaseForHash(key, "sum_taste", scores.getTaste());
+		cacheService.increaseForHash(key, "sum_ambience", scores.getAmbience());
+		cacheService.increaseForHash(key, "sum_kindness", scores.getKindness());
+		cacheService.increaseForHash(key, "sum_cleanliness", scores.getCleanliness());
+		cacheService.increaseForValue(countKey, 1);
+
+		Long sumTaste = (Long) cacheService.getHashValue(key, "sum_taste");
+		Long sumAmbience = (Long) cacheService.getHashValue(key, "sum_ambience");
+		Long sumKindness = (Long) cacheService.getHashValue(key, "sum_kindness");
+		Long sumCleanliness = (Long) cacheService.getHashValue(key, "sum_cleanliness");
+		Long count = (Long) cacheService.getValue(countKey);
+
+		double avgTaste = sumTaste / (double) count;
+		double avgAmbience = sumAmbience / (double) count;
+		double avgKindness = sumKindness / (double) count;
+		double avgCleanliness = sumCleanliness / (double) count;
+		double avgTotal = (avgTaste + avgAmbience + avgKindness + avgCleanliness) / 4.0;
+
+		String avgKey = "store:" + storeId + ":averages";
+		Map<String, Object> averages = new HashMap<>();
+		averages.put("avg_taste", avgTaste);
+		averages.put("avg_ambience", avgAmbience);
+		averages.put("avg_kindness", avgKindness);
+		averages.put("avg_cleanliness", avgCleanliness);
+		averages.put("avg_total", avgTotal);
+
+		cacheService.putAll(avgKey, averages);
 	}
 
 	private void validate(Long userId, ReservationResponse reservation) {
