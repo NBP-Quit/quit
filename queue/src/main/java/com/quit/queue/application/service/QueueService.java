@@ -25,9 +25,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    private final RoleValidationService roleValidationService;
 
-    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, String userId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, String userId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 2);
 
         return validateReservationRequest(reservationRequest)
                 .switchIfEmpty(Mono.defer(() -> {
@@ -86,8 +87,8 @@ public class QueueService {
         return Mono.empty();
     }
 
-    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(UUID storeId, String userId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(UUID storeId, String userId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 2);
 
         String key = "queue:store:" + storeId + ":users";
 
@@ -101,8 +102,8 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<?>> getQueue(UUID storeId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<?>> getQueue(UUID storeId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 3);
 
         return (storeId == null)
                 ? getAllQueues().map(ApiResponse::success)
@@ -146,12 +147,19 @@ public class QueueService {
                 });
     }
 
-    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(UUID storeId, String userId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<Object>> removeUserFromQueueForStore(UUID storeId, String paramUserId, String userId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 2);
+
+        final String finalUserId;
+        if (userRole.equals("ROLE_MASTER")) {
+            finalUserId = paramUserId;
+        } else {
+            finalUserId = userId;
+        }
 
         String key = "queue:store:" + storeId + ":users";
-        String userQueueKey = "queue:user:" + userId;
-        String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
+        String userQueueKey = "queue:user:" + finalUserId;
+        String refreshKey = "queue:store:" + storeId + ":refresh:" + finalUserId;
 
         return reactiveRedisTemplate.opsForValue().get(userQueueKey)
                 .flatMap(currentQueue -> {
@@ -159,7 +167,7 @@ public class QueueService {
                         return Mono.error(new IllegalStateException("User not in the specified store queue"));
                     }
 
-                    return reactiveRedisTemplate.opsForZSet().remove(key, userId)
+                    return reactiveRedisTemplate.opsForZSet().remove(key, finalUserId)
                             .flatMap(result -> {
                                 if (result > 0) {
                                     return reactiveRedisTemplate.delete(userQueueKey, refreshKey)
@@ -172,8 +180,8 @@ public class QueueService {
                         "Failed to remove user from queue: " + e.getMessage())));
     }
 
-    public Mono<ApiResponse<Object>> resetQueueForStore(UUID storeId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<Object>> resetQueueForStore(UUID storeId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 3);
 
         return (storeId == null) ? resetAllQueues() : resetStoreQueue(storeId);
     }
@@ -227,8 +235,8 @@ public class QueueService {
                 .onErrorMap(e -> new RuntimeException("Failed to delete keys with pattern: " + patternKey, e));
     }
 
-    public Mono<ApiResponse<Integer>> checkUserInQueueForStore(UUID storeId, String userId) {
-        // TODO 권한 검증 추가
+    public Mono<ApiResponse<Integer>> checkUserInQueueForStore(UUID storeId, String userId, String userRole) {
+        roleValidationService.validateUserRole(userRole, 1);
 
         String queueKey = "queue:store:" + storeId + ":users";
         String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
