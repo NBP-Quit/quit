@@ -1,6 +1,6 @@
 spring:
   application:
-    name: store
+    name: payment
   profiles:
     active: dev
   jpa:

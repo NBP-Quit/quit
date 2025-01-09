@@ -14,7 +14,6 @@ import com.quit.payment.infrastructure.client.PaymentGateway;
 import com.quit.payment.infrastructure.client.ReservationGateway;
 import com.quit.payment.infrastructure.dto.CancelPaymentResponse;
 import com.quit.payment.infrastructure.dto.ConfirmPaymentResponse;
-import com.quit.payment.infrastructure.dto.ReservationResponse;
 import com.quit.payment.infrastructure.kafka.KafkaProducer;
 import com.quit.payment.presentation.dto.CancelPaymentRequest;
 import com.quit.payment.presentation.exception.CustomException;
@@ -50,13 +49,13 @@ public class PaymentService {
     public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
         TempPayment tempPayment = validateTempPayment(request);
         // todo: errorDecoder 로 예외처리, fallbackmethod 처리
-        ReservationResponse reservationResponse = reservationGateway.getReservation(reservationId).getData();
-        log.info("reservationId= {}", reservationResponse.getReservationId());
+        UUID retrievedReservationId = reservationGateway.getReservation(reservationId).getData();
+        log.info("reservationId= {}", retrievedReservationId);
         ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
         log.info("Confirm payment response: {}", response);
-        Payment payment = create(response, reservationResponse.getReservationId());
+        Payment payment = create(response, retrievedReservationId);
         paymentRepository.save(payment);
-        sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(reservationResponse.getReservationId(), payment.getId(), payment.getAmount()));
+        sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(retrievedReservationId, payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
 

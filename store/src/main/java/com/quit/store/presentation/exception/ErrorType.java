@@ -15,6 +15,7 @@ public enum ErrorType {
     COMMON_VALIDATION_ERROR(BAD_REQUEST, "요청 데이터가 유효하지 않습니다."),
 
     USER_NOT_SAME(BAD_REQUEST, "해당 작성자가 아닙니다."),
+    USER_NOT_AUTHORIZED(FORBIDDEN, "권한이 없는 사용자입니다."),
 
     STORE_NOT_FOUND(NOT_FOUND, "가게가 존재하지 않습니다."),
     STORE_NAME_EMPTY(BAD_REQUEST, "가게 이름이 존재하지 않습니다."),

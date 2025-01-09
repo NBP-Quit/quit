@@ -26,25 +26,22 @@ public class ReservationSlotController {
     private final ReservationSlotService reservationSlotService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ReservationSlotResponse>> createSlot(@PathVariable(name = "storeId") UUID storeId,
+    public ResponseEntity<ApiResponse<ReservationSlotResponse>> createSlot(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId,
             @Valid @RequestBody CreateReservationSlotRequest request) {
-
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-        String userId = "testUserId";
-        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSlot(storeId, request.toDto(), userId)));
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSlot(storeId, request.toDto(), userId, userRole)));
     }
 
     @PutMapping("/{slotId}")
-    public ResponseEntity<ApiResponse<ReservationSlotResponse>> updateSlot(@PathVariable(name = "storeId") UUID storeId,
-                                                                           @PathVariable(name = "slotId") UUID slotId,
-                                                                           @RequestBody UpdateReservationSlotRequest request) {
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-        String userId = "testUserId";
-        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.updateSlot(storeId, slotId, request.toDto(), userId)));
+    public ResponseEntity<ApiResponse<ReservationSlotResponse>> updateSlot(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId,
+            @PathVariable(name = "slotId") UUID slotId,
+            @RequestBody UpdateReservationSlotRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.updateSlot(storeId, slotId, request.toDto(), userId, userRole)));
     }
 
     @GetMapping
@@ -65,13 +62,12 @@ public class ReservationSlotController {
     }
 
     @DeleteMapping("/{slotId}")
-    public ResponseEntity<ApiResponse<String>> deleteSlot(@PathVariable(name = "storeId") UUID storeId,
-                                                          @PathVariable(name = "slotId") UUID slotId) {
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-        String userId = "testUserId";
-        reservationSlotService.deleteSlot(storeId, slotId, userId);
+    public ResponseEntity<ApiResponse<String>> deleteSlot(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId,
+            @PathVariable(name = "slotId") UUID slotId) {
+        reservationSlotService.deleteSlot(storeId, slotId, userId, userRole);
         return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));
     }
 

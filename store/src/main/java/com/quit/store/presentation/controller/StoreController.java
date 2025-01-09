@@ -25,25 +25,21 @@ public class StoreController {
     private final StoreService storeService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CreateStoreResponse>> createStore(@Valid @RequestBody CreateStoreRequest request) {
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-
-        String userId = "testUserId";
-        CreateStoreResponse response = storeService.createStore(request.toDto(), userId);
+    public ResponseEntity<ApiResponse<CreateStoreResponse>> createStore(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @Valid @RequestBody CreateStoreRequest request) {
+        CreateStoreResponse response = storeService.createStore(request.toDto(), userId, userRole);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/{storeId}")
-    public ResponseEntity<ApiResponse<StoreResponse>> updateStore(@PathVariable(name = "storeId") UUID storeId,
-                                                                  @RequestBody UpdateStoreRequest request) {
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-
-        String userId = "testUserId";
-        StoreResponse response = storeService.updateStore(storeId, request.toDto(), userId);
+    public ResponseEntity<ApiResponse<StoreResponse>> updateStore(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId,
+            @RequestBody UpdateStoreRequest request) {
+        StoreResponse response = storeService.updateStore(storeId, request.toDto(), userId, userRole);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -63,14 +59,17 @@ public class StoreController {
     }
 
     @DeleteMapping("/{storeId}")
-    public ResponseEntity<ApiResponse<String>> deleteStore(@PathVariable(name = "storeId") UUID storeId) {
-        // todo:
-        //  1. 게이트웨이 구현 후 @RequestHeader(name = "X-user-id") String userId 로 수정
-        //  2. @RequestHeader(name = "X-user-role") String userRole 추가
-
-        String userId = "testUserId";
-        storeService.deleteStore(storeId, userId);
+    public ResponseEntity<ApiResponse<String>> deleteStore(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId) {
+        storeService.deleteStore(storeId, userId, userRole);
         return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));
+    }
+
+    @GetMapping("/{storeId}/internal")
+    public ResponseEntity<ApiResponse<Boolean>> getStoreForInternal(@PathVariable(name = "storeId") UUID storeId) {
+        return ResponseEntity.ok(ApiResponse.success(storeService.getStoreForInternal(storeId)));
     }
 
 }
