@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  #  - job_name: 'eureka-server'
+  #    metrics_path: '/actuator/prometheus'
+  #    static_configs:
+  #      - targets: [ 'host.docker.internal:19090' ]
+  #  - job_name: 'gateway-server'
+  #    metrics_path: '/actuator/prometheus'
+  #    static_configs:
+  #      - targets: [ 'host.docker.internal:19091' ]
+  - job_name: 'queue-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19096' ]
+  - job_name: 'node'
+    static_configs:
+      - targets: [ 'host.docker.internal:9100' ]

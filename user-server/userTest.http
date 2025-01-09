@@ -1,5 +1,5 @@
 ###회원 가입
-POST http://host.docker.internal:19092/api/auth/signup
+POST http://host.docker.internal:19091/api/auth/signup
 Content-Type: application/json
 Accept: application/json
 
@@ -12,7 +12,7 @@ Accept: application/json
 }
 
 ###로그인
-POST http://host.docker.internal:19092/api/auth/login
+POST http://host.docker.internal:19091/api/auth/login
 Content-Type: application/json
 Accept: application/json
 
@@ -22,17 +22,19 @@ Accept: application/json
 }
 
 ###사용자 전체 조회
-GET http://host.docker.internal:19092/api/users
+GET http://host.docker.internal:19091/api/users
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMDIiLCJlbWFpbCI6InVzZXI1QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA1IiwiaWF0IjoxNzM2MzkyNTY2LCJleHAiOjE3MzYzOTYxNjZ9.zjmQ3TzKUPDf2SPGK-svh8Z_eSQ-Z991-Gfd_7gh07k
 
 ###특정 사용자 조회
-GET http://host.docker.internal:19092/api/users/1
+GET http://host.docker.internal:19091/api/users/302
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMDIiLCJlbWFpbCI6InVzZXI1QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA1IiwiaWF0IjoxNzM2Mzk0MTM1LCJleHAiOjE3MzYzOTc3MzV9.o0w2hwZbEP1_PEKy5NvwSjHYP56_-xUWykjQvEhztF0
 
 ###회원 정보 수정
-PUT http://host.docker.internal:19092/api/users/1
+PUT http://host.docker.internal:19091/api/users/1
 Content-Type: application/json
 Accept: application/json
 
@@ -44,6 +46,6 @@ Accept: application/json
 }
 
 ###사용자 탈퇴
-DELETE http://host.docker.internal:19092/api/users/152
+DELETE http://host.docker.internal:19091/api/users/152
 Content-Type: application/json
 Accept: application/json
