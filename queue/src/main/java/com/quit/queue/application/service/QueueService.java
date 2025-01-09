@@ -3,6 +3,7 @@ package com.quit.queue.application.service;
 import com.quit.queue.application.dto.ReservationDto;
 import com.quit.queue.application.dto.res.QueueResponse;
 import com.quit.queue.common.ApiResponse;
+import com.quit.queue.infrastructure.client.StoreClient;
 import com.quit.queue.presentation.request.ReservationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,9 @@ import java.util.UUID;
 public class QueueService {
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final RoleValidationService roleValidationService;
+    private final StoreClient storeClient;
 
-    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, String userId, String userRole) {
+    public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, String userId, String userEmail, String userRole) {
         roleValidationService.validateUserRole(userRole, 2);
 
         return validateReservationRequest(reservationRequest)
@@ -56,6 +58,7 @@ public class QueueService {
                                                         double newScore = (highestScore == 0.0) ? 1.0 : highestScore + 1;
                                                         return reactiveRedisTemplate.opsForZSet().add(key, userId, newScore)
                                                                 .then(reactiveRedisTemplate.opsForHash().putAll(reservationKey, Map.of(
+                                                                        "userEmail", userEmail,
                                                                         "guestCount", reservationDto.getGuestCount().toString(),
                                                                         "reservationDate", reservationDto.getReservationDate().toString(),
                                                                         "reservationTime", reservationDto.getReservationTime().toString()
@@ -253,4 +256,5 @@ public class QueueService {
                             .then(Mono.just(ApiResponse.success(rank.intValue() + 1)));
                 });
     }
+
 }

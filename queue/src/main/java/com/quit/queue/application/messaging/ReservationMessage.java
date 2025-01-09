@@ -8,14 +8,16 @@ import lombok.*;
 @Builder(access = AccessLevel.PRIVATE)
 public class ReservationMessage {
     private String userId;
+    private String userEmail;
     private String storeId;
     private String guestCount;
     private String reservationDate;
     private String reservationTime;
 
-    public static ReservationMessage of(String userId, String storeId, String guestCount, String reservationDate, String reservationTime) {
+    public static ReservationMessage of(String userId, String userEmail, String storeId, String guestCount, String reservationDate, String reservationTime) {
         return ReservationMessage.builder()
                 .userId(userId)
+                .userEmail(userEmail)
                 .storeId(storeId)
                 .guestCount(guestCount)
                 .reservationDate(reservationDate)
