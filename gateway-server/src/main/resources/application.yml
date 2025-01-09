@@ -29,12 +29,14 @@ spring:
           uri: lb://queue
           predicates:
             - Path=/api/queues, /api/queues/**
-
+        - id: reservation
+          uri: lb://reservation
+          predicates:
+            - Path=/api/reservations, /api/reservations/**
         - id: store
           uri: lb://store
           predicates:
             - Path=/api/stores/**
-
         - id: payment
           uri: lb://payment
           predicates:

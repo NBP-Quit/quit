@@ -56,29 +56,25 @@ public class ReservationQueryService {
         return GetReservationResponse.of(reservationPage);
     }
 
-    public GetReservationResponse findReservationsByStore(UUID storeId, Role role, Pageable pageable) {
+    public GetReservationResponse findReservationsByStore(UUID storeId, String ownerRole, Pageable pageable) {
         log.info("가게 예약 목록 조회 시작");
-        if (role.equals(Role.OWNER)) {
-            Page<Reservation> reservationPage = reservationRepository
-                    .findReservationsByStore(storeId, pageable);
+        if (ownerRole.equals(Role.OWNER.name())) {
+            Page<Reservation> reservationPage = reservationRepository.findReservationsByStore(storeId, pageable);
             log.info("가게 예약 목록 조회 완료");
             return GetReservationResponse.of(reservationPage);
         }
 
-        log.info("가게 예약 목록 조회 권한 없음");
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
-    public GetReservationResponse findAllReservations(Role role, Predicate predicate, Pageable pageable) {
+    public GetReservationResponse findAllReservations(String masterRole, Predicate predicate, Pageable pageable) {
         log.info("관리자 예약 목록 조회 시작");
-        if (role.equals(Role.MASTER)) {
-            Page<Reservation> reservationPage = reservationRepository
-                    .findAllReservations(role, predicate, pageable);
+        if (masterRole.equals(Role.MASTER.name())) {
+            Page<Reservation> reservationPage = reservationRepository.findAllReservations(Role.MASTER, predicate, pageable);
             log.info("관리자 예약 목록 조회 완료");
             return GetReservationResponse.of(reservationPage);
         }
 
-        log.info("관리자 권한 없음");
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 }
