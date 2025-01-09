@@ -17,7 +17,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
 
         if (attributes != null) {
             HttpServletRequest request = attributes.getRequest();
-            String userId = request.getHeader("X-User-id");
+            String userId = request.getHeader("X-User-email");
             if (userId != null && !userId.isEmpty()) {
                 return Optional.of(userId);
             }
