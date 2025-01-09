@@ -5,12 +5,7 @@ import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.infrastructure.messaging.message.PaymentMessage;
 import com.quit.reservation.infrastructure.messaging.message.ReservationMessage;
-import com.quit.reservation.presentation.exception.CustomException;
-import com.quit.reservation.presentation.exception.error.ErrorType;
-import com.quit.reservation.presentation.request.CreateReservationRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +20,6 @@ public class ReservationMessagingConsumer {
     /* 수신할 메시지(topic)
      * 1. 결제에서 보내는 결제 성공/실패 메시지(성공 상태/실패 상태 변경)
      * 2. 가게에서 예약 확정 실패 메시지(실패 시 상태 변경) */
-
-    /* 실패에 대한 메시지 수신 시 예약 상태 cancel 로 변경 후 soft delete 처리하도록 서비스 호출*/
 
     private final ReservationService reservationService;
 
@@ -66,5 +59,27 @@ public class ReservationMessagingConsumer {
         log.info("예약 상태 변경 호출");
         ReservationStatus status = ReservationStatus.ACCEPTED;
         reservationService.changeReservationStatusAsync(reservationId, status);
+    }
+
+    @KafkaListener(topics = "payment.create.failed", groupId = "reservation-group")
+    public void listenReservationPaymentFailed(PaymentMessage message) {
+        log.info("예약 결제 실패 메시지 수신 - 결제 ID: {}", message.getPaymentId());
+
+        UUID reservationId = message.getReservationId();
+        cancelReservationAsync(reservationId);
+    }
+
+    //TODO: 랜덤 값 수정 및 topics, message 정의 필요
+    @KafkaListener(topics = "store.reservation.failed", groupId = "reservation-group")
+    public void listenReservationConfirmFailed() {
+        log.info("예약 확정 실패 메시지 수신 - 예약 ID: {}", "실패");
+
+        UUID reservationId = UUID.randomUUID();
+        cancelReservationAsync(reservationId);
+    }
+
+    private void cancelReservationAsync(UUID reservationId) {
+        log.info("예약 취소 처리 호출");
+        reservationService.cancelReservationAsync(reservationId);
     }
 }

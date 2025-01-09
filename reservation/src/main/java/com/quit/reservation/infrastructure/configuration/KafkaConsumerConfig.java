@@ -16,24 +16,19 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.consumer.group-id}")
-    private String groupId;
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String autoOffsetReset;
 
-    private final KafkaCommonConfig kafkaCommonConfig;
-
-    public KafkaConsumerConfig(KafkaCommonConfig kafkaCommonConfig) {
-        this.kafkaCommonConfig = kafkaCommonConfig;
-    }
-
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
-        Map<String, Object> kafkaConfig = new HashMap<>(kafkaCommonConfig.kafkaProperties());
+        Map<String, Object> kafkaConfig = new HashMap<>();
+        kafkaConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        kafkaConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
         kafkaConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         kafkaConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        kafkaConfig.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        kafkaConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
+        kafkaConfig.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         return new DefaultKafkaConsumerFactory<>(kafkaConfig);
     }
 

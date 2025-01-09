@@ -7,4 +7,5 @@ import java.util.UUID;
 @Component
 public interface MessageProducer {
     void sendReservationData(UUID slotId, Integer currentCapacity);
+    void sendReservationFailed(UUID slotId, Integer currentCapacity);
 }

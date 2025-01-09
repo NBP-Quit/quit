@@ -10,6 +10,7 @@ import com.quit.reservation.domain.repository.ReservationRepository;
 import com.quit.reservation.domain.service.ReservationValidationService;
 import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
 import com.quit.reservation.infrastructure.messaging.MessageProducer;
+import com.quit.reservation.infrastructure.messaging.ReservationMessagingProducer;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
@@ -30,6 +31,8 @@ public class ReservationService {
     private final ReservationValidationService validationService;
     private final MessageProducer messageProducer;
     private final ReservationSlotClientService reservationSlotClientService;
+    private final ReservationMessagingProducer reservationMessagingProducer;
+    private final ReservationValidationService reservationValidationService;
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
      * 2. 예약 정보 임시 저장하기
@@ -132,6 +135,9 @@ public class ReservationService {
         }
 
         Reservation reservation = findReservation(reservationId);
+        reservationMessagingProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("예약 상태 확인: {}", reservation.getReservationStatus());
+        reservationValidationService.validateReservationStatusForDelete(reservation.getReservationStatus());
         reservation.markDeleted();
         log.info("예약 삭제 작업 완료");
     }
