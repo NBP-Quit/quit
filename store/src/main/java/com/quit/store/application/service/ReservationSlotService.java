@@ -4,6 +4,7 @@ import com.quit.store.application.dto.ReservationEvent;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
+import com.quit.store.common.util.RoleValidator;
 import com.quit.store.domain.entity.ReservationSlot;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.ReservationSlotRepository;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import static com.quit.store.common.util.RoleValidator.Action.*;
 import static com.quit.store.presentation.exception.ErrorType.*;
 
 @Slf4j
@@ -31,11 +33,13 @@ public class ReservationSlotService {
 
     private final ReservationSlotRepository reservationSlotRepository;
     private final StoreRepository storeRepository;
+    private final RoleValidator roleValidator;
 
     @Transactional
-    public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId) {
-        // todo: 권한체크로직
+    public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, CREATE);
         Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
         ReservationSlot slot = create(store, request);
         reservationSlotRepository.save(slot);
         return ReservationSlotResponse.from(slot);
@@ -43,13 +47,13 @@ public class ReservationSlotService {
 
     @Transactional
     public ReservationSlotResponse updateSlot(UUID storeId, UUID slotId,
-                                              UpdateReservationSlotDto request, String userId) {
-        // todo: 권한체크로직
+                                              UpdateReservationSlotDto request,
+                                              String userId, String userRole) {
+        roleValidator.validateRole(userRole, UPDATE);
         Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
         ReservationSlot slot = checkSlot(slotId);
         validateSlotBelongsToStore(store.getId(), slot);
-        // 1. 현재 currentCapacity > 0 일 때 날짜, 시간 변경 X
-        // 2. maxCapacity 가 현재 currentCapacity 보다 작을 경우 변경 X
         validateDate(slot, request.getDate());
         validateTime(slot, request.getTime());
         validateMaxCapacity(slot, request.getMaxCapacity());
@@ -73,9 +77,10 @@ public class ReservationSlotService {
     }
 
     @Transactional
-    public void deleteSlot(UUID storeId, UUID slotId, String userId) {
-        // todo: 권한체크로직
+    public void deleteSlot(UUID storeId, UUID slotId, String userId, String userRole) {
+        roleValidator.validateRole(userRole, SLOT_DELETE);
         Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
         ReservationSlot slot = checkSlot(slotId);
         validateSlotBelongsToStore(store.getId(), slot);
         validateReservation(slot);
@@ -169,6 +174,14 @@ public class ReservationSlotService {
     private ReservationSlot checkSlot(UUID slotId) {
         return reservationSlotRepository.findByIdAndIsDeletedFalse(slotId)
                 .orElseThrow(() -> new CustomException(RESERVATION_SLOT_NOT_FOUND));
+    }
+
+    private void checkUser(Store store, String userId, String userRole) {
+        if (userRole.equals("ROLE_OWNER")) {
+            if (!store.getUserId().equals(userId)) {
+                throw new CustomException(USER_NOT_SAME);
+            }
+        }
     }
 
 }

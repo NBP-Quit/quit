@@ -4,6 +4,7 @@ import com.quit.store.application.dto.SearchStoreDto;
 import com.quit.store.application.dto.StoreDto;
 import com.quit.store.application.dto.res.CreateStoreResponse;
 import com.quit.store.application.dto.res.StoreResponse;
+import com.quit.store.common.util.RoleValidator;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
@@ -15,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static com.quit.store.presentation.exception.ErrorType.STORE_NOT_FOUND;
-import static com.quit.store.presentation.exception.ErrorType.USER_NOT_SAME;
+import static com.quit.store.common.util.RoleValidator.Action.*;
+import static com.quit.store.presentation.exception.ErrorType.*;
 
 
 @Service
@@ -25,18 +26,19 @@ import static com.quit.store.presentation.exception.ErrorType.USER_NOT_SAME;
 public class StoreService {
 
     private final StoreRepository storeRepository;
+    private final RoleValidator roleValidator;
 
-    public CreateStoreResponse createStore(StoreDto request, String userId) {
-        //todo: 권한체크로직
+    public CreateStoreResponse createStore(StoreDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, CREATE);
         Store store = create(request, userId);
         storeRepository.save(store);
         return CreateStoreResponse.from(store.getId());
     }
 
-    public StoreResponse updateStore(UUID storeId, StoreDto request, String userId) {
-        //todo: 권한체크로직
+    public StoreResponse updateStore(UUID storeId, StoreDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, UPDATE);
         Store store = checkStore(storeId);
-        checkUser(store, userId);
+        checkUser(store, userId, userRole);
         store.update(request);
         return StoreResponse.from(store);
     }
@@ -53,10 +55,15 @@ public class StoreService {
         return storePage.map(StoreResponse::from);
     }
 
-    public void deleteStore(UUID storeId, String userId) {
-        //todo: 권한체크로직
+    public void deleteStore(UUID storeId, String userId, String userRole) {
+        roleValidator.validateRole(userRole, STORE_DELETE);
         Store store = checkStore(storeId);
         store.delete(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean getStoreForInternal(UUID storeId) {
+        return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }
 
     private Store checkStore(UUID storeId) {
@@ -64,9 +71,11 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
     }
 
-    private void checkUser(Store store, String userId) {
-        if(!store.getUserId().equals(userId)) {
-            throw new CustomException(USER_NOT_SAME);
+    private void checkUser(Store store, String userId, String userRole) {
+        if (userRole.equals("ROLE_OWNER")) {
+            if (!store.getUserId().equals(userId)) {
+                throw new CustomException(USER_NOT_SAME);
+            }
         }
     }
 
