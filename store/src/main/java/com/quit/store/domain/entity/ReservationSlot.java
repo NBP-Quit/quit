@@ -60,6 +60,14 @@ public class ReservationSlot extends BaseEntity {
                 .build();
     }
 
+    public void increaseCapacity(int increment) {
+        this.currentCapacity += increment;
+    }
+
+    public void restoreCapacity(int decrement) {
+        this.currentCapacity -= decrement;
+    }
+
     public void update(UpdateReservationSlotDto request) {
         updateDate(request.getDate());
         updateTime(request.getTime());
