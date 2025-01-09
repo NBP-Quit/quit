@@ -24,25 +24,25 @@ public class QueueController {
     @PostMapping("/stores/{storeId}")
     public Mono<ApiResponse<?>> addUserToQueueForStore(@PathVariable UUID storeId,
                                                        @RequestBody ReservationRequest requset,
-                                                       @RequestHeader(value = "X-User-Id") Long userId) {
+                                                       @RequestHeader(value = "X-User-Id") String userId) {
         return queueService.addUserToQueueForStore(storeId, requset, userId);
     }
 
     @DeleteMapping("/stores/{storeId}")
     public Mono<ApiResponse<Object>> removeUserFromQueueForStore(@PathVariable UUID storeId,
-                                                                 @RequestHeader(value = "X-User-Id") Long userId) {
+                                                                 @RequestHeader(value = "X-User-Id") String userId) {
         return queueService.removeUserFromQueueForStore(storeId, userId);
     }
 
     @GetMapping("/stores/{storeId}/users/position")
     public Mono<ApiResponse<Integer>> getUserPositionInQueueForStore(@PathVariable UUID storeId,
-                                                                     @RequestHeader(value = "X-User-Id") Long userId) {
+                                                                     @RequestHeader(value = "X-User-Id") String userId) {
         return queueService.getUserPositionInQueueForStore(storeId, userId);
     }
 
     @PostMapping("/stores/{storeId}/users/refresh")
     public Mono<ApiResponse<Integer>> checkUserInQueueForStore(@PathVariable UUID storeId,
-                                                               @RequestHeader(value = "X-User-Id") Long userId) {
+                                                               @RequestHeader(value = "X-User-Id") String userId) {
         return queueService.checkUserInQueueForStore(storeId, userId);
     }
 
