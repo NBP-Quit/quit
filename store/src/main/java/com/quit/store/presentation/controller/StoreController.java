@@ -67,4 +67,9 @@ public class StoreController {
         return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));
     }
 
+    @GetMapping("/{storeId}/internal")
+    public ResponseEntity<ApiResponse<Boolean>> getStoreForInternal(@PathVariable(name = "storeId") UUID storeId) {
+        return ResponseEntity.ok(ApiResponse.success(storeService.getStoreForInternal(storeId)));
+    }
+
 }

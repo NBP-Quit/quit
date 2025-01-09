@@ -61,6 +61,11 @@ public class StoreService {
         store.delete(userId);
     }
 
+    @Transactional(readOnly = true)
+    public Boolean getStoreForInternal(UUID storeId) {
+        return storeRepository.existsByIdAndIsDeletedFalse(storeId);
+    }
+
     private Store checkStore(UUID storeId) {
         return storeRepository.findByIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
