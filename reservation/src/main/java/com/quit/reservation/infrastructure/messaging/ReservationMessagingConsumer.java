@@ -30,7 +30,8 @@ public class ReservationMessagingConsumer {
     //TODO: topics 환경변수 설정 고려
 
     // 대기열 -> 예약 서비스 메시지 수신 처리
-    @KafkaListener(topics = "queue.process.success", groupId = "reservation-group")
+    @KafkaListener(topics = "queue.process.success", groupId = "reservation-group",
+            containerFactory = "queueKafkaListenerContainerFactory")
     public void listenReservationCreate(ReservationMessage message) {
         log.info("예약 정보 메시지 수신 - 가게 ID: {}", message.getStoreId());
 
@@ -46,7 +47,8 @@ public class ReservationMessagingConsumer {
     }
 
     // 결제 -> 예약 서비스 메시지 수신 처리(성공)
-    @KafkaListener(topics = "payment.create.success", groupId = "reservation-group")
+    @KafkaListener(topics = "payment.create.success", groupId = "reservation-group",
+            containerFactory = "paymentKafkaListenerContainerFactory")
     public void listenReservationPaymentSuccess(PaymentMessage message) {
         log.info("예약 결제 메시지 수신 - 결제 ID: {}", message.getPaymentId());
 
@@ -61,7 +63,9 @@ public class ReservationMessagingConsumer {
         reservationService.changeReservationStatusAsync(reservationId, status);
     }
 
-    @KafkaListener(topics = "payment.create.failed", groupId = "reservation-group")
+    // 결제 -> 예약 서비스 메시지 수신 처리(실패)
+    @KafkaListener(topics = "payment.create.failed", groupId = "reservation-group",
+            containerFactory = "paymentKafkaListenerContainerFactory")
     public void listenReservationPaymentFailed(PaymentMessage message) {
         log.info("예약 결제 실패 메시지 수신 - 결제 ID: {}", message.getPaymentId());
 

@@ -4,7 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -15,35 +17,29 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(updatable = false)
+    @CreatedBy
+    @Column(name = "created_by", length = 20,updatable = false)
     private String createdBy;
 
     @LastModifiedDate
-    @Column
-    private LocalDateTime updateAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    @Column
-    private String updateBy;
+    @LastModifiedBy
+    @Column(name = "updated_by", length = 20)
+    private String updatedBy;
 
-    @Column
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Column
+    @Column(name = "deleted_by", length = 20)
     private String deletedBy;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isDeleted;
-
-    public void markAsCreated(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public void markAsUpdated(String updatedBy) {
-        this.updateBy = updatedBy;
-    }
 
     public void markAsDeleted(String deletedBy) {
         this.deletedAt = LocalDateTime.now();

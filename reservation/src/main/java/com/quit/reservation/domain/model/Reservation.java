@@ -1,5 +1,6 @@
 package com.quit.reservation.domain.model;
 
+import com.quit.reservation.common.model.BaseEntity;
 import com.quit.reservation.domain.enums.ReservationStatus;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(access = AccessLevel.PRIVATE)
-public class Reservation implements Serializable {
+public class Reservation extends BaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -47,21 +48,6 @@ public class Reservation implements Serializable {
 
     @Column(name = "slot_id")
     private UUID slotId;
-
-    //TODO: isDeleted 필드 및 임시 사용 - BaseEntity 연결 후 삭제
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
-
-    public void markDeleted() {
-        this.isDeleted = true;
-    }
-
-    @PrePersist
-    private void prePersistence() {
-        if (isDeleted == null) {
-            isDeleted = false;
-        }
-    }
 
     public static Reservation create(String customerId,
                                      UUID storeId,

@@ -8,6 +8,7 @@ import com.quit.reservation.application.dto.ReservationResponse;
 import com.quit.reservation.application.service.ReservationQueryService;
 import com.quit.reservation.application.service.ReservationService;
 import com.quit.reservation.common.dto.ApiResponse;
+import com.quit.reservation.common.util.PageUtil;
 import com.quit.reservation.common.util.RoleUtil;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
@@ -28,7 +29,6 @@ public class ReservationController {
 
     private final ReservationService reservationService;
     private final ReservationQueryService reservationQueryService;
-    private final RoleUtil roleUtil;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateReservationResponse>> createReservation(@RequestBody CreateReservationRequest request,
@@ -77,7 +77,8 @@ public class ReservationController {
     public ResponseEntity<ApiResponse<GetReservationResponse>> findReservations(@PageableDefault Pageable pageable,
                                                                                 @RequestHeader("X-User-Email") String customerId) {
 
-        return ResponseEntity.ok(ApiResponse.success(reservationQueryService.findReservations(customerId, pageable)));
+        Pageable adjustPageable = PageUtil.adjustPageable(pageable);
+        return ResponseEntity.ok(ApiResponse.success(reservationQueryService.findReservations(customerId, adjustPageable)));
     }
 
     @GetMapping("/store/{storeId}")
@@ -85,8 +86,9 @@ public class ReservationController {
                                                                                        @PageableDefault Pageable pageable,
                                                                                        @RequestHeader("X-User-Role") String role) {
         String ownerRole = RoleUtil.cleanRole(role);
+        Pageable adjustPageable = PageUtil.adjustPageable(pageable);
         return ResponseEntity.ok(ApiResponse.success(
-                reservationQueryService.findReservationsByStore(storeId, ownerRole, pageable)));
+                reservationQueryService.findReservationsByStore(storeId, ownerRole, adjustPageable)));
     }
 
     @GetMapping("/all")
@@ -97,8 +99,9 @@ public class ReservationController {
     ) {
 
         String masterRole = RoleUtil.cleanRole(role);
+        Pageable adjustPageable = PageUtil.adjustPageable(pageable);
         return ResponseEntity.ok(ApiResponse.success(
-                reservationQueryService.findAllReservations(masterRole, predicate, pageable)));
+                reservationQueryService.findAllReservations(masterRole, predicate, adjustPageable)));
     }
 
     @GetMapping("/{reservationId}/find")

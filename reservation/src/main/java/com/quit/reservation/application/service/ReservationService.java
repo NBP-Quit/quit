@@ -10,7 +10,6 @@ import com.quit.reservation.domain.repository.ReservationRepository;
 import com.quit.reservation.domain.service.ReservationValidationService;
 import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
 import com.quit.reservation.infrastructure.messaging.MessageProducer;
-import com.quit.reservation.infrastructure.messaging.ReservationMessagingProducer;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
 import com.quit.reservation.presentation.request.ChangeReservationStatusRequest;
@@ -31,7 +30,6 @@ public class ReservationService {
     private final ReservationValidationService validationService;
     private final MessageProducer messageProducer;
     private final ReservationSlotClientService reservationSlotClientService;
-    private final ReservationMessagingProducer reservationMessagingProducer;
     private final ReservationValidationService reservationValidationService;
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
@@ -39,8 +37,8 @@ public class ReservationService {
      * 3. 가게로 예약 정보 보내고, 결제 시스템에 결제 요청 보내기
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
-    //TODO: Kafka event 추가 및 동시성 제어 구현 필요
-    //TODO: 검증 메서드 클래스로 분리 or 서비스 클래스 분리 고려(Kafka 사용/미사용)
+    //TODO: 서비스 동시성 제어
+    //TODO: OWNER 권한에 대한 본인 가게 여부 확인
     //TODO: 코드 리팩토링!!!
 
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
@@ -109,6 +107,7 @@ public class ReservationService {
         assertPermission(reservation.getCustomerId(), customerId, userRole);
 
         reservation.cancel();
+        sendCancelReservationMessage(reservation);
         log.info("예약 취소 작업 완료");
     }
 
@@ -117,6 +116,7 @@ public class ReservationService {
         Reservation reservation = findReservation(reservationId);
         validationService.validateCancelReservationStatus(reservation.getReservationStatus());
         reservation.cancel();
+        sendCancelReservationMessage(reservation);
         log.info("비동기 예약 취소 작업 완료");
     }
 
@@ -128,10 +128,8 @@ public class ReservationService {
             Reservation reservation = findReservation(reservationId);
             log.info("예약 상태 확인: {}", reservation.getReservationStatus());
             reservationValidationService.validateReservationStatusForDelete(reservation.getReservationStatus());
-            reservation.markDeleted();
+            reservation.markAsDeleted(managerId);
             log.info("예약 삭제 작업 완료");
-            reservationMessagingProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
-            log.info("예약 삭제 정보 메시지 송신 완료");
         }
 
         throw new CustomException(ErrorType.ACCESS_DENIED);
@@ -161,6 +159,11 @@ public class ReservationService {
         validationService.validateGuestCount(request.getGuestCount());
         validationService.validateReservationDate(request.getReservationDate());
         validationService.validateReservationTime(request.getReservationTime());
+    }
+
+    private void sendCancelReservationMessage(Reservation reservation) {
+        messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("예약 삭제 정보 메시지 송신 완료");
     }
 
     private void assertPermission(String requestCustomerId, String customerId, String userRole) {
