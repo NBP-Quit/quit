@@ -78,4 +78,9 @@ public class User extends BaseEntity {
         this.address = address;
         markAsUpdated(String.valueOf(this.id));
     }
+
+    public void updateRole(UserRoleEnum role) {
+        this.role = role;
+    }
+
 }
