@@ -76,7 +76,7 @@ public class QueueScheduler {
 
     private Mono<Void> sendToReservationService(ReservationMessage reservation) {
         String key = reservation.getStoreId() + ":" + reservation.getUserId();
-        return kafkaMessageProducer.sendMessage("reservation.create.success", key, reservation);
+        return kafkaMessageProducer.sendMessage("queue.process.success", key, reservation);
     }
 
     private Mono<Void> removeUsersFromQueue(String queueKey, List<ZSetOperations.TypedTuple<String>> entries) {
