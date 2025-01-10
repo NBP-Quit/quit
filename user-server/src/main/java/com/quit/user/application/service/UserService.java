@@ -1,6 +1,7 @@
 package com.quit.user.application.service;
 
 import com.quit.user.application.dto.RequestRoleDto;
+import com.quit.user.application.dto.RequestStatusDto;
 import com.quit.user.application.dto.UserDto;
 import com.quit.user.domain.enums.RequestStatus;
 import com.quit.user.domain.enums.UserRoleEnum;
@@ -125,20 +126,25 @@ public class UserService {
 
 //    권한 수정
     @Transactional
-    public UserDto changeRole(String userId, String role, UUID requestRoleId) {
+    public UserDto changeRole(String userId, String role, UUID requestRoleId, RequestStatusDto status) {
         if ( UserRoleEnum.fromRole(role) == UserRoleEnum.MASTER) {
             RequestRole requestRole = requestRoleRepository.findById(requestRoleId).orElseThrow(
                     () -> new IllegalArgumentException("해당 id의 요청이 존재하지 않습니다.")
             );
-
             User user = userRepository.findById(requestRole.getUserId()).orElseThrow(
                     () -> new IllegalArgumentException("요청한 회원이 존재하지 않습니다.")
             );
 
-            user.updateRole(requestRole.getRequestRole());
-            requestRole.update(RequestStatus.APPROVED, Long.valueOf(userId));
+            if (status.getStatus() == RequestStatus.APPROVED) {
+                user.updateRole(requestRole.getRequestRole());
+                requestRole.update(status.getStatus(), Long.valueOf(userId));
 
-            return UserDto.of(user);
+                return UserDto.of(user);
+            }else{
+                requestRole.update(status.getStatus(), Long.valueOf(userId));
+                return UserDto.of(user);
+            }
+
         }else{
             throw new IllegalArgumentException("권한이 없습니다.");
         }

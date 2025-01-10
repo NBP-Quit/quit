@@ -4,11 +4,11 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email":"user6@email.com",
-  "password" :"User6666@",
-  "nickname":"사용자6",
-  "phone":"010-6666-6666",
-  "birthdate":"2000-06-06"
+  "email":"user9@email.com",
+  "password" :"User9999@",
+  "nickname":"사용자9",
+  "phone":"010-9999-9999",
+  "birthdate":"2000-09-09"
 }
 
 ###로그인
@@ -17,8 +17,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-"email":"user1@email.com",
-"password" :"User1111@"
+"email":"user9@email.com",
+"password" :"User9999@"
 }
 
 ###MASTER 관리자 로그인
@@ -45,13 +45,14 @@ Accept: application/json
 GET http://host.docker.internal:19091/api/users
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
 
 ###특정 사용자 조회
-GET http://host.docker.internal:19091/api/users/52
+GET http://host.docker.internal:19091/api/users/452
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4NzQ4LCJleHAiOjE3MzY0OTIzNDh9.6cdQzzS63odRTU8HPIXNSLK-MOC6_KVnmpOMYOmYLg4
 
 
 ###회원 정보 수정
@@ -77,20 +78,25 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZ
 POST http://host.docker.internal:19091/api/users/request-role
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi6rCI66ek6riw7IK07ZWt7KCV7IK0IiwiaWF0IjoxNzM2NDg1NTYwLCJleHAiOjE3MzY0ODkxNjB9.Dreu1oERJ_VSW1lqHx7Cjev8kTWufpG7lIDsdd1v_Z4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4MjYwLCJleHAiOjE3MzY0OTE4NjB9.UAgxH8SWvdh6WVWRpDCemOgQcD1_2SpEBXVVKFXhlkU
 
 {
   "requestRole" : "OWNER"
 }
 
 ###권한 요청 확인
-GET http://host.docker.internal:19091/api/users/request-role?status=APPROVED
+GET http://host.docker.internal:19091/api/users/request-role?status=PENDING
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0ODU2MjksImV4cCI6MTczNjQ4OTIyOX0.rBXsk53YBTjWy9v4kaXC4Ahcz5P1Y0m8yxKnH516XPI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
 
 ###권한 수정
-PUT http://host.docker.internal:19091/api/users/request-role/37560d28-6e2e-43d1-a54b-950e60ab7458
+PUT http://host.docker.internal:19091/api/users/request-role/51de37e3-370f-4abc-ba11-1180813f4fbb
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0ODU2MjksImV4cCI6MTczNjQ4OTIyOX0.rBXsk53YBTjWy9v4kaXC4Ahcz5P1Y0m8yxKnH516XPI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
+{
+  "status" : "APPROVED"
+}

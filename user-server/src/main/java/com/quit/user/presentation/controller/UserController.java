@@ -1,6 +1,7 @@
 package com.quit.user.presentation.controller;
 
 import com.quit.user.application.dto.RequestRoleDto;
+import com.quit.user.application.dto.RequestStatusDto;
 import com.quit.user.application.dto.UserDto;
 import com.quit.user.common.dto.ApiResponse;
 import com.quit.user.application.service.UserService;
@@ -74,12 +75,13 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.getRequestRoles(userId, role, status)));
     }
 
-    //    권한 수정
+//    권한 수정
     @PutMapping("/request-role/{requestRoleId}")
     public ResponseEntity<ApiResponse<UserDto>> changeRole(@RequestHeader("X-User-Role") String role,
                                                            @RequestHeader("X-User-Id") String userId,
-                                                           @PathVariable UUID requestRoleId) {
-        return ResponseEntity.ok(ApiResponse.success(userService.changeRole(userId, role, requestRoleId)));
+                                                           @PathVariable UUID requestRoleId,
+                                                           @RequestBody RequestStatusDto status) {
+        return ResponseEntity.ok(ApiResponse.success(userService.changeRole(userId, role, requestRoleId, status)));
     }
 
 }
