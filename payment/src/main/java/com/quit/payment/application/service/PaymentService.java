@@ -48,7 +48,6 @@ public class PaymentService {
 
     public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
         TempPayment tempPayment = validateTempPayment(request);
-        // todo: errorDecoder 로 예외처리, fallbackmethod 처리
         UUID retrievedReservationId = reservationGateway.getReservation(reservationId).getData();
         log.info("reservationId= {}", retrievedReservationId);
         ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
