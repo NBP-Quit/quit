@@ -107,6 +107,7 @@ public class ReservationService {
         assertPermission(reservation.getCustomerId(), customerId, userRole);
 
         reservation.cancel();
+        sendCancelReservationMessage(reservation);
         log.info("예약 취소 작업 완료");
     }
 
@@ -115,6 +116,7 @@ public class ReservationService {
         Reservation reservation = findReservation(reservationId);
         validationService.validateCancelReservationStatus(reservation.getReservationStatus());
         reservation.cancel();
+        sendCancelReservationMessage(reservation);
         log.info("비동기 예약 취소 작업 완료");
     }
 
@@ -128,8 +130,6 @@ public class ReservationService {
             reservationValidationService.validateReservationStatusForDelete(reservation.getReservationStatus());
             reservation.markAsDeleted(managerId);
             log.info("예약 삭제 작업 완료");
-            messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
-            log.info("예약 삭제 정보 메시지 송신 완료");
         }
 
         throw new CustomException(ErrorType.ACCESS_DENIED);
@@ -159,6 +159,11 @@ public class ReservationService {
         validationService.validateGuestCount(request.getGuestCount());
         validationService.validateReservationDate(request.getReservationDate());
         validationService.validateReservationTime(request.getReservationTime());
+    }
+
+    private void sendCancelReservationMessage(Reservation reservation) {
+        messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("예약 삭제 정보 메시지 송신 완료");
     }
 
     private void assertPermission(String requestCustomerId, String customerId, String userRole) {
