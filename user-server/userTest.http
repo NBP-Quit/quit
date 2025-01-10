@@ -4,11 +4,11 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email":"user6@email.com",
-  "password" :"User6666@",
-  "nickname":"사용자6",
-  "phone":"010-6666-6666",
-  "birthdate":"2000-06-06"
+  "email":"user9@email.com",
+  "password" :"User9999@",
+  "nickname":"사용자9",
+  "phone":"010-9999-9999",
+  "birthdate":"2000-09-09"
 }
 
 ###로그인
@@ -17,35 +17,86 @@ Content-Type: application/json
 Accept: application/json
 
 {
-"email":"user5@email.com",
-"password" :"User5555@"
+"email":"user9@email.com",
+"password" :"User9999@"
+}
+
+###MASTER 관리자 로그인
+POST http://host.docker.internal:19091/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user6@email.com",
+  "password" :"User6666@"
+}
+
+###삭제된 사용자 로그인
+POST http://host.docker.internal:19091/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user5@email.com",
+  "password" :"User5555@"
 }
 
 ###사용자 전체 조회
 GET http://host.docker.internal:19091/api/users
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMDIiLCJlbWFpbCI6InVzZXI1QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA1IiwiaWF0IjoxNzM2MzkyNTY2LCJleHAiOjE3MzYzOTYxNjZ9.zjmQ3TzKUPDf2SPGK-svh8Z_eSQ-Z991-Gfd_7gh07k
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
 
 ###특정 사용자 조회
-GET http://host.docker.internal:19091/api/users/302
+GET http://host.docker.internal:19091/api/users/452
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMDIiLCJlbWFpbCI6InVzZXI1QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA1IiwiaWF0IjoxNzM2Mzk0MTM1LCJleHAiOjE3MzYzOTc3MzV9.o0w2hwZbEP1_PEKy5NvwSjHYP56_-xUWykjQvEhztF0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4NzQ4LCJleHAiOjE3MzY0OTIzNDh9.6cdQzzS63odRTU8HPIXNSLK-MOC6_KVnmpOMYOmYLg4
+
 
 ###회원 정보 수정
-PUT http://host.docker.internal:19091/api/users/1
+PUT http://host.docker.internal:19091/api/users/52
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
 
 {
-  "email":"user1@email.com",
-  "nickname":"갈매기살항정살",
-  "phone":"010-1111-4444",
+  "email":"user3@email.com",
+  "nickname":"수정3",
+  "phone":"010-1333-1333",
   "birthdate":"2000-05-05"
 }
 
 ###사용자 탈퇴
-DELETE http://host.docker.internal:19091/api/users/152
+DELETE http://host.docker.internal:19091/api/users/52
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
+
+###권한 요청
+POST http://host.docker.internal:19091/api/users/request-role
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4MjYwLCJleHAiOjE3MzY0OTE4NjB9.UAgxH8SWvdh6WVWRpDCemOgQcD1_2SpEBXVVKFXhlkU
+
+{
+  "requestRole" : "OWNER"
+}
+
+###권한 요청 확인
+GET http://host.docker.internal:19091/api/users/request-role?status=PENDING
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
+
+###권한 수정
+PUT http://host.docker.internal:19091/api/users/request-role/51de37e3-370f-4abc-ba11-1180813f4fbb
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+
+{
+  "status" : "APPROVED"
+}
