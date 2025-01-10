@@ -30,7 +30,7 @@ public class ReservationMessagingConsumer {
     //TODO: topics 환경변수 설정 고려
 
     // 대기열 -> 예약 서비스 메시지 수신 처리
-    @KafkaListener(topics = "reservation.create.success", groupId = "reservation-group")
+    @KafkaListener(topics = "queue.process.success", groupId = "reservation-group")
     public void listenReservationCreate(ReservationMessage message) {
         log.info("예약 정보 메시지 수신 - 가게 ID: {}", message.getStoreId());
 
