@@ -37,8 +37,8 @@ public class ReservationService {
      * 3. 가게로 예약 정보 보내고, 결제 시스템에 결제 요청 보내기
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
-    //TODO: Kafka event 추가 및 동시성 제어 구현 필요
-    //TODO: 검증 메서드 클래스로 분리 or 서비스 클래스 분리 고려(Kafka 사용/미사용)
+    //TODO: 서비스 동시성 제어
+    //TODO: OWNER 권한에 대한 본인 가게 여부 확인
     //TODO: 코드 리팩토링!!!
 
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
