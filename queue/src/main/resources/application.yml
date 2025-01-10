@@ -26,6 +26,9 @@ eureka:
     service-url:
       defaultZone: http://localhost:19090/eureka/
 
+store:
+  baseUrl: ${STORE_BASEURL}
+
 logging:
   level:
     root: INFO
