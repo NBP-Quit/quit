@@ -1,8 +1,8 @@
 package com.quit.payment.presentation.dto;
 
 import com.quit.payment.application.dto.PaymentDto;
-import com.quit.payment.application.dto.TempPaymentDto;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,13 +12,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreatePaymentRequest {
 
-    @NotNull
+    @NotNull(message = "PAYMENT_ORDER_ID_EMPTY")
     private String orderId;
 
-    @NotNull
+    @NotNull(message = "PAYMENT_AMOUNT_EMPTY")
+    @Positive(message = "PAYMENT_AMOUNT_INVALID")
     private Integer amount;
 
-    @NotNull
+    @NotNull(message = "PAYMENT_KEY_EMPTY")
     private String paymentKey;
 
     public PaymentDto toDto() {
