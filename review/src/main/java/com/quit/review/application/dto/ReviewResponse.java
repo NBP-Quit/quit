@@ -1,5 +1,6 @@
 package com.quit.review.application.dto;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,7 @@ public class ReviewResponse {
 	private int likeCount;
 	private boolean isLiked;
 	private int replyCount;
+	private LocalDate createdAt;
 
 	public static ReviewResponse from(Review review, int likeCount, boolean isLiked) {
 		List<String> images = review.getImages().stream()
@@ -46,6 +48,7 @@ public class ReviewResponse {
 			.likeCount(likeCount)
 			.isLiked(isLiked)
 			.replyCount(review.getReplyCount())
+			.createdAt(review.getCreatedAt().toLocalDate())
 			.build();
 	}
 }
