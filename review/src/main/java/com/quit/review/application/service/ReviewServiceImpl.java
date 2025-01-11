@@ -15,16 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.quit.review.application.dto.AvgScoresDto;
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
 import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.dto.ReviewUpdateDto;
-import com.quit.review.application.dto.ScoresDto;
+import com.quit.review.application.dto.RatingDetailsDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.MealType;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.model.Scores;
+import com.quit.review.domain.model.RatingDetails;
 import com.quit.review.domain.model.Tag;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
@@ -64,7 +63,7 @@ public class ReviewServiceImpl implements ReviewService {
 		review.decideMealType(reservation.getReservationTime());
 
 		// 평균 별점 계산 후 저장
-		review.applyAverageScore();
+		review.applyAverageRating();
 
 		Review savedReview = reviewRepository.save(review);
 
@@ -73,7 +72,7 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 
 		// 가게의 총 평균 별점 및 항목 별 평균 별점 업데이트
-		updateStoreScores(storeId, review.getScores(), 1);
+		updateStoreScores(storeId, review.getRatingDetails(), 1);
 
 		return savedReview.getId();
 	}
@@ -101,11 +100,11 @@ public class ReviewServiceImpl implements ReviewService {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
 
-		updateStoreScores(review.getStoreId(), review.getScores(), -1);
+		updateStoreScores(review.getStoreId(), review.getRatingDetails(), -1);
 
-		ScoresDto scores = dto.getScores();
+		RatingDetailsDto ratingDetails = dto.getRatingDetails();
 
-		review.updateScores(scores.getTaste(), scores.getAmbience(), scores.getKindness(), scores.getCleanliness());
+		review.updateRatingDetails(ratingDetails.getTaste(), ratingDetails.getAmbience(), ratingDetails.getKindness(), ratingDetails.getCleanliness());
 		review.updateContent(dto.getContent());
 
 		// 이미지 파일이 있다면 해당 리뷰로 저장된 모든 이미지 삭제 후 재업로드
@@ -116,7 +115,7 @@ public class ReviewServiceImpl implements ReviewService {
 			});
 		}
 
-		updateStoreScores(review.getStoreId(), review.getScores(), 1);
+		updateStoreScores(review.getStoreId(), review.getRatingDetails(), 1);
 	}
 
 	@Override
@@ -129,7 +128,7 @@ public class ReviewServiceImpl implements ReviewService {
 		imageService.deleteAll(review);
 
 		unlike(reviewId, userId);
-		updateStoreScores(review.getStoreId(), review.getScores(), -1);
+		updateStoreScores(review.getStoreId(), review.getRatingDetails(), -1);
 	}
 
 	@Override
@@ -159,11 +158,9 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public ReviewSummeryResponse getSummary(UUID storeId, Long userId) {
 		String avgKey = "store:" + storeId + ":averages";
-		String countKey = "store:" + storeId + ":scores";
+		String countKey = "store:" + storeId + ":count";
 
 		Map<Object, Object> averages = cacheService.getAll(avgKey);
-
-		AvgScoresDto avgScoresDto = AvgScoresDto.from(averages);
 
 		Long count = (Long) cacheService.getValue(countKey);
 
@@ -178,18 +175,18 @@ public class ReviewServiceImpl implements ReviewService {
 			})
 			.toList();
 
-		return ReviewSummeryResponse.from(avgScoresDto, count.intValue(), reviewResponses);
+		return ReviewSummeryResponse.from(averages, count.intValue(), reviewResponses);
 	}
 
-	private void updateStoreScores(UUID storeId, Scores scores, long delta) {
-		String key = "store:" + storeId + ":scores";
+	private void updateStoreScores(UUID storeId, RatingDetails ratingDetails, long delta) {
+		String key = "store:" + storeId + ":rating";
 		String countKey = "store:" + storeId + ":count";
 		String avgKey = "store:" + storeId + ":averages";
 
-		cacheService.increaseForHash(key, "sum_taste", scores.getTaste() * delta);
-		cacheService.increaseForHash(key, "sum_ambience", scores.getAmbience() * delta);
-		cacheService.increaseForHash(key, "sum_kindness", scores.getKindness() * delta);
-		cacheService.increaseForHash(key, "sum_cleanliness", scores.getCleanliness() * delta);
+		cacheService.increaseForHash(key, "sum_taste", ratingDetails.getTaste() * delta);
+		cacheService.increaseForHash(key, "sum_ambience", ratingDetails.getAmbience() * delta);
+		cacheService.increaseForHash(key, "sum_kindness", ratingDetails.getKindness() * delta);
+		cacheService.increaseForHash(key, "sum_cleanliness", ratingDetails.getCleanliness() * delta);
 		cacheService.increaseForValue(countKey, delta);
 
 		Long sumTaste = (Long) cacheService.getHashValue(key, "sum_taste");

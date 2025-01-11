@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.service.ReviewServiceImpl;
 import com.quit.review.presentation.request.ReviewCreateRequest;
-import com.quit.review.presentation.request.ScoresRequest;
+import com.quit.review.presentation.request.RatingDetailsRequest;
 
 @WebMvcTest(ReviewController.class)
 class ReviewControllerTest {
@@ -41,7 +41,7 @@ class ReviewControllerTest {
 		UUID reviewId = UUID.randomUUID();
 		ReviewCreateRequest request = ReviewCreateRequest.builder()
 			.content("정말 맛있었습니다! 또 올게요!")
-			.scores(new ScoresRequest(5, 4, 3, 5))
+			.scores(new RatingDetailsRequest(5, 4, 3, 5))
 			.build();
 
 		MockMultipartFile reviewPart = new MockMultipartFile(

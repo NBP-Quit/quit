@@ -53,11 +53,11 @@ public class Review extends BaseEntity {
 	private Long userId;
 
 	@Column(nullable = false)
-	private double averageScore;
+	private double rating;
 
 	@Column(nullable = false)
 	@Embedded
-	private Scores scores;
+	private RatingDetails ratingDetails;
 
 	@Column(nullable = false)
 	private String nickname;
@@ -76,13 +76,13 @@ public class Review extends BaseEntity {
 	private boolean isReported = false;
 
 	@Builder
-	private Review(UUID id, UUID storeId, UUID reservationId, Long userId, Scores scores, String nickname,
+	private Review(UUID id, UUID storeId, UUID reservationId, Long userId, RatingDetails ratingDetails, String nickname,
 		String content) {
 		this.id = id;
 		this.storeId = storeId;
 		this.reservationId = reservationId;
 		this.userId = userId;
-		this.scores = scores;
+		this.ratingDetails = ratingDetails;
 		this.nickname = nickname;
 		this.content = content;
 	}
@@ -99,8 +99,8 @@ public class Review extends BaseEntity {
 		}
 	}
 
-	public void applyAverageScore() {
-		this.averageScore = scores.calculateAverage();
+	public void applyAverageRating() {
+		this.rating = ratingDetails.calculateAverage();
 	}
 
 	public void addImage(Image image) {
@@ -108,9 +108,9 @@ public class Review extends BaseEntity {
 		image.setReview(this);
 	}
 
-	public void updateScores(int taste, int ambience, int kindness, int cleanliness) {
-		scores.update(taste, ambience, kindness, cleanliness);
-		applyAverageScore();
+	public void updateRatingDetails(int taste, int ambience, int kindness, int cleanliness) {
+		ratingDetails.update(taste, ambience, kindness, cleanliness);
+		applyAverageRating();
 	}
 
 	public void updateContent(String content) {
