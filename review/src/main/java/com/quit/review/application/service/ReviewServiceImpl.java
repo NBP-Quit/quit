@@ -22,8 +22,10 @@ import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.dto.ReviewUpdateDto;
 import com.quit.review.application.dto.ScoresDto;
 import com.quit.review.common.CustomApiException;
+import com.quit.review.domain.model.MealType;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.model.Scores;
+import com.quit.review.domain.model.Tag;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -77,8 +79,8 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
-	public Slice<ReviewResponse> getAll(UUID storeId, Long userId, Pageable pageable, List<String> tags) {
-		Slice<Review> reviewSlice = reviewRepository.getSliceByStoreIdAndTags(storeId, pageable, tags);
+	public Slice<ReviewResponse> getAll(UUID storeId, Long userId, Pageable pageable, Tag tag, MealType mealType) {
+		Slice<Review> reviewSlice = reviewRepository.getSliceByStoreIdAndTags(storeId, pageable, tag, mealType);
 
 		List<ReviewResponse> reviewResponses = reviewSlice.getContent().stream()
 			.map(review -> {

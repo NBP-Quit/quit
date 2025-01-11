@@ -26,6 +26,8 @@ import com.quit.review.application.dto.ReviewResponse;
 import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.service.ReviewService;
 import com.quit.review.common.ApiResponse;
+import com.quit.review.domain.model.MealType;
+import com.quit.review.domain.model.Tag;
 import com.quit.review.presentation.request.ReviewCreateRequest;
 import com.quit.review.presentation.request.ReviewUpdateRequest;
 
@@ -56,9 +58,10 @@ public class ReviewController {
 		@PathVariable UUID storeId,
 		@RequestHeader(value = "X-User-ID") String userId,
 		@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-		@RequestParam(required = false) List<String> tags
+		@RequestParam(required = false) Tag tag,
+		@RequestParam(required = false) MealType mealType
 	) {
-		return ResponseEntity.ok(ApiResponse.success(reviewService.getAll(storeId, Long.parseLong(userId), pageable, tags)));
+		return ResponseEntity.ok(ApiResponse.success(reviewService.getAll(storeId, Long.parseLong(userId), pageable, tag, mealType)));
 	}
 
 	@PutMapping("/reviews/{reviewId}")
