@@ -22,7 +22,7 @@ public class ReviewSummeryResponse {
 	public static ReviewSummeryResponse from(Map<Object, Object> averages, int count, List<ReviewResponse> reviews) {
 		return ReviewSummeryResponse.builder()
 			.reviewCount(count)
-			.rating(averages != null ? (double) averages.get("avg_total") : 0.0)
+			.rating(averages != null ? Math.round((double) averages.get("avg_total") * 10) / 10.0 : 0.0)
 			.ratingDetails(RatingDetails.from(averages))
 			.reviews(reviews)
 			.build();
@@ -40,10 +40,10 @@ public class ReviewSummeryResponse {
 
 		public static RatingDetails from(Map<Object, Object> averages) {
 			return RatingDetails.builder()
-				.taste(averages != null ? (double) averages.get("avg_taste") : 0.0)
-				.ambience(averages != null ? (double) averages.get("avg_ambience") : 0.0)
-				.kindness(averages != null ? (double) averages.get("avg_kindness") : 0.0)
-				.cleanliness(averages != null ? (double) averages.get("avg_cleanliness") : 0.0)
+				.taste(averages != null ? Math.round((double) averages.get("avg_taste") * 10) / 10.0: 0.0)
+				.ambience(averages != null ? Math.round((double) averages.get("avg_ambience") * 10) / 10.0: 0.0)
+				.kindness(averages != null ? Math.round((double) averages.get("avg_kindness") * 10) / 10.0: 0.0)
+				.cleanliness(averages != null ? Math.round((double) averages.get("avg_cleanliness") * 10) / 10.0: 0.0)
 				.build();
 		}
 	}

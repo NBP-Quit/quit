@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.data.domain.PageRequest;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -15,15 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.quit.review.application.dto.RatingDetailsDto;
 import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.ReviewResponse;
 import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.dto.ReviewUpdateDto;
-import com.quit.review.application.dto.RatingDetailsDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.MealType;
-import com.quit.review.domain.model.Review;
 import com.quit.review.domain.model.RatingDetails;
+import com.quit.review.domain.model.Review;
 import com.quit.review.domain.model.Tag;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
@@ -48,12 +49,11 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public UUID create(UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
+	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
+	public UUID create(UUID storeId, UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
 		// 예약 정보를 조회하여 예약 상태와 권한을 검증
 		ReservationResponse reservation = reservationService.getById(reservationId);
 		validate(userId, reservation);
-
-		UUID storeId = reservation.getStoreId();
 
 		// 유저 서비스에서 유저 정보 조회 후 nickname 추출
 		String nickname = userService.getNicknameById(userId);
@@ -72,7 +72,7 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 
 		// 가게의 총 평균 별점 및 항목 별 평균 별점 업데이트
-		updateStoreScores(storeId, review.getRatingDetails(), 1);
+		updateStoreRating(storeId, review.getRatingDetails(), 1);
 
 		return savedReview.getId();
 	}
@@ -96,44 +96,49 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public void update(UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files) {
-		Review review = reviewRepository.findById(reviewId)
+	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
+	public void update(UUID storeId, UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files) {
+		Review review = reviewRepository.findByIdWithImages(reviewId)
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
 
-		updateStoreScores(review.getStoreId(), review.getRatingDetails(), -1);
+		updateStoreRating(storeId, review.getRatingDetails(), -1);
 
 		RatingDetailsDto ratingDetails = dto.getRatingDetails();
 
 		review.updateRatingDetails(ratingDetails.getTaste(), ratingDetails.getAmbience(), ratingDetails.getKindness(), ratingDetails.getCleanliness());
 		review.updateContent(dto.getContent());
 
-		// 이미지 파일이 있다면 해당 리뷰로 저장된 모든 이미지 삭제 후 재업로드
-		if (!CollectionUtils.isEmpty(files)) {
+		if (review.getImages().isEmpty()) {
+			// 이미지 파일이 있다면 해당 리뷰로 저장된 모든 이미지 삭제 후 재업로드
 			imageService.deleteAll(review);
-			files.forEach(file -> {
-				imageService.create(file, review);
-			});
+			if (!CollectionUtils.isEmpty(files)) {
+				files.forEach(file -> {
+					imageService.create(file, review);
+				});
+			}
 		}
 
-		updateStoreScores(review.getStoreId(), review.getRatingDetails(), 1);
+		updateStoreRating(storeId, review.getRatingDetails(), 1);
 	}
 
 	@Override
 	@Transactional
-	public void delete(UUID reviewId, Long userId) {
+	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
+	public void delete(UUID storeId, UUID reviewId, Long userId) {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
 		review.delete();
 
 		imageService.deleteAll(review);
 
-		unlike(reviewId, userId);
-		updateStoreScores(review.getStoreId(), review.getRatingDetails(), -1);
+		unlike(storeId, reviewId, userId);
+		updateStoreRating(review.getStoreId(), review.getRatingDetails(), -1);
 	}
 
 	@Override
 	@Transactional
-	public void like(UUID reviewId, Long userId) {
+	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
+	public void like(UUID storeId, UUID reviewId, Long userId) {
 		String key = "review:" + reviewId + ":likes";
 		Long added = cacheService.addToSet(key, userId);
 
@@ -145,7 +150,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public void unlike(UUID reviewId, Long userId) {
+	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
+	public void unlike(UUID storeId, UUID reviewId, Long userId) {
 		String key = "review:" + reviewId + ":likes";
 		Long removed = cacheService.removeFromSet(key, userId);
 
@@ -156,16 +162,16 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "reviewSummaryCache", key = "args[0]")
 	public ReviewSummeryResponse getSummary(UUID storeId, Long userId) {
 		String avgKey = "store:" + storeId + ":averages";
 		String countKey = "store:" + storeId + ":count";
 
 		Map<Object, Object> averages = cacheService.getAll(avgKey);
 
-		Long count = (Long) cacheService.getValue(countKey);
+		int count = (int) cacheService.getValue(countKey);
 
-		Pageable pageable = PageRequest.of(0, 5);
-		List<Review> reviews = reviewRepository.findTop5ReviewByLikeCount(pageable);
+		List<Review> reviews = reviewRepository.findTop5ReviewByLikeCount();
 		List<ReviewResponse> reviewResponses = reviews.stream()
 			.map(review -> {
 				String key = "review:" + review.getId() + ":likes";
@@ -175,10 +181,10 @@ public class ReviewServiceImpl implements ReviewService {
 			})
 			.toList();
 
-		return ReviewSummeryResponse.from(averages, count.intValue(), reviewResponses);
+		return ReviewSummeryResponse.from(averages, count, reviewResponses);
 	}
 
-	private void updateStoreScores(UUID storeId, RatingDetails ratingDetails, long delta) {
+	private void updateStoreRating(UUID storeId, RatingDetails ratingDetails, long delta) {
 		String key = "store:" + storeId + ":rating";
 		String countKey = "store:" + storeId + ":count";
 		String avgKey = "store:" + storeId + ":averages";
@@ -189,11 +195,11 @@ public class ReviewServiceImpl implements ReviewService {
 		cacheService.increaseForHash(key, "sum_cleanliness", ratingDetails.getCleanliness() * delta);
 		cacheService.increaseForValue(countKey, delta);
 
-		Long sumTaste = (Long) cacheService.getHashValue(key, "sum_taste");
-		Long sumAmbience = (Long) cacheService.getHashValue(key, "sum_ambience");
-		Long sumKindness = (Long) cacheService.getHashValue(key, "sum_kindness");
-		Long sumCleanliness = (Long) cacheService.getHashValue(key, "sum_cleanliness");
-		Long count = (Long) cacheService.getValue(countKey);
+		int sumTaste = (int) cacheService.getHashValue(key, "sum_taste");
+		int sumAmbience = (int) cacheService.getHashValue(key, "sum_ambience");
+		int sumKindness = (int) cacheService.getHashValue(key, "sum_kindness");
+		int sumCleanliness = (int) cacheService.getHashValue(key, "sum_cleanliness");
+		int count = (int) cacheService.getValue(countKey);
 
 		double avgTaste = sumTaste / (double) count;
 		double avgAmbience = sumAmbience / (double) count;

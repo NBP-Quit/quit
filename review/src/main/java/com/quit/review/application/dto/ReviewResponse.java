@@ -4,6 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.quit.review.domain.model.Image;
 import com.quit.review.domain.model.MealType;
 import com.quit.review.domain.model.Review;
@@ -26,8 +31,11 @@ public class ReviewResponse {
 	private String content;
 	private MealType mealType;
 	private int likeCount;
+	@JsonProperty("liked")
 	private boolean isLiked;
 	private int replyCount;
+	@JsonSerialize(using = LocalDateSerializer.class)
+	@JsonDeserialize(using = LocalDateDeserializer.class)
 	private LocalDate createdAt;
 
 	public static ReviewResponse from(Review review, int likeCount, boolean isLiked) {
@@ -38,7 +46,7 @@ public class ReviewResponse {
 		return ReviewResponse.builder()
 			.id(review.getId())
 			.images(images)
-			.rating(review.getRating())
+			.rating(Math.round(review.getRating() * 10) / 10.0)
 			.ratingDetails(RatingDetailsDto.from(review.getRatingDetails()))
 			.nickname(review.getNickname())
 			.content(review.getContent())

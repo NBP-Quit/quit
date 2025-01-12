@@ -17,8 +17,8 @@ public class RedisService implements CacheService {
 	private final RedisTemplate<String, Object> redisTemplate;
 
 	@Override
-	public Long addToSet(String key, Object value) {
-		return redisTemplate.opsForSet().add(key, value.toString());
+	public Long addToSet(String key, Long value) {
+		return redisTemplate.opsForSet().add(key, value);
 	}
 
 	@Override
@@ -27,12 +27,12 @@ public class RedisService implements CacheService {
 	}
 
 	@Override
-	public Boolean isMemberOfSet(String key, Object value) {
+	public Boolean isMemberOfSet(String key, Long value) {
 		return redisTemplate.opsForSet().isMember(key, value);
 	}
 
 	@Override
-	public Long removeFromSet(String key, Object value) {
+	public Long removeFromSet(String key, Long value) {
 		return redisTemplate.opsForSet().remove(key, value);
 	}
 
