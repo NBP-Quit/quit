@@ -81,6 +81,7 @@ class PaymentServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getOrderId()).isEqualTo(request.getOrderId());
+        assertThat(response.getAmount()).isEqualTo(request.getAmount());
     }
 
     @Test
@@ -105,6 +106,9 @@ class PaymentServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getAmount()).isEqualTo(1000);
+        assertThat(response.getOrderId()).isEqualTo("ORDER123");
+        assertThat(response.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(response.getPaymentKey()).isEqualTo("PAYMENT_KEY_123");
         verify(paymentGateway, times(1)).confirmPayment(request);
         verify(kafkaProducer, times(1)).sendMessage(anyString(), anyString(), any(PaymentEvent.class));
     }
@@ -116,7 +120,7 @@ class PaymentServiceTest {
         Payment payment = Payment.of(1000, Status.SUCCESS, "PAYMENT_KEY_123", "ORDER123", reservationId);
         when(paymentRepository.findByIdAndIsDeletedFalse(paymentId)).thenReturn(Optional.of(payment));
 
-        CancelPaymentRequest cancelRequest = new CancelPaymentRequest("Duplicate order");
+        CancelPaymentRequest cancelRequest = new CancelPaymentRequest("단순 변심");
         CancelPaymentResponse cancelResponse = new CancelPaymentResponse("PAYMENT_KEY_123", "ORDER123", "DONE" );
         when(paymentGateway.cancelPayment(payment.getPaymentKey(), cancelRequest)).thenReturn(cancelResponse);
 
@@ -131,7 +135,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("결제 ID로 결제를 조회할 수 있다.")
+    @DisplayName("예약 ID로 결제를 조회할 수 있다.")
     void getPaymentByReservation() {
         // given
         Payment payment = Payment.of(1000, Status.SUCCESS, "PAYMENT_KEY_123", "ORDER123", reservationId);
@@ -144,11 +148,15 @@ class PaymentServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getAmount()).isEqualTo(1000);
+        assertThat(response.getOrderId()).isEqualTo("ORDER123");
+        assertThat(response.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(response.getPaymentKey()).isEqualTo("PAYMENT_KEY_123");
+        assertThat(response.getReservationId()).isEqualTo(reservationId);
         verify(paymentRepository, times(1)).findByReservationIdAndIsDeletedFalse(reservationId);
     }
 
     @Test
-    @DisplayName("존재하지 않는 결제 ID로 조회 시 예외를 던진다.")
+    @DisplayName("존재하지 않는 예약 ID로 조회 시 예외를 던진다.")
     void getPaymentByInvalidReservation() {
         // given
         when(paymentRepository.findByReservationIdAndIsDeletedFalse(reservationId))
