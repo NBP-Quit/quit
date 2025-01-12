@@ -1,5 +1,7 @@
 package com.quit.review.domain.model;
 
+import java.util.UUID;
+
 import org.hibernate.annotations.SQLRestriction;
 
 import com.quit.review.common.BaseEntity;
@@ -30,7 +32,7 @@ public class Like extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	private Long id;
+	private UUID id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(nullable = false)

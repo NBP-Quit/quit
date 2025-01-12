@@ -1,6 +1,7 @@
 package com.quit.review.infrastructure.repository;
 
 import static com.quit.review.domain.model.QImage.*;
+import static com.quit.review.domain.model.QLike.*;
 import static com.quit.review.domain.model.QReview.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.quit.review.domain.model.MealType;
+import com.quit.review.domain.model.QLike;
 import com.quit.review.domain.model.Review;
 import com.quit.review.domain.model.Tag;
 import com.quit.review.infrastructure.util.QueryDslUtils;
