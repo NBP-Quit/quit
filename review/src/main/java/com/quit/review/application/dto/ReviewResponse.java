@@ -33,7 +33,6 @@ public class ReviewResponse {
 	private int likeCount;
 	@JsonProperty("liked")
 	private boolean isLiked;
-	private int replyCount;
 	@JsonSerialize(using = LocalDateSerializer.class)
 	@JsonDeserialize(using = LocalDateDeserializer.class)
 	private LocalDate createdAt;
@@ -53,7 +52,6 @@ public class ReviewResponse {
 			.mealType(review.getMealType())
 			.likeCount(likeCount)
 			.isLiked(isLiked)
-			.replyCount(review.getReplyCount())
 			.createdAt(review.getCreatedAt().toLocalDate())
 			.build();
 	}

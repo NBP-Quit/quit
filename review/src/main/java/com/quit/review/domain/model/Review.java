@@ -70,9 +70,6 @@ public class Review extends BaseEntity {
 	private MealType mealType;
 
 	@Column(nullable = false)
-	private int replyCount = 0;
-
-	@Column(nullable = false)
 	private boolean isReported = false;
 
 	@Builder
