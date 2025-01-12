@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.quit.review.application.dto.ReviewResponse;
+import com.quit.review.application.dto.ReviewSummeryResponse;
 import com.quit.review.application.service.ReviewService;
 import com.quit.review.common.ApiResponse;
 import com.quit.review.presentation.request.ReviewCreateRequest;
@@ -53,14 +54,15 @@ public class ReviewController {
 	@GetMapping("/stores/{storeId}/reviews")
 	public ResponseEntity<ApiResponse<Slice<ReviewResponse>>> getAll(
 		@PathVariable UUID storeId,
-		@PageableDefault(sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable,
+		@RequestHeader(value = "X-User-ID") String userId,
+		@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
 		@RequestParam(required = false) List<String> tags
 	) {
-		return ResponseEntity.ok(ApiResponse.success(reviewService.getAll(storeId, pageable, tags)));
+		return ResponseEntity.ok(ApiResponse.success(reviewService.getAll(storeId, Long.parseLong(userId), pageable, tags)));
 	}
 
 	@PutMapping("/reviews/{reviewId}")
-	public ResponseEntity<ApiResponse<?>> update(
+	public ResponseEntity<ApiResponse<Void>> update(
 		@PathVariable UUID reviewId,
 		@RequestHeader(value = "X-User-ID") String userId,
 		@RequestPart("review") @Valid ReviewUpdateRequest request,
@@ -71,11 +73,38 @@ public class ReviewController {
 	}
 
 	@DeleteMapping("/reviews/{reviewId}")
-	public ResponseEntity<ApiResponse<?>> delete(
+	public ResponseEntity<ApiResponse<Void>> delete(
 		@PathVariable UUID reviewId,
 		@RequestHeader(value = "X-User-ID") String userId
 	) {
 		reviewService.delete(reviewId, Long.parseLong(userId));
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Deleted"));
+	}
+
+	@PostMapping("/reviews/{reviewId}/likes")
+	public ResponseEntity<ApiResponse<Void>> like(
+		@PathVariable UUID reviewId,
+		@RequestHeader(value = "X-User-ID") String userId
+	) {
+		reviewService.like(reviewId, Long.parseLong(userId));
+		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Like Completed"));
+	}
+
+	@DeleteMapping("/reviews/{reviewId}/likes")
+	public ResponseEntity<ApiResponse<Void>> unlike(
+		@PathVariable UUID reviewId,
+		@RequestHeader(value = "X-User-ID") String userId
+	) {
+		reviewService.unlike(reviewId, Long.parseLong(userId));
+		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Unlike Completed"));
+	}
+
+	@GetMapping("/stores/{storeId}/reviews/summary")
+	public ResponseEntity<ApiResponse<ReviewSummeryResponse>> getSummary(
+		@PathVariable UUID storeId,
+		@RequestHeader(value = "X-User-ID") String userId
+	) {
+		return ResponseEntity.ok(ApiResponse.success(reviewService.getSummary(storeId, Long.parseLong(userId))));
+
 	}
 }

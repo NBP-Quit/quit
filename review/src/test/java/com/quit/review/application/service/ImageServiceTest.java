@@ -18,7 +18,6 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.Review;
-import com.quit.review.infrastructure.service.ImageUploader;
 
 @ExtendWith(MockitoExtension.class)
 class ImageServiceTest {
