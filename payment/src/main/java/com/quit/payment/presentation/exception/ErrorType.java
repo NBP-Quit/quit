@@ -16,6 +16,11 @@ public enum ErrorType {
 
     PAYMENT_DATA_INVALID(NOT_FOUND, "해당 결제 데이터가 존재하지 않습니다."),
     PAYMENT_NOT_FOUND(NOT_FOUND, "결제가 존재하지 않습니다."),
+    PAYMENT_CANCEL_REASON_EMPTY(BAD_REQUEST, "결제 취소 사유가 존재하지 않습니다."),
+    PAYMENT_ORDER_ID_EMPTY(BAD_REQUEST, "결제 외주사 주문 ID가 존재하지 않습니다."),
+    PAYMENT_KEY_EMPTY(BAD_REQUEST, "결제 외주사 결제키가 존재하지 않습니다."),
+    PAYMENT_AMOUNT_EMPTY(BAD_REQUEST, "결제 금액이 존재하지 않습니다."),
+    PAYMENT_AMOUNT_INVALID(BAD_REQUEST, "결제 금액이 유효하지 않습니다."),
 
     RESERVATION_ID_MISMATCH(BAD_REQUEST, "결제 데이터와 예약 ID가 일치하지 않습니다."),
 

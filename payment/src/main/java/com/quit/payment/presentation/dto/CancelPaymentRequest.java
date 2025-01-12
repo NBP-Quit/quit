@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CancelPaymentRequest {
 
-    @NotNull
+    @NotNull(message = "PAYMENT_CANCEL_REASON_EMPTY")
     private String cancelReason;
 
 }
