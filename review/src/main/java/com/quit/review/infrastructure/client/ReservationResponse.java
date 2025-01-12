@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReservationResponse {
 	UUID reservationId;
-	Long customerId;
+	String customerId;
 	UUID storeId;
 	Integer guestCount;
 	LocalDate reservationDate;
