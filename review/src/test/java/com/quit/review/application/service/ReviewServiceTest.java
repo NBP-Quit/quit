@@ -16,10 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.quit.review.application.dto.ReviewCreateDto;
-import com.quit.review.application.dto.ScoresDto;
+import com.quit.review.application.dto.RatingDetailsDto;
 import com.quit.review.common.CustomApiException;
+import com.quit.review.domain.model.RatingDetails;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.model.Scores;
 import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
@@ -47,7 +47,7 @@ class ReviewServiceTest {
 		UUID reservationId = UUID.randomUUID();
 		ReviewCreateDto dto = ReviewCreateDto.builder()
 			.content("정말 너무 너무 맛있었어요! 또 올게요!")
-			.scores(new ScoresDto(5, 4, 3, 5))
+			.ratingDetails(new RatingDetailsDto(5, 4, 3, 5))
 			.build();
 
 		ReservationResponse mockReservation = ReservationResponse.builder()
@@ -70,11 +70,11 @@ class ReviewServiceTest {
 			.userId(userId)
 			.content(dto.getContent())
 			.scores(
-				Scores.builder()
-					.taste(dto.getScores().getTaste())
-					.ambience(dto.getScores().getAmbience())
-					.cleanliness(dto.getScores().getCleanliness())
-					.kindness(dto.getScores().getKindness())
+				RatingDetails.builder()
+					.taste(dto.getRatingDetails().getTaste())
+					.ambience(dto.getRatingDetails().getAmbience())
+					.cleanliness(dto.getRatingDetails().getCleanliness())
+					.kindness(dto.getRatingDetails().getKindness())
 					.build()
 			)
 			.nickname(mockNickname)
@@ -103,7 +103,7 @@ class ReviewServiceTest {
 		UUID reservationId = UUID.randomUUID();
 		ReviewCreateDto dto = ReviewCreateDto.builder()
 			.content("정말 너무 너무 맛있었어요! 또 올게요!")
-			.scores(new ScoresDto(5, 4, 3, 5))
+			.ratingDetails(new RatingDetailsDto(5, 4, 3, 5))
 			.build();
 
 		ReservationResponse mockReservation = ReservationResponse.builder()
@@ -134,7 +134,7 @@ class ReviewServiceTest {
 		UUID reservationId = UUID.randomUUID();
 		ReviewCreateDto dto = ReviewCreateDto.builder()
 			.content("정말 너무 너무 맛있었어요! 또 올게요!")
-			.scores(new ScoresDto(5, 4, 3, 5))
+			.ratingDetails(new RatingDetailsDto(5, 4, 3, 5))
 			.build();
 
 		ReservationResponse mockReservation = ReservationResponse.builder()

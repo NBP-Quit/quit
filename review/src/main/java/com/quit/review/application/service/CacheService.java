@@ -4,13 +4,13 @@ import java.util.Map;
 import java.util.Set;
 
 public interface CacheService {
-	Long addToSet(String key, Object values);
+	Long addToSet(String key, Long value);
 
 	Set<Object> getSetMembers(String key);
 
-	Boolean isMemberOfSet(String key, Object value);
+	Boolean isMemberOfSet(String key, Long value);
 
-	Long removeFromSet(String key, Object values);
+	Long removeFromSet(String key, Long value);
 
 	Long getSetSize(String key);
 

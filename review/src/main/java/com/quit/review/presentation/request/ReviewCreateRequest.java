@@ -1,9 +1,7 @@
 package com.quit.review.presentation.request;
 
-import java.util.UUID;
-
 import com.quit.review.application.dto.ReviewCreateDto;
-import com.quit.review.application.dto.ScoresDto;
+import com.quit.review.application.dto.RatingDetailsDto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -27,19 +25,12 @@ public class ReviewCreateRequest {
 
 	@NotNull
 	@Valid
-	private ScoresRequest scores;
+	private RatingDetailsRequest ratingDetails;
 
 	public ReviewCreateDto toDto() {
 		return ReviewCreateDto.builder()
 			.content(content)
-			.scores(
-				ScoresDto.builder()
-					.taste(scores.getTaste())
-					.ambience(scores.getAmbience())
-					.cleanliness(scores.getCleanliness())
-					.kindness(scores.getKindness())
-					.build()
-			)
+			.ratingDetails(RatingDetailsDto.from(ratingDetails))
 			.build();
 	}
 }
