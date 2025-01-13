@@ -1,6 +1,5 @@
 package com.quit.store.presentation.dto;
 
-import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
