@@ -1,5 +1,6 @@
 package com.quit.store.application.service;
 
+import com.quit.store.application.dto.BatchReservationSlotsDto;
 import com.quit.store.application.dto.ReservationEvent;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
@@ -20,7 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
 import static com.quit.store.presentation.exception.ErrorType.*;
@@ -36,13 +41,51 @@ public class ReservationSlotService {
     private final RoleValidator roleValidator;
 
     @Transactional
-    public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
+    public ReservationSlotResponse createSingleSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = checkStore(storeId);
         checkUser(store, userId, userRole);
         ReservationSlot slot = create(store, request);
         reservationSlotRepository.save(slot);
         return ReservationSlotResponse.from(slot);
+    }
+
+    @Transactional
+    public void createBatchSlots(UUID storeId, BatchReservationSlotsDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, CREATE);
+        Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
+
+        LocalDate startDate = request.getStartDate();
+        LocalDate endDate = request.getEndDate();
+        int interval = request.getInterval();
+
+        // 기존 슬롯을 조회하여 중복을 방지
+        List<ReservationSlot> existingSlots = reservationSlotRepository.findAllByStoreIdAndDateRange(storeId, startDate, endDate);
+
+        Set<String> existingSlotKeys = existingSlots.stream()
+                .map(slot -> slot.getDate().toString() + "_" + slot.getTime().toString())
+                .collect(Collectors.toSet());
+
+        List<ReservationSlot> newSlots = new ArrayList<>();
+
+        // 예약 슬롯 생성 로직
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            for (LocalTime time = request.getStartTime(); !time.isAfter(request.getEndTime()); time = time.plusMinutes(interval)) {
+                String key = date.toString() + "_" + time.toString();
+                if (!existingSlotKeys.contains(key)) {
+                    ReservationSlot slot = ReservationSlot.of(
+                            date,
+                            time,
+                            request.getMaxCapacity(),
+                            store
+                    );
+                    newSlots.add(slot);
+                }
+            }
+        }
+
+        reservationSlotRepository.saveAll(newSlots);
     }
 
     @Transactional
