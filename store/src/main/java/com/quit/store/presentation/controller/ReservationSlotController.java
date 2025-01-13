@@ -4,10 +4,10 @@ import com.quit.store.application.dto.res.ReservationSlotResponse;
 import com.quit.store.application.service.ReservationSlotService;
 import com.quit.store.common.dto.ApiResponse;
 import com.quit.store.common.util.PageableUtil;
+import com.quit.store.presentation.dto.BatchReservationSlotsRequest;
 import com.quit.store.presentation.dto.CreateReservationSlotRequest;
 import com.quit.store.presentation.dto.UpdateReservationSlotRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +26,22 @@ public class ReservationSlotController {
     private final ReservationSlotService reservationSlotService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ReservationSlotResponse>> createSlot(
+    public ResponseEntity<ApiResponse<ReservationSlotResponse>> createSingleSlot(
             @RequestHeader(name = "X-User-Email") String userId,
             @RequestHeader(name = "X-User-Role") String userRole,
             @PathVariable(name = "storeId") UUID storeId,
             @Valid @RequestBody CreateReservationSlotRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSlot(storeId, request.toDto(), userId, userRole)));
+        return ResponseEntity.ok(ApiResponse.success(reservationSlotService.createSingleSlot(storeId, request.toDto(), userId, userRole)));
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<ApiResponse<String>> createBatchSlots(
+            @RequestHeader(name = "X-User-Email") String userId,
+            @RequestHeader(name = "X-User-Role") String userRole,
+            @PathVariable(name = "storeId") UUID storeId,
+            @Valid @RequestBody BatchReservationSlotsRequest request) {
+        reservationSlotService.createBatchSlots(storeId, request.toDto(), userId, userRole);
+        return ResponseEntity.ok(ApiResponse.success("생성을 완료하였습니다."));
     }
 
     @PutMapping("/{slotId}")
