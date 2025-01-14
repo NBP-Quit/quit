@@ -39,6 +39,7 @@ class ReviewControllerTest {
 		UUID storeId = UUID.randomUUID();
 		UUID reservationId = UUID.randomUUID();
 		String userId = "1";
+		String email = "email@email.com";
 		UUID reviewId = UUID.randomUUID();
 		ReviewCreateRequest request = ReviewCreateRequest.builder()
 			.content("정말 맛있었습니다! 또 올게요!")
@@ -59,7 +60,7 @@ class ReviewControllerTest {
 			new FileInputStream("src/test/resources/test.jpg")
 		);
 
-		given(reviewService.create(any(UUID.class), any(UUID.class), any(Long.class), any(ReviewCreateDto.class), anyList()))
+		given(reviewService.create(any(UUID.class), any(UUID.class), any(Long.class), any(String.class), any(ReviewCreateDto.class), anyList()))
 			.willReturn(reviewId);
 
 		// when & then
@@ -78,6 +79,7 @@ class ReviewControllerTest {
 			eq(storeId),
 			eq(reservationId),
 			eq(Long.parseLong(userId)),
+			eq(email),
 			any(ReviewCreateDto.class),
 			anyList()
 		);
