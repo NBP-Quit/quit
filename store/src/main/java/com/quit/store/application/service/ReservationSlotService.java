@@ -5,6 +5,7 @@ import com.quit.store.application.dto.ReservationEvent;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
+import com.quit.store.application.dto.res.GetReservationSlotResponse;
 import com.quit.store.common.util.RoleValidator;
 import com.quit.store.domain.entity.ReservationSlot;
 import com.quit.store.domain.entity.Store;
@@ -13,8 +14,10 @@ import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,7 @@ public class ReservationSlotService {
     private final ReservationSlotRepository reservationSlotRepository;
     private final StoreRepository storeRepository;
     private final RoleValidator roleValidator;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public ReservationSlotResponse createSingleSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
@@ -55,7 +59,6 @@ public class ReservationSlotService {
         roleValidator.validateRole(userRole, CREATE);
         Store store = checkStore(storeId);
         checkUser(store, userId, userRole);
-        // 기존 슬롯을 조회하여 중복을 방지
         List<ReservationSlot> existingSlots = findExistingSlots(storeId, request.getStartDate(), request.getEndDate());
         Set<String> existingSlotKeys = generateSlotKeys(existingSlots);
         List<ReservationSlot> newSlots = generateBatchSlots(request, existingSlotKeys, store);
@@ -75,6 +78,8 @@ public class ReservationSlotService {
         validateTime(slot, request.getTime());
         validateMaxCapacity(slot, request.getMaxCapacity());
         slot.update(request);
+        String cacheKey = generateCacheKey(slot);
+        redisTemplate.opsForValue().set(cacheKey, GetReservationSlotResponse.from(slot));
         return ReservationSlotResponse.from(slot);
     }
 
@@ -86,11 +91,12 @@ public class ReservationSlotService {
     }
 
     @Transactional(readOnly = true)
-    public ReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
+    @Cacheable(cacheNames = "reservationSlot", key = "#storeId + '_' + #date.toString() + '_' + #time.toString()")
+    public GetReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
         Store store = checkStore(storeId);
         ReservationSlot slot = reservationSlotRepository.findByDateAndTime(store.getId(), date, time)
                 .orElseThrow(() -> new CustomException(RESERVATION_SLOT_NOT_FOUND));
-        return ReservationSlotResponse.from(slot);
+        return GetReservationSlotResponse.from(slot);
     }
 
     @Transactional
@@ -102,16 +108,20 @@ public class ReservationSlotService {
         validateSlotBelongsToStore(store.getId(), slot);
         validateReservation(slot);
         slot.delete(userId);
+        String cacheKey = generateCacheKey(slot);
+        redisTemplate.delete(cacheKey);
     }
 
     @Transactional
     @KafkaListener(topics = "reservation.confirm.success", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
     public void increaseCapacity(ReservationEvent reservationEvent) {
         log.info(">>>>>>> increaseCapacity <<<<<<<<<");
-        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
-        validateSlotIsAvailable(reservationSlot);
-        validateCapacityLimit(reservationSlot, reservationEvent.getCurrentCapacity());
-        reservationSlot.increaseCapacity(reservationEvent.getCurrentCapacity());
+        ReservationSlot slot = checkSlot(reservationEvent.getReservationSlotId());
+        validateSlotIsAvailable(slot);
+        validateCapacityLimit(slot, reservationEvent.getCurrentCapacity());
+        slot.increaseCapacity(reservationEvent.getCurrentCapacity());
+        String cacheKey = generateCacheKey(slot);
+        redisTemplate.opsForValue().set(cacheKey, GetReservationSlotResponse.from(slot));
         log.info("<<<<<<< reservation slot increased <<<<<<<<<");
     }
 
@@ -119,11 +129,17 @@ public class ReservationSlotService {
     @KafkaListener(topics = "reservation.confirm.failed", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
     public void restoreCapacity(ReservationEvent reservationEvent) {
         log.info(">>>>>>> restoreCapacity <<<<<<<<<");
-        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
-        validateSlotIsAvailable(reservationSlot);
-        validateSufficientCapacity(reservationSlot, reservationEvent.getCurrentCapacity());
-        reservationSlot.restoreCapacity(reservationEvent.getCurrentCapacity());
+        ReservationSlot slot = checkSlot(reservationEvent.getReservationSlotId());
+        validateSlotIsAvailable(slot);
+        validateSufficientCapacity(slot, reservationEvent.getCurrentCapacity());
+        slot.restoreCapacity(reservationEvent.getCurrentCapacity());
+        String cacheKey = generateCacheKey(slot);
+        redisTemplate.opsForValue().set(cacheKey, GetReservationSlotResponse.from(slot));
         log.info("<<<<<<< reservation slot restored <<<<<<<<<");
+    }
+
+    private String generateCacheKey(ReservationSlot reservationSlot) {
+        return "reservationSlot::" + reservationSlot.getStore().getId() + "_" + reservationSlot.getDate().toString() + "_" + reservationSlot.getTime().toString();
     }
 
     private Set<String> generateSlotKeys(List<ReservationSlot> existingSlots) {

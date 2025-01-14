@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SearchReservationSlotResponse {
+public class GetReservationSlotResponse {
     private UUID storeId;
     private UUID slotId;
     private Boolean isAvailable;
@@ -18,8 +18,8 @@ public class SearchReservationSlotResponse {
     private Integer currentCapacity;
 
     @Builder
-    private SearchReservationSlotResponse(UUID storeId, UUID slotId, Boolean isAvailable,
-                                          Integer maxCapacity, Integer currentCapacity) {
+    private GetReservationSlotResponse(UUID storeId, UUID slotId, Boolean isAvailable,
+                                       Integer maxCapacity, Integer currentCapacity) {
         this.storeId = storeId;
         this.slotId = slotId;
         this.isAvailable = isAvailable;
@@ -27,8 +27,8 @@ public class SearchReservationSlotResponse {
         this.currentCapacity = currentCapacity;
     }
 
-    public static SearchReservationSlotResponse from(ReservationSlot reservationSlot) {
-        return SearchReservationSlotResponse.builder()
+    public static GetReservationSlotResponse from(ReservationSlot reservationSlot) {
+        return GetReservationSlotResponse.builder()
                 .storeId(reservationSlot.getStore().getId())
                 .slotId(reservationSlot.getId())
                 .isAvailable(reservationSlot.getIsAvailable())
