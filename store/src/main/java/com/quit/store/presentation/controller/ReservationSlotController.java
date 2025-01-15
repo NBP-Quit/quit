@@ -1,6 +1,7 @@
 package com.quit.store.presentation.controller;
 
 import com.quit.store.application.dto.res.ReservationSlotResponse;
+import com.quit.store.application.dto.res.GetReservationSlotResponse;
 import com.quit.store.application.service.ReservationSlotService;
 import com.quit.store.common.dto.ApiResponse;
 import com.quit.store.common.util.PageableUtil;
@@ -65,9 +66,9 @@ public class ReservationSlotController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ReservationSlotResponse>> getSlotByDateAndTime(@PathVariable(name = "storeId") UUID storeId,
-                                                                                     @RequestParam LocalDate date,
-                                                                                     @RequestParam LocalTime time) {
+    public ResponseEntity<ApiResponse<GetReservationSlotResponse>> getSlotByDateAndTime(@PathVariable(name = "storeId") UUID storeId,
+                                                                                        @RequestParam LocalDate date,
+                                                                                        @RequestParam LocalTime time) {
         return ResponseEntity.ok(ApiResponse.success(reservationSlotService.getSlotByDateAndTime(storeId, date, time)));
     }
 
