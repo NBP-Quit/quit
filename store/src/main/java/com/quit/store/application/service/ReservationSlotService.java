@@ -1,5 +1,6 @@
 package com.quit.store.application.service;
 
+import com.quit.store.application.dto.BatchReservationSlotsDto;
 import com.quit.store.application.dto.ReservationEvent;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
@@ -20,7 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
 import static com.quit.store.presentation.exception.ErrorType.*;
@@ -36,13 +41,25 @@ public class ReservationSlotService {
     private final RoleValidator roleValidator;
 
     @Transactional
-    public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
+    public ReservationSlotResponse createSingleSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = checkStore(storeId);
         checkUser(store, userId, userRole);
         ReservationSlot slot = create(store, request);
         reservationSlotRepository.save(slot);
         return ReservationSlotResponse.from(slot);
+    }
+
+    @Transactional
+    public void createBatchSlots(UUID storeId, BatchReservationSlotsDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, CREATE);
+        Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
+        // 기존 슬롯을 조회하여 중복을 방지
+        List<ReservationSlot> existingSlots = findExistingSlots(storeId, request.getStartDate(), request.getEndDate());
+        Set<String> existingSlotKeys = generateSlotKeys(existingSlots);
+        List<ReservationSlot> newSlots = generateBatchSlots(request, existingSlotKeys, store);
+        reservationSlotRepository.saveAll(newSlots);
     }
 
     @Transactional
@@ -107,6 +124,29 @@ public class ReservationSlotService {
         validateSufficientCapacity(reservationSlot, reservationEvent.getCurrentCapacity());
         reservationSlot.restoreCapacity(reservationEvent.getCurrentCapacity());
         log.info("<<<<<<< reservation slot restored <<<<<<<<<");
+    }
+
+    private Set<String> generateSlotKeys(List<ReservationSlot> existingSlots) {
+        return existingSlots.stream()
+                .map(slot -> slot.getDate().toString() + "_" + slot.getTime().toString())
+                .collect(Collectors.toSet());
+    }
+
+    private List<ReservationSlot> findExistingSlots(UUID storeId, LocalDate startDate, LocalDate endDate) {
+        return reservationSlotRepository.findAllByStoreIdAndDateRange(storeId, startDate, endDate);
+    }
+
+    private List<ReservationSlot> generateBatchSlots(BatchReservationSlotsDto request, Set<String> existingSlotKeys, Store store) {
+        List<ReservationSlot> newSlots = new ArrayList<>();
+        for (LocalDate date = request.getStartDate(); !date.isAfter(request.getEndDate()); date = date.plusDays(1)) {
+            for (LocalTime time = request.getStartTime(); !time.isAfter(request.getEndTime()); time = time.plusMinutes(request.getInterval())) {
+                String key = date + "_" + time;
+                if (!existingSlotKeys.contains(key)) {
+                    newSlots.add(ReservationSlot.of(date, time, request.getMaxCapacity(), store));
+                }
+            }
+        }
+        return newSlots;
     }
 
     private void validateSlotIsAvailable(ReservationSlot slot) {

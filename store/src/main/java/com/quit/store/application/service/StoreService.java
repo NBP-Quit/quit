@@ -9,6 +9,8 @@ import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,6 +61,7 @@ public class StoreService {
         return storePage.map(StoreResponse::from);
     }
 
+    @CacheEvict(cacheNames = "store", key = "args[0]")
     public void deleteStore(UUID storeId, String userId, String userRole) {
         roleValidator.validateRole(userRole, STORE_DELETE);
         Store store = checkStore(storeId);
@@ -66,6 +69,7 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "store", key = "args[0]")
     public Boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }
