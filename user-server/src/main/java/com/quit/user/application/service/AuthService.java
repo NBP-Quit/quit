@@ -34,10 +34,14 @@ public class AuthService {
         if(userRepository.findByPhone(signupRequest.phone()).isPresent()) {
             throw new IllegalArgumentException("이미 가입된 번호입니다.");
         }
+        if(userRepository.findBySlackId(signupRequest.slackId()).isPresent()){
+            throw new IllegalArgumentException("이미 가입된 슬랙 아이디입니다.");
+        }
 
         //user 객체 생성
-        User user = User.create(signupRequest.email(), encodedPassword, signupRequest.nickname(),
+        User user = User.create(signupRequest.email(), encodedPassword, signupRequest.nickname(),signupRequest.slackId(),
                 signupRequest.phone(), signupRequest.birthdate(), signupRequest.address());
+
         userRepository.save(user);
 
         return UserDto.of(user);

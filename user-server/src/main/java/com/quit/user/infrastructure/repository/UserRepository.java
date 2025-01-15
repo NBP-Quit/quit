@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<Object> findByPhone(@NotBlank(message = "전화번호는 필수 입력 사항입니다.") @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "전화번호는 XXX-XXXX-XXXX와 같은 형식으로 입력해야합니다.") String phone);
 
     Optional<Object> findByEmailAndIsDeletedFalse(String email);
+
+    Optional<Object> findBySlackId(@NotBlank(message = "슬랙 아이디는 필수 입력 사항입니다.") String s);
 }

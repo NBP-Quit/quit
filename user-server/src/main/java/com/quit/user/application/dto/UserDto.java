@@ -8,6 +8,7 @@ public record UserDto(
         String email,
         String nickname,
         UserRoleEnum role,
+        String slackId,
         String phone,
         String birthdate,
         String address
@@ -19,6 +20,7 @@ public record UserDto(
                 user.getEmail(),
                 user.getNickname(),
                 user.getRole(),
+                user.getSlackId(),
                 user.getPhone(),
                 user.getBirthdate(),
                 user.getAddress()
