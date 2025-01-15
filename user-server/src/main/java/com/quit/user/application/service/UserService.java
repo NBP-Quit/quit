@@ -54,6 +54,12 @@ public class UserService {
 
     }
 
+    public UserDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(()
+                -> new IllegalArgumentException("해당하는 ID값을 갖는 사용자가 존재하지 않습니다."));
+        return UserDto.of(user);
+    }
+
 //    사용자 정보 업데이트
     @Transactional
     public UserDto updateUser(Long id, UserDto userDto, String role, String userId) {
@@ -101,13 +107,6 @@ public class UserService {
 
     }
 
-//    MASTER 권한 or 해당 id를 갖는 USER 판별
-    private boolean hasAccess(String role, String userId, Long id) {
-        UserRoleEnum userRole = UserRoleEnum.fromRole(role);
-
-        return userRole == UserRoleEnum.MASTER ||
-                (userRole == UserRoleEnum.USER && userId.equals(id.toString()));
-    }
 
 //    권한 요청 조회
     public List<RequestRoleDto> getRequestRoles(String userId, String role, RequestStatus status) {
@@ -150,4 +149,13 @@ public class UserService {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
     }
+
+//    MASTER 권한 or 해당 id를 갖는 USER 판별
+    private boolean hasAccess(String role, String userId, Long id) {
+        UserRoleEnum userRole = UserRoleEnum.fromRole(role);
+
+        return userRole == UserRoleEnum.MASTER ||
+                (userRole == UserRoleEnum.USER && userId.equals(id.toString()));
+    }
+
 }

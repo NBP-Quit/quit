@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     
-    Optional<Object> findByEmail(@NotBlank(message = "이메일은 필수 입력 항목입니다.") @Email(message = "이메일 형식이 올바르지 않습니다.") String email);
+    Optional<User> findByEmail(@NotBlank(message = "이메일은 필수 입력 항목입니다.") @Email(message = "이메일 형식이 올바르지 않습니다.") String email);
 
     Optional<Object> findByNickname(@NotBlank(message = "닉네임은 필수 입력 사항입니다.") String nickname);
 
