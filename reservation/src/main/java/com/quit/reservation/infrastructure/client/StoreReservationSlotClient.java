@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface StoreReservationSlotClient {
 
     @GetMapping("/api/stores/{storeId}/reservation-slots/search")
-    ApiResponse<ReservationSlotResponse> getSlotByDateAndTime(@PathVariable("storeId") UUID storeId,
-                                                              @RequestParam LocalDate date,
-                                                              @RequestParam LocalTime time);
+    ApiResponse<GetReservationSlotResponse> getSlotByDateAndTime(@PathVariable("storeId") UUID storeId,
+                                                                 @RequestParam LocalDate date,
+                                                                 @RequestParam LocalTime time);
 }

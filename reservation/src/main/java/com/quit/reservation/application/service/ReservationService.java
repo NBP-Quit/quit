@@ -8,7 +8,7 @@ import com.quit.reservation.domain.enums.Role;
 import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
 import com.quit.reservation.domain.service.ReservationValidationService;
-import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
+import com.quit.reservation.infrastructure.client.GetReservationSlotResponse;
 import com.quit.reservation.infrastructure.lock.DistributedLock;
 import com.quit.reservation.infrastructure.messaging.MessageProducer;
 import com.quit.reservation.presentation.exception.CustomException;
@@ -45,7 +45,7 @@ public class ReservationService {
     @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
-        ReservationSlotResponse response = reservationSlotClientService
+        GetReservationSlotResponse response = reservationSlotClientService
                 .getSlotByDateAndTime(request.getStoreId(), request.getReservationDate(), request.getReservationTime())
                 .getData();
 

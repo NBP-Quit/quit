@@ -18,7 +18,7 @@ public class ReservationSlotClientServiceImpl implements ReservationSlotClientSe
     }
 
     @Override
-    public ApiResponse<ReservationSlotResponse> getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
+    public ApiResponse<GetReservationSlotResponse> getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
         return storeReservationSlotClient.getSlotByDateAndTime(storeId, date, time);
     }
 }
