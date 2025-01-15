@@ -20,7 +20,7 @@ class ReviewTest {
 	void calculateAverageScore() {
 		// given
 		Review review = Review.builder()
-			.scores(Scores.builder()
+			.scores(RatingDetails.builder()
 				.taste(5)
 				.ambience(4)
 				.cleanliness(3)
@@ -29,7 +29,7 @@ class ReviewTest {
 			)
 			.build();
 		// when
-		review.applyAverageScore();
+		review.applyAverageRating();
 
 		// then
 		assertThat(review.getAverageScore()).isEqualTo(3.5);

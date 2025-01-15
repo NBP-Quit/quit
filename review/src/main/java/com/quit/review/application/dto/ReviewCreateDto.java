@@ -3,7 +3,7 @@ package com.quit.review.application.dto;
 import java.util.UUID;
 
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.model.Scores;
+import com.quit.review.domain.model.RatingDetails;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReviewCreateDto {
 	private String content;
-	private ScoresDto scores;
+	private RatingDetailsDto ratingDetails;
 
 	public Review toEntity(UUID reservationId, UUID storeId, Long userId, String nickname) {
 		return Review.builder()
@@ -26,12 +26,12 @@ public class ReviewCreateDto {
 			.userId(userId)
 			.nickname(nickname)
 			.content(content)
-			.scores(
-				Scores.builder()
-					.taste(scores.getTaste())
-					.ambience(scores.getAmbience())
-					.kindness(scores.getKindness())
-					.cleanliness(scores.getCleanliness())
+			.ratingDetails(
+				RatingDetails.builder()
+					.taste(ratingDetails.getTaste())
+					.ambience(ratingDetails.getAmbience())
+					.kindness(ratingDetails.getKindness())
+					.cleanliness(ratingDetails.getCleanliness())
 					.build()
 			).build();
 	}

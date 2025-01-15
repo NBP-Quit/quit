@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class ScoresRequest {
+public class RatingDetailsRequest {
 
 	@Min(1) @Max(5)
 	private int taste;

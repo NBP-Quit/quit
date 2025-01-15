@@ -41,8 +41,16 @@ public enum ErrorType {
     RESERVATION_SLOT_TIME_EMPTY(BAD_REQUEST, "예약 스케줄 시간이 존재하지 않습니다."),
     RESERVATION_SLOT_MAX_CAPACITY_EMPTY(BAD_REQUEST, "예약스케줄 최대 예약 가능 인원이 존재하지 않습니다."),
     RESERVATION_SLOT_MAX_CAPACITY_INVALID(BAD_REQUEST, "예약스케줄 최대 예약 가능 인원이 유효하지 않습니다."),
+    RESERVATION_SLOT_START_DATE_EMPTY(BAD_REQUEST, "예약 스케줄 시작 날짜가 존재하지 않습니다."),
+    RESERVATION_SLOT_END_DATE_EMPTY(BAD_REQUEST, "예약 스케줄 종료 날짜가 존재하지 않습니다."),
+    RESERVATION_SLOT_START_TIME_EMPTY(BAD_REQUEST, "예약 스케줄 시작 시간이 존재하지 않습니다."),
+    RESERVATION_SLOT_END_TIME_EMPTY(BAD_REQUEST, "예약 스케줄 종료 시간이 존재하지 않습니다."),
+    RESERVATION_SLOT_INTERVAL_EMPTY(BAD_REQUEST, "예약 스케줄 간격이 존재하지 않습니다."),
+    RESERVATION_SLOT_INTERVAL_INVALID(BAD_REQUEST, "예약 스케줄 간격이 유효하지 않습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
     private final String message;
+
 }

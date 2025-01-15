@@ -8,6 +8,5 @@ import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> findByReservationIdAndIsDeletedFalse(UUID reservationId);
-
     Optional<Payment> findByIdAndIsDeletedFalse(UUID paymentsId);
 }

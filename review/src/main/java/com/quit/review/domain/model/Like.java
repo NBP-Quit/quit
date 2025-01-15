@@ -15,16 +15,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "p_reply")
+@Table(name = "p_like", uniqueConstraints = {
+	@UniqueConstraint(columnNames = {"review_id", "user_id"})
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("is_deleted is false")
-public class Reply extends BaseEntity {
+public class Like extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -37,15 +41,16 @@ public class Reply extends BaseEntity {
 	@Column(nullable = false)
 	private Long userId;
 
-	@Column(nullable = false)
-	private String nickname;
+	@Builder
+	private Like(Review review, Long userId) {
+		this.review = review;
+		this.userId = userId;
+	}
 
-	@Column(nullable = false, length = 1000)
-	private String content;
-
-	@Column(nullable = false)
-	private int likeCount = 0;
-
-	@Column(nullable = false)
-	private boolean isOwner = false;
+	public static Like create(Review review, Long userId) {
+		return Like.builder()
+			.review(review)
+			.userId(userId)
+			.build();
+	}
 }

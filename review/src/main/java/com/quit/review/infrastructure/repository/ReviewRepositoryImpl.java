@@ -1,6 +1,7 @@
 package com.quit.review.infrastructure.repository;
 
 import static com.quit.review.domain.model.QImage.*;
+import static com.quit.review.domain.model.QLike.*;
 import static com.quit.review.domain.model.QReview.*;
 
 import java.util.List;
@@ -10,11 +11,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.quit.review.domain.model.MealType;
+import com.quit.review.domain.model.QLike;
 import com.quit.review.domain.model.Review;
+import com.quit.review.domain.model.Tag;
 import com.quit.review.infrastructure.util.QueryDslUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -26,12 +29,14 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public Slice<Review> getSliceByStoreIdAndTags(UUID storeId, Pageable pageable, List<String> tags) {
+	public Slice<Review> getSliceByStoreIdAndTags(UUID storeId, Pageable pageable, Tag tag, MealType mealType) {
 		List<Review> reviews = queryFactory.selectFrom(review)
 			.leftJoin(review.images, image).fetchJoin()
 			.where(
 				review.storeId.eq(storeId),
-				containTag(tags)
+				review.isDeleted.eq(false),
+				mealTypeEq(mealType),
+				contentContains(tag)
 			)
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize() + 1)
@@ -46,15 +51,11 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 		return new SliceImpl<>(reviews, pageable, hasNext);
 	}
 
-	BooleanExpression containTag(List<String> tags) {
-		if (CollectionUtils.isEmpty(tags)) {
-			return null;
-		}
-		BooleanExpression condition = null;
-		for (String tag : tags) {
-			BooleanExpression tagCondition = review.content.containsIgnoreCase(tag);
-			condition = (condition == null) ? tagCondition : condition.or(tagCondition);
-		}
-		return condition;
+	BooleanExpression contentContains(Tag tag) {
+		return tag != null ? review.content.containsIgnoreCase(tag.getValue()) : null;
+	}
+
+	BooleanExpression mealTypeEq(MealType mealType) {
+		return mealType != null ? review.mealType.eq(mealType) : null;
 	}
 }

@@ -1,8 +1,10 @@
 package com.quit.store.domain.repository;
 
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.quit.store.domain.entity.QReservationSlot;
 import com.quit.store.domain.entity.ReservationSlot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +66,22 @@ public class ReservationSlotRepositoryImpl implements ReservationSlotRepositoryC
                 )
                 .fetchOne();
         return Optional.ofNullable(slot);
+    }
+
+    @Override
+    public List<ReservationSlot> findAllByStoreIdAndDateRange(UUID storeId, LocalDate startDate, LocalDate endDate) {
+        return jpaQueryFactory
+                .selectFrom(reservationSlot)
+                .where(
+                        storeEq(storeId),
+                        dateBetween(startDate, endDate),
+                        reservationSlot.isDeleted.eq(false)
+                )
+                .fetch();
+    }
+
+    private BooleanExpression dateBetween(LocalDate startDate, LocalDate endDate) {
+        return startDate != null && endDate != null ? reservationSlot.date.between(startDate, endDate) : null;
     }
 
     private BooleanExpression timeEq(LocalTime time) {

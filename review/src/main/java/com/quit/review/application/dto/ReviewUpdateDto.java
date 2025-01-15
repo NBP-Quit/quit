@@ -2,8 +2,8 @@ package com.quit.review.application.dto;
 
 import java.util.UUID;
 
+import com.quit.review.domain.model.RatingDetails;
 import com.quit.review.domain.model.Review;
-import com.quit.review.domain.model.Scores;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,22 +17,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ReviewUpdateDto {
 	private String content;
-	private ScoresDto scores;
-
-	public Review toEntity(UUID reservationId, UUID storeId, Long userId, String nickname) {
-		return Review.builder()
-			.reservationId(reservationId)
-			.storeId(storeId)
-			.userId(userId)
-			.nickname(nickname)
-			.content(content)
-			.scores(
-				Scores.builder()
-					.taste(scores.getTaste())
-					.ambience(scores.getAmbience())
-					.kindness(scores.getKindness())
-					.cleanliness(scores.getCleanliness())
-					.build()
-			).build();
-	}
+	private RatingDetailsDto ratingDetails;
 }

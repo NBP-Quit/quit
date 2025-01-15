@@ -2,7 +2,6 @@ package com.quit.payment.application.dto.res;
 
 import com.quit.payment.domain.entity.Payment;
 import com.quit.payment.domain.entity.Status;
-import com.quit.payment.domain.entity.TempPayment;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,16 +19,19 @@ public class PaymentResponse {
     private String paymentKey;
     private String orderId;
     private UUID reservationId;
+    private String cancelReason;
 
     @Builder
     private PaymentResponse(UUID id, Integer amount, Status status,
-                           String paymentKey, String orderId, UUID reservationId) {
+                           String paymentKey, String orderId,
+                            UUID reservationId, String cancelReason) {
         this.id = id;
         this.amount = amount;
         this.status = status;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
         this.reservationId = reservationId;
+        this.cancelReason = cancelReason;
     }
 
     public static PaymentResponse from(Payment payment) {
@@ -40,6 +42,7 @@ public class PaymentResponse {
                 .paymentKey(payment.getPaymentKey())
                 .orderId(payment.getOrderId())
                 .reservationId(payment.getReservationId())
+                .cancelReason(payment.getCancelReason())
                 .build();
     }
 

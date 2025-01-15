@@ -9,6 +9,8 @@ import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
-import static com.quit.store.presentation.exception.ErrorType.*;
+import static com.quit.store.presentation.exception.ErrorType.STORE_NOT_FOUND;
+import static com.quit.store.presentation.exception.ErrorType.USER_NOT_SAME;
 
 
 @Service
@@ -28,10 +31,13 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final RoleValidator roleValidator;
 
+    private final QueueClientService queueClientService;
+
     public CreateStoreResponse createStore(StoreDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = create(request, userId);
         storeRepository.save(store);
+        queueClientService.assignStoreToServer(store.getId(), userRole);
         return CreateStoreResponse.from(store.getId());
     }
 
@@ -51,10 +57,11 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     public Page<StoreResponse> searchStores(SearchStoreDto request, Pageable pageable) {
-        Page<Store> storePage =  storeRepository.findAllBySearchRequest(request, pageable);
+        Page<Store> storePage = storeRepository.findAllBySearchRequest(request, pageable);
         return storePage.map(StoreResponse::from);
     }
 
+    @CacheEvict(cacheNames = "store", key = "args[0]")
     public void deleteStore(UUID storeId, String userId, String userRole) {
         roleValidator.validateRole(userRole, STORE_DELETE);
         Store store = checkStore(storeId);
@@ -62,6 +69,7 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "store", key = "args[0]")
     public Boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }
