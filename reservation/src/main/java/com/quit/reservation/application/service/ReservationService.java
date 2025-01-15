@@ -42,7 +42,7 @@ public class ReservationService {
     //TODO: 동기 처리 시 취소 제외 다른 상태로 변경 하는 건 OWNER 이상의 권한만 되도록 고려
     //TODO: 코드 리팩토링!!!
 
-    @DistributedLock(key = "#request.storeId")
+    @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
         ReservationSlotResponse response = reservationSlotClientService
@@ -91,9 +91,10 @@ public class ReservationService {
         return ChangeReservationStatusResponse.fromReservation(reservation);
     }
 
-    @DistributedLock(key = "#reservationId")
-    public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status) {
+    @DistributedLock(key = "#slotId")
+    public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status, UUID slotId) {
         log.info("비동기 예약 상태 변경 시작");
+        log.info("slotId: {}", slotId);
         Reservation reservation = findReservation(reservationId);
         validationService.validateChangeReservationStatus(status, reservation.getReservationStatus());
 
@@ -150,6 +151,10 @@ public class ReservationService {
         log.info("예약 금액 업데이트 시작");
         reservation.updateReservationPrice(amount);
         log.info("예약 금액 업데이트 완료");
+    }
+
+    public UUID findReservationSlotId(UUID reservationId) {
+        return findReservation(reservationId).getSlotId();
     }
 
     private Reservation findReservation(UUID reservationId) {
