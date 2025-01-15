@@ -33,6 +33,7 @@ public class DistributedLockAop {
         RLock rLock = redisson.getLock(key);
 
         try {
+            log.info("락 획득 시도: {}", key);
             boolean available = rLock.tryLock(
                     distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit()
             );
@@ -40,12 +41,14 @@ public class DistributedLockAop {
                 return false;
             }
 
+            log.info("락 획득 성공: {}", key);
             return aopForTransaction.proceed(joinPoint);
         } catch (InterruptedException e) {
             throw new InterruptedException();
         } finally {
             try {
                 rLock.unlock();
+                log.info("락 해제: {}", key);
             } catch (IllegalMonitorStateException e) {
                 log.info("Redisson Lock Already Unlock {} {}", method.getName(), key);
             }
