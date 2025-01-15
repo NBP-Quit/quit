@@ -9,6 +9,7 @@ import com.quit.reservation.domain.model.Reservation;
 import com.quit.reservation.domain.repository.ReservationRepository;
 import com.quit.reservation.domain.service.ReservationValidationService;
 import com.quit.reservation.infrastructure.client.ReservationSlotResponse;
+import com.quit.reservation.infrastructure.lock.DistributedLock;
 import com.quit.reservation.infrastructure.messaging.MessageProducer;
 import com.quit.reservation.presentation.exception.CustomException;
 import com.quit.reservation.presentation.exception.error.ErrorType;
@@ -23,7 +24,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
@@ -39,8 +39,10 @@ public class ReservationService {
 
     //TODO: 서비스 동시성 제어
     //TODO: OWNER 권한에 대한 본인 가게 여부 확인
+    //TODO: 동기 처리 시 취소 제외 다른 상태로 변경 하는 건 OWNER 이상의 권한만 되도록 고려
     //TODO: 코드 리팩토링!!!
 
+    @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
         ReservationSlotResponse response = reservationSlotClientService
@@ -70,6 +72,7 @@ public class ReservationService {
         throw new CustomException(ErrorType.FAILED_CREATED_RESERVATION);
     }
 
+    @Transactional
     public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId,
                                                                    ChangeReservationStatusRequest request,
                                                                    String customerId,
@@ -88,8 +91,10 @@ public class ReservationService {
         return ChangeReservationStatusResponse.fromReservation(reservation);
     }
 
-    public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status) {
+    @DistributedLock(key = "#slotId")
+    public void changeReservationStatusAsync(UUID reservationId, ReservationStatus status, UUID slotId) {
         log.info("비동기 예약 상태 변경 시작");
+        log.info("slotId: {}", slotId);
         Reservation reservation = findReservation(reservationId);
         validationService.validateChangeReservationStatus(status, reservation.getReservationStatus());
 
@@ -99,6 +104,7 @@ public class ReservationService {
         log.info("비동기 예약 상태 변경 완료");
     }
 
+    @Transactional
     public void cancelReservation(UUID reservationId, String customerId, String userRole) {
         log.info("예약 취소 작업 시작");
         Reservation reservation = findReservation(reservationId);
@@ -111,6 +117,7 @@ public class ReservationService {
         log.info("예약 취소 작업 완료");
     }
 
+    @Transactional
     public void cancelReservationAsync(UUID reservationId) {
         log.info("비동기 예약 취소 작업 시작");
         Reservation reservation = findReservation(reservationId);
@@ -120,6 +127,7 @@ public class ReservationService {
         log.info("비동기 예약 취소 작업 완료");
     }
 
+    @Transactional
     public void deleteReservation(UUID reservationId, String managerId, String userRole) {
         log.info("예약 삭제 작업 시작");
         log.info("관리자: {}", managerId);
@@ -135,6 +143,7 @@ public class ReservationService {
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
+    @Transactional
     public void updateReservationPayment(UUID reservationId, Integer amount) {
         log.info("예약 호출");
         Reservation reservation = findReservation(reservationId);
@@ -142,6 +151,10 @@ public class ReservationService {
         log.info("예약 금액 업데이트 시작");
         reservation.updateReservationPrice(amount);
         log.info("예약 금액 업데이트 완료");
+    }
+
+    public UUID findReservationSlotId(UUID reservationId) {
+        return findReservation(reservationId).getSlotId();
     }
 
     private Reservation findReservation(UUID reservationId) {

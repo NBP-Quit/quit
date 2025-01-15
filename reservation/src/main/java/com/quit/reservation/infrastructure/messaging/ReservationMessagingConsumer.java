@@ -59,8 +59,9 @@ public class ReservationMessagingConsumer {
         reservationService.updateReservationPayment(reservationId, amount);
 
         log.info("예약 상태 변경 호출");
+        UUID slotId = reservationService.findReservationSlotId(reservationId);
         ReservationStatus status = ReservationStatus.ACCEPTED;
-        reservationService.changeReservationStatusAsync(reservationId, status);
+        reservationService.changeReservationStatusAsync(reservationId, status, slotId);
     }
 
     // 결제 -> 예약 서비스 메시지 수신 처리(실패)

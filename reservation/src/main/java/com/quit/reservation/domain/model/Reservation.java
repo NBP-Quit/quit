@@ -2,8 +2,6 @@ package com.quit.reservation.domain.model;
 
 import com.quit.reservation.common.model.BaseEntity;
 import com.quit.reservation.domain.enums.ReservationStatus;
-import com.quit.reservation.presentation.exception.CustomException;
-import com.quit.reservation.presentation.exception.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.*;
 
