@@ -65,6 +65,7 @@ public class UserService {
             user.update(id,
                     userDto.email(),
                     userDto.nickname(),
+                    userDto.slackId(),
                     userDto.phone(),
                     userDto.birthdate(),
                     userDto.address());

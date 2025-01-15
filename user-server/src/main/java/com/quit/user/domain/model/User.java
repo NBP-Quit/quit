@@ -73,11 +73,13 @@ public class User extends BaseEntity {
     public void update(Long id,
                        String email,
                       String nickname,
+                      String slackId,
                       String phone,
                       String birthdate,
                       String address){
         this.email = email;
         this.nickname = nickname;
+        this.slackId = slackId;
         this.phone = phone;
         this.birthdate = birthdate;
         this.address = address;
