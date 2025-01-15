@@ -25,9 +25,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class QueueService {
+    private final StoreService storeService;
+
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final RoleValidationService roleValidationService;
-    private final StoreService storeService;
 
     public Mono<ApiResponse<?>> addUserToQueueForStore(UUID storeId, ReservationRequest reservationRequest, String userId, String userEmail, String userRole) {
         return roleValidationService.validateUserRole(userRole, RoleValidationType.USER)

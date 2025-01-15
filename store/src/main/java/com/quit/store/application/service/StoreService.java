@@ -19,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
-import static com.quit.store.presentation.exception.ErrorType.*;
+import static com.quit.store.presentation.exception.ErrorType.STORE_NOT_FOUND;
+import static com.quit.store.presentation.exception.ErrorType.USER_NOT_SAME;
 
 
 @Service
@@ -30,10 +31,13 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final RoleValidator roleValidator;
 
+    private final QueueClientService queueClientService;
+
     public CreateStoreResponse createStore(StoreDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = create(request, userId);
         storeRepository.save(store);
+        queueClientService.assignStoreToServer(store.getId(), userRole);
         return CreateStoreResponse.from(store.getId());
     }
 
@@ -53,7 +57,7 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     public Page<StoreResponse> searchStores(SearchStoreDto request, Pageable pageable) {
-        Page<Store> storePage =  storeRepository.findAllBySearchRequest(request, pageable);
+        Page<Store> storePage = storeRepository.findAllBySearchRequest(request, pageable);
         return storePage.map(StoreResponse::from);
     }
 
