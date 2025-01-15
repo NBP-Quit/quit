@@ -20,7 +20,7 @@ class ReviewTest {
 	void calculateAverageScore() {
 		// given
 		Review review = Review.builder()
-			.scores(RatingDetails.builder()
+			.ratingDetails(RatingDetails.builder()
 				.taste(5)
 				.ambience(4)
 				.cleanliness(3)
@@ -32,7 +32,7 @@ class ReviewTest {
 		review.applyAverageRating();
 
 		// then
-		assertThat(review.getAverageScore()).isEqualTo(3.5);
+		assertThat(review.getRating()).isEqualTo(3.5);
 	}
 
 	@ParameterizedTest

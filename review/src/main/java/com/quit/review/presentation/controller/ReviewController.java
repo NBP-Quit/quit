@@ -31,12 +31,15 @@ import com.quit.review.domain.model.Tag;
 import com.quit.review.presentation.request.ReviewCreateRequest;
 import com.quit.review.presentation.request.ReviewUpdateRequest;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewController {
 
 	private final ReviewService reviewService;
@@ -46,10 +49,11 @@ public class ReviewController {
 		@PathVariable UUID storeId,
 		@PathVariable UUID reservationId,
 		@RequestHeader(value = "X-User-ID") String userId,
+		@RequestHeader(value = "X-User-Nickname") String nickname,
 		@RequestPart("review") @Valid ReviewCreateRequest request,
 		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
-		UUID reviewId = reviewService.create(storeId, reservationId, Long.parseLong(userId), request.toDto(), files);
+		UUID reviewId = reviewService.create(storeId, reservationId, Long.parseLong(userId), nickname, request.toDto(), files);
 		URI location = URI.create("/api/reviews/" + reviewId);
 		return ResponseEntity.created(location).body(ApiResponse.success(HttpStatus.CREATED, "Review Created"));
 	}
@@ -70,10 +74,11 @@ public class ReviewController {
 		@PathVariable UUID storeId,
 		@PathVariable UUID reviewId,
 		@RequestHeader(value = "X-User-ID") String userId,
+		@RequestHeader(value = "X-User-Role") String role,
 		@RequestPart("review") @Valid ReviewUpdateRequest request,
 		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
-		reviewService.update(storeId, reviewId, Long.parseLong(userId), request.toDto(), files);
+		reviewService.update(storeId, reviewId, Long.parseLong(userId), role, request.toDto(), files);
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Updated"));
 	}
 
@@ -81,9 +86,10 @@ public class ReviewController {
 	public ResponseEntity<ApiResponse<Void>> delete(
 		@PathVariable UUID storeId,
 		@PathVariable UUID reviewId,
-		@RequestHeader(value = "X-User-ID") String userId
-	) {
-		reviewService.delete(storeId, reviewId, Long.parseLong(userId));
+		@RequestHeader(value = "X-User-ID") String userId,
+		@RequestHeader(value = "X-User-Role") String role
+		) {
+		reviewService.delete(storeId, reviewId, Long.parseLong(userId), role);
 		return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Review Deleted"));
 	}
 

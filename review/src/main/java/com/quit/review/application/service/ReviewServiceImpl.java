@@ -45,18 +45,15 @@ public class ReviewServiceImpl implements ReviewService {
 
 	private final ImageService imageService;
 	private final ReservationService reservationService;
-	private final UserService userService;
 
 	@Override
 	@Transactional
 	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
-	public UUID create(UUID storeId, UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files) {
+	public UUID create(UUID storeId, UUID reservationId, Long userId, String nickname, ReviewCreateDto dto, List<MultipartFile> files) {
 		// 예약 정보를 조회하여 예약 상태와 권한을 검증
 		ReservationResponse reservation = reservationService.getById(reservationId);
-		validate(userId, reservation);
+		validateReservationStatus(reservation.getReservationStatus());
 
-		// 유저 서비스에서 유저 정보 조회 후 nickname 추출
-		String nickname = userService.getNicknameById(userId);
 		Review review = dto.toEntity(reservationId, storeId, userId, nickname);
 
 		// 예약 시간을 기준으로 식사 유형(아침, 점심, 저녁)을 지정
@@ -97,9 +94,11 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
-	public void update(UUID storeId, UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files) {
+	public void update(UUID storeId, UUID reviewId, Long userId, String role, ReviewUpdateDto dto, List<MultipartFile> files) {
 		Review review = reviewRepository.findByIdWithImages(reviewId)
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
+
+		validateRole(review, userId, role);
 
 		updateStoreRating(storeId, review.getRatingDetails(), -1);
 
@@ -124,7 +123,7 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
-	public void delete(UUID storeId, UUID reviewId, Long userId) {
+	public void delete(UUID storeId, UUID reviewId, Long userId, String role) {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new CustomApiException(HttpStatus.NOT_FOUND, "Review not found"));
 		review.delete();
@@ -184,6 +183,12 @@ public class ReviewServiceImpl implements ReviewService {
 		return ReviewSummeryResponse.from(averages, count, reviewResponses);
 	}
 
+	private void validateRole(Review review, Long userId, String role) {
+		if (!role.equals("ROLE_MASTER") && !review.getUserId().equals(userId)) {
+			throw new CustomApiException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+		}
+	}
+
 	private void updateStoreRating(UUID storeId, RatingDetails ratingDetails, long delta) {
 		String key = "store:" + storeId + ":rating";
 		String countKey = "store:" + storeId + ":count";
@@ -217,14 +222,9 @@ public class ReviewServiceImpl implements ReviewService {
 		cacheService.putAll(avgKey, averages);
 	}
 
-	private void validate(Long userId, ReservationResponse reservation) {
-		// 조회한 유저 아이디와 예약 정보의 고객 아이디가 일치하는지 확인
-		if (!reservation.getCustomerId().equals(userId)) {
-			throw new CustomApiException(HttpStatus.FORBIDDEN, "리뷰를 작성할 권한이 없습니다.");
-		}
-
+	private void validateReservationStatus(String reservationStatus) {
 		// 에약 상태가 "방문 완료" 상태일 시에만 리뷰 작성 가능
-		if (!reservation.getReservationStatus().equals("COMPLETED")) {
+		if (!reservationStatus.equals("COMPLETED")) {
 			throw new CustomApiException(HttpStatus.BAD_REQUEST, "방문을 한 이후에 리뷰를 작성할 수 있습니다.");
 		}
 	}
