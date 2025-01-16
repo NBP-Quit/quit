@@ -22,7 +22,7 @@ jobs:
       - name: Grant with Gradle (without Test)
         run:
           for service in ./service*/; do
-          chmod +x "$service/gradlew"
+          chmod +x "$service/gradlew";
           done
 
       - name: Build with Gradle
