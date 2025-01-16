@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [ eureka, gateway, user, store, queue, reservation, payment, review ]
+        service: [ eureka-server, gateway-server, user, store, queue, reservation, payment, review ]
 
     steps:
       - uses: actions/checkout@v4
