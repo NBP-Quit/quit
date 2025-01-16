@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,40 +41,86 @@ public class QueueScheduler {
 
     private Mono<Void> processQueue(String queueKey) {
         String storeId = queueKey.split(":")[2];
+        String statusKey = "queue:store:" + storeId + ":status";
 
-        return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 499L))
-                .collectList()
-                .flatMap(entries -> {
-                    if (entries.isEmpty()) {
+        return reactiveRedisTemplate.opsForValue().setIfAbsent(statusKey, "processing")
+                .flatMap(lockAcquired -> {
+                    if (lockAcquired) {
+                        return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 499L))
+                                .collectList()
+                                .flatMap(entries -> {
+                                    if (entries.isEmpty()) {
+                                        return Mono.empty();
+                                    }
+
+                                    return Flux.fromIterable(entries)
+                                            .flatMap(entry -> {
+                                                String userId = entry.getValue();
+                                                String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+                                                String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
+
+                                                return reactiveRedisTemplate.hasKey(refreshKey)
+                                                        .flatMap(refreshExists -> {
+                                                            if (!refreshExists) {
+                                                                return Mono.empty();
+                                                            }
+
+                                                            return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("userEmail", "guestCount", "reservationDate", "reservationTime"))
+                                                                    .flatMap(values -> {
+                                                                        if (values.size() != 4 || values.contains(null)) {
+                                                                            return Mono.empty();
+                                                                        }
+
+                                                                        ReservationMessage reservationMessage = ReservationMessage.of(
+                                                                                userId, (String) values.get(0), storeId, (String) values.get(1), (String) values.get(2), (String) values.get(3));
+                                                                        return sendToReservationService(reservationMessage);
+                                                                    });
+                                                        });
+                                            })
+                                            .then(removeUsersFromQueue(queueKey, entries));
+                                })
+                                .publishOn(Schedulers.boundedElastic())
+                                .doFinally(signalType -> {
+                                    reactiveRedisTemplate.delete(statusKey).subscribe();
+                                });
+                    } else {
                         return Mono.empty();
                     }
-
-                    return Flux.fromIterable(entries)
-                            .flatMap(entry -> {
-                                String userId = entry.getValue();
-                                String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
-                                String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
-
-                                return reactiveRedisTemplate.hasKey(refreshKey)
-                                        .flatMap(refreshExists -> {
-                                            if (!refreshExists) {
-                                                return Mono.empty();
-                                            }
-
-                                            return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("userEmail", "guestCount", "reservationDate", "reservationTime"))
-                                                    .flatMap(values -> {
-                                                        if (values.size() != 4 || values.contains(null)) {
-                                                            return Mono.empty();
-                                                        }
-
-                                                        ReservationMessage reservationMessage = ReservationMessage.of(
-                                                                userId, (String) values.get(0), storeId, (String) values.get(1), (String) values.get(2), (String) values.get(3));
-                                                        return sendToReservationService(reservationMessage);
-                                                    });
-                                        });
-                            })
-                            .then(removeUsersFromQueue(queueKey, entries));
                 });
+
+        // return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 499L))
+        //         .collectList()
+        //         .flatMap(entries -> {
+        //             if (entries.isEmpty()) {
+        //                 return Mono.empty();
+        //             }
+        //
+        //             return Flux.fromIterable(entries)
+        //                     .flatMap(entry -> {
+        //                         String userId = entry.getValue();
+        //                         String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
+        //                         String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
+        //
+        //                         return reactiveRedisTemplate.hasKey(refreshKey)
+        //                                 .flatMap(refreshExists -> {
+        //                                     if (!refreshExists) {
+        //                                         return Mono.empty();
+        //                                     }
+        //
+        //                                     return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("userEmail", "guestCount", "reservationDate", "reservationTime"))
+        //                                             .flatMap(values -> {
+        //                                                 if (values.size() != 4 || values.contains(null)) {
+        //                                                     return Mono.empty();
+        //                                                 }
+        //
+        //                                                 ReservationMessage reservationMessage = ReservationMessage.of(
+        //                                                         userId, (String) values.get(0), storeId, (String) values.get(1), (String) values.get(2), (String) values.get(3));
+        //                                                 return sendToReservationService(reservationMessage);
+        //                                             });
+        //                                 });
+        //                     })
+        //                     .then(removeUsersFromQueue(queueKey, entries));
+        //         });
     }
 
     private Mono<Void> sendToReservationService(ReservationMessage reservation) {
