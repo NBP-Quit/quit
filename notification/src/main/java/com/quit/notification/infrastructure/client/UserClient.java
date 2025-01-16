@@ -9,6 +9,6 @@ import com.quit.notification.infrastructure.dto.UserResponse;
 
 @FeignClient(name = "user-service")
 public interface UserClient {
-	@GetMapping("/api/users/{email}")
+	@GetMapping("/api/users/email/{email}")
 	ApiResponse<UserResponse> getUserByEmail(@PathVariable String email);
 }
