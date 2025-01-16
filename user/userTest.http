@@ -4,11 +4,13 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email":"user9@email.com",
-  "password" :"User9999@",
-  "nickname":"사용자9",
-  "phone":"010-9999-9999",
-  "birthdate":"2000-09-09"
+  "email":"user1@email.com",
+  "password" :"SuperPass1!",
+  "nickname":"사용자1",
+  "slackId" : "aaaaa",
+  "phone":"010-1111-1111",
+  "birthdate":"2000-01-01",
+  "address": "주소 1"
 }
 
 ###로그인
@@ -17,8 +19,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-"email":"user9@email.com",
-"password" :"User9999@"
+"email":"user1@email.com",
+"password" :"SuperPass1!"
 }
 
 ###MASTER 관리자 로그인
@@ -48,23 +50,29 @@ Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
 
 
-###특정 사용자 조회
-GET http://host.docker.internal:19091/api/users/452
+###특정 사용자 조회 id
+GET http://host.docker.internal:19091/api/users/1
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4NzQ4LCJleHAiOjE3MzY0OTIzNDh9.6cdQzzS63odRTU8HPIXNSLK-MOC6_KVnmpOMYOmYLg4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
+###특정 사용자 조회 email
+GET http://host.docker.internal:19091/api/users/email/user1@email.com
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
 ###회원 정보 수정
-PUT http://host.docker.internal:19091/api/users/52
+PUT http://host.docker.internal:19091/api/users/1
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
 {
-  "email":"user3@email.com",
-  "nickname":"수정3",
-  "phone":"010-1333-1333",
+  "email":"user1@email.com",
+  "nickname":"수정1",
+  "slackId": "bbbb",
+  "phone":"010-1111-1111",
   "birthdate":"2000-05-05"
 }
 
