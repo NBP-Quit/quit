@@ -42,7 +42,7 @@
                         document.getElementById("status").innerText = "대기열 갱신에 실패했습니다.";
                     }
                 })
-                .catch(error => {
+                .catch(_ => {
                     document.getElementById("status").innerText = "갱신 중 오류가 발생했습니다.";
                 });
         }
@@ -65,7 +65,7 @@
                         document.getElementById("status").innerText = "대기열에서 제거하는데 실패했습니다.";
                     }
                 })
-                .catch(error => {
+                .catch(_ => {
                     document.getElementById("status").innerText = "제거 중 오류가 발생했습니다.";
                 });
         }
