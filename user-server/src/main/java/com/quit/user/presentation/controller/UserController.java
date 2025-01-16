@@ -40,6 +40,14 @@ public class UserController {
                                                         @RequestHeader("X-User-Id")String userId) {
         return ResponseEntity.ok(ApiResponse.success(userService.getUser(id, role, userId)));
     }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ApiResponse<UserDto>> getUserByEmail(@PathVariable String email,
+                                                               @RequestHeader("X-User-Role")String role,
+                                                               @RequestHeader("X-User-Id")String userId){
+
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserByEmail(email)));
+    }
 //    사용자 정보 업데이트
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable Long id,

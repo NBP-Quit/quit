@@ -33,13 +33,16 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRoleEnum role;
 
+    @Column(name = "slack_id", nullable = false )
+    private String slackId;
+
     @Column(name = "phone", nullable = false)
     private String phone;
 
     @Column(name = "birthdate", nullable = true)
     private String birthdate;
 
-    @Column(name = " address", nullable = true)
+    @Column(name = "address", nullable = true)
     private String address;
 
     @PrePersist
@@ -51,6 +54,7 @@ public class User extends BaseEntity {
     public static User create(String email,
                               String password,
                               String nickname,
+                              String slackId,
                               String phone,
                               String birthdate,
                               String address) {
@@ -58,6 +62,7 @@ public class User extends BaseEntity {
                 .email(email)
                 .password(password)
                 .nickname(nickname)
+                .slackId(slackId)
                 .role(UserRoleEnum.USER)
                 .phone(phone)
                 .birthdate(birthdate)
@@ -68,11 +73,13 @@ public class User extends BaseEntity {
     public void update(Long id,
                        String email,
                       String nickname,
+                      String slackId,
                       String phone,
                       String birthdate,
                       String address){
         this.email = email;
         this.nickname = nickname;
+        this.slackId = slackId;
         this.phone = phone;
         this.birthdate = birthdate;
         this.address = address;

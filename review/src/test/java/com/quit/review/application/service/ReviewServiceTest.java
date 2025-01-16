@@ -69,7 +69,7 @@ class ReviewServiceTest {
 			.storeId(storeId)
 			.userId(userId)
 			.content(dto.getContent())
-			.scores(
+			.ratingDetails(
 				RatingDetails.builder()
 					.taste(dto.getRatingDetails().getTaste())
 					.ambience(dto.getRatingDetails().getAmbience())
@@ -85,7 +85,7 @@ class ReviewServiceTest {
 		given(reviewRepository.save(any(Review.class))).willReturn(mockReview);
 
 		// when
-		UUID reviewId = reviewService.create(reservationId, userId, dto, List.of());
+		UUID reviewId = reviewService.create(storeId, reservationId, userId, dto, List.of());
 
 		// then
 		then(reservationService).should().getById(reservationId);
@@ -120,7 +120,7 @@ class ReviewServiceTest {
 		given(reservationService.getById(reservationId)).willReturn(mockReservation);
 
 	    // when & then
-		assertThatThrownBy(() -> reviewService.create(reservationId, userId, dto, List.of()))
+		assertThatThrownBy(() -> reviewService.create(storeId, reservationId, userId, dto, List.of()))
 			.isInstanceOf(CustomApiException.class)
 			.hasMessage("방문을 한 이후에 리뷰를 작성할 수 있습니다.");
 	}
@@ -151,7 +151,7 @@ class ReviewServiceTest {
 		given(reservationService.getById(reservationId)).willReturn(mockReservation);
 
 	    // when & then
-		assertThatThrownBy(() -> reviewService.create(reservationId, userId, dto, List.of()))
+		assertThatThrownBy(() -> reviewService.create(storeId, reservationId, userId, dto, List.of()))
 			.isInstanceOf(CustomApiException.class)
 			.hasMessage("리뷰를 작성할 권한이 없습니다.");
 	}

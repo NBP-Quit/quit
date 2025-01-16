@@ -15,13 +15,13 @@ import com.quit.review.domain.model.MealType;
 import com.quit.review.domain.model.Tag;
 
 public interface ReviewService {
-	UUID create(UUID storeId, UUID reservationId, Long userId, ReviewCreateDto dto, List<MultipartFile> files);
+	UUID create(UUID storeId, UUID reservationId, Long userId, String nickname, ReviewCreateDto dto, List<MultipartFile> files);
 
 	Slice<ReviewResponse> getAll(UUID storeId, Long userId, Pageable pageable, Tag tag, MealType mealType);
 
-	void update(UUID storeId, UUID reviewId, Long userId, ReviewUpdateDto dto, List<MultipartFile> files);
+	void update(UUID storeId, UUID reviewId, Long userId, String role, ReviewUpdateDto dto, List<MultipartFile> files);
 
-	void delete(UUID storeId, UUID reviewId, Long userId);
+	void delete(UUID storeId, UUID reviewId, Long userId, String role);
 
 	void like(UUID storeId, UUID reviewId, Long userId);
 
