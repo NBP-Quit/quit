@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${DATASOURCE_PROD_USERNAME}
+    password: ${DATASOURCE_PROD_PASSWORD}
+    url: ${STORE_DATASOURCE_PROD_URL}
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_PROD_URL}

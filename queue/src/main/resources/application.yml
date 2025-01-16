@@ -1,6 +1,9 @@
 spring:
   application:
     name: queue
+  profiles:
+    active: dev
+
   data:
     redis:
       host: ${REDIS_HOST}

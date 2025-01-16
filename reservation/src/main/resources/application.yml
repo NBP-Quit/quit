@@ -4,10 +4,12 @@ server:
 spring:
   application:
     name: reservation
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+  spring:
+    datasource:
+      driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+      username: ${SPRING_DATASOURCE_LOCAL_USERNAME}
+      password: ${SPRING_DATASOURCE_LOCAL_PASSWORD}
+      url: ${SPRING_DATASOURCE_LOCAL_URL}
   jpa:
     show-sql: true
     database: postgresql

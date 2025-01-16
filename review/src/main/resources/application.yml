@@ -1,6 +1,8 @@
 spring:
   application:
     name: review
+  profiles:
+    active: prod
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DB_URL}
