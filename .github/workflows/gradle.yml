@@ -20,7 +20,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Grant with Gradle (without Test)
-        run: chmod +x gradlew
+        run:
+          for service in ./service*/; do
+          chmod +x "$service/gradlew"
+          done
 
       - name: Build with Gradle
         run: ./gradlew :${{matrix.service}}:clean :${{matrix.service}}:build -x test --no-daemon
