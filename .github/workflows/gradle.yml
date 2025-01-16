@@ -73,7 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-# Step 1: Automatically create .env file from GitHub secrets
       - name: Create .env file
         run: |
           echo "# Environment Variables" > .env
@@ -110,4 +109,4 @@ jobs:
           script: |
             sudo docker-compose down
             sudo docker-compose pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/ubuntu/.env up -d
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file .env up
