@@ -37,10 +37,9 @@ public class ReservationService {
      * 3. 가게로 예약 정보 보내고, 결제 시스템에 결제 요청 보내기
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
-    //TODO: 서비스 동시성 제어
     //TODO: OWNER 권한에 대한 본인 가게 여부 확인
     //TODO: 동기 처리 시 취소 제외 다른 상태로 변경 하는 건 OWNER 이상의 권한만 되도록 고려
-    //TODO: 코드 리팩토링!!!
+    //TODO: 코드 리팩토링!!! -> 코드 줄 수 줄일 방법 찾기....
 
     @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
@@ -72,6 +71,7 @@ public class ReservationService {
         throw new CustomException(ErrorType.FAILED_CREATED_RESERVATION);
     }
 
+    //TODO: 수정(권한) or 삭제 고려
     @Transactional
     public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId,
                                                                    ChangeReservationStatusRequest request,
@@ -101,6 +101,7 @@ public class ReservationService {
         reservation.changeStatus(status);
         log.info("예약 정보 메시지 전송");
         messageProducer.sendReservationData(reservation.getSlotId(), reservation.getGuestCount());
+        sendNotificationMessage(reservation);
         log.info("비동기 예약 상태 변경 완료");
     }
 
@@ -114,6 +115,7 @@ public class ReservationService {
 
         reservation.cancel();
         sendCancelReservationMessage(reservation);
+        sendNotificationMessage(reservation);
         log.info("예약 취소 작업 완료");
     }
 
@@ -124,6 +126,7 @@ public class ReservationService {
         validationService.validateCancelReservationStatus(reservation.getReservationStatus());
         reservation.cancel();
         sendCancelReservationMessage(reservation);
+        sendNotificationMessage(reservation);
         log.info("비동기 예약 취소 작업 완료");
     }
 
@@ -174,11 +177,6 @@ public class ReservationService {
         validationService.validateReservationTime(request.getReservationTime());
     }
 
-    private void sendCancelReservationMessage(Reservation reservation) {
-        messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
-        log.info("예약 삭제 정보 메시지 송신 완료");
-    }
-
     private void assertPermission(String requestCustomerId, String customerId, String userRole) {
         if (requestCustomerId.equals(customerId)
                 || userRole.equals(Role.OWNER.name())
@@ -186,5 +184,19 @@ public class ReservationService {
             return;
         }
         throw new CustomException(ErrorType.ACCESS_DENIED);
+    }
+
+    private void sendCancelReservationMessage(Reservation reservation) {
+        messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("예약 삭제 정보 메시지 송신 완료");
+    }
+
+    private void sendNotificationMessage(Reservation reservation) {
+        log.info("예약 알림 정보 메시지 송신");
+        messageProducer.sendReservationNotification(
+                reservation.getReservationId(), reservation.getCustomerId(), reservation.getStoreId(),
+                reservation.getGuestCount(), reservation.getReservationDate(), reservation.getReservationTime(),
+                reservation.getReservationStatus(), reservation.getReservationPrice());
+        log.info("예약 알림 정보 메시지 송신 완료");
     }
 }
