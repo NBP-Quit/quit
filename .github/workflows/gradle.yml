@@ -1,9 +1,8 @@
 name: quit CI
 
 on:
-  push:
-    branches:
-      - feat/112-quit
+  workflow_dispatch:
+
 
 jobs:
   build:
@@ -81,7 +80,8 @@ jobs:
             echo "$secret=$value" >> .env
             echo "Current directory:" # 현재 디렉토리 출력 
             pwd 
-            echo ".env file location:
+            echo ".env file location:"
+            ls -la .env
           done
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
