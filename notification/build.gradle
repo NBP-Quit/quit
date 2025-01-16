@@ -37,6 +37,12 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Slack API
+	implementation("com.slack.api:bolt:1.45.1")
+	implementation("com.slack.api:bolt-servlet:1.45.1")
+	implementation("com.slack.api:bolt-jetty:1.45.1")
+	implementation("org.slf4j:slf4j-simple:1.7.36")
 }
 
 dependencyManagement {

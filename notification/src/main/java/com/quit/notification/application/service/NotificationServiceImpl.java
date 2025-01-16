@@ -2,7 +2,6 @@ package com.quit.notification.application.service;
 
 import org.springframework.stereotype.Service;
 
-import com.quit.notification.infrastructure.messaging.message.ReservationEvent;
 import com.quit.notification.infrastructure.messaging.message.ReservationMessage;
 
 import lombok.RequiredArgsConstructor;
@@ -16,10 +15,12 @@ public class NotificationServiceImpl implements NotificationService {
 	private final UserService userService;
 	private final StoreService storeService;
 
+	private final SlackNotificationService slackNotificationService;
+
 	@Override
-	public void send(ReservationMessage message) {
-		if (message.getReservationEvent() == ReservationEvent.CONFIRMED) {
-			//TODO: 예약 확정 시 로직 작성
-		}
+	public void send(ReservationMessage reservationMessage) {
+		String slackEmail = userService.getSlackEmail(reservationMessage.getCustomerId());
+		String storeName = storeService.getName(reservationMessage.getStoreId());
+		slackNotificationService.sendDirectMessage(slackEmail, storeName, reservationMessage);
 	}
 }
