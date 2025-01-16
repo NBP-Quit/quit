@@ -29,6 +29,7 @@ jobs:
         run: chmod +x ./${{ matrix.service }}/gradlew
 
       - name: Build with Gradle
+        if: ${{ matrix.service != 'queue' }}  # 'queue' 서비스는 건너뛰기
         run: ./${{ matrix.service }}/gradlew clean build -x test --no-daemon
           
   Docker:
