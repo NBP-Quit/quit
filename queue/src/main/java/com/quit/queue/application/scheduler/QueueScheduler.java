@@ -80,47 +80,11 @@ public class QueueScheduler {
                                             .then(removeUsersFromQueue(queueKey, entries));
                                 })
                                 .publishOn(Schedulers.boundedElastic())
-                                .doFinally(signalType -> {
-                                    reactiveRedisTemplate.delete(statusKey).subscribe();
-                                });
+                                .doFinally(signalType -> reactiveRedisTemplate.delete(statusKey).subscribe());
                     } else {
                         return Mono.empty();
                     }
                 });
-
-        // return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 499L))
-        //         .collectList()
-        //         .flatMap(entries -> {
-        //             if (entries.isEmpty()) {
-        //                 return Mono.empty();
-        //             }
-        //
-        //             return Flux.fromIterable(entries)
-        //                     .flatMap(entry -> {
-        //                         String userId = entry.getValue();
-        //                         String reservationKey = "queue:store:" + storeId + ":reservations:" + userId;
-        //                         String refreshKey = "queue:store:" + storeId + ":refresh:" + userId;
-        //
-        //                         return reactiveRedisTemplate.hasKey(refreshKey)
-        //                                 .flatMap(refreshExists -> {
-        //                                     if (!refreshExists) {
-        //                                         return Mono.empty();
-        //                                     }
-        //
-        //                                     return reactiveRedisTemplate.opsForHash().multiGet(reservationKey, Arrays.asList("userEmail", "guestCount", "reservationDate", "reservationTime"))
-        //                                             .flatMap(values -> {
-        //                                                 if (values.size() != 4 || values.contains(null)) {
-        //                                                     return Mono.empty();
-        //                                                 }
-        //
-        //                                                 ReservationMessage reservationMessage = ReservationMessage.of(
-        //                                                         userId, (String) values.get(0), storeId, (String) values.get(1), (String) values.get(2), (String) values.get(3));
-        //                                                 return sendToReservationService(reservationMessage);
-        //                                             });
-        //                                 });
-        //                     })
-        //                     .then(removeUsersFromQueue(queueKey, entries));
-        //         });
     }
 
     private Mono<Void> sendToReservationService(ReservationMessage reservation) {
