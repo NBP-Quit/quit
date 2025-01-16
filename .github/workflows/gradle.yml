@@ -1,8 +1,9 @@
 name: quit CI
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - feat/112-quit
 
 jobs:
   build:
