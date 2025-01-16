@@ -22,6 +22,12 @@ jobs:
       - name: Grant with Gradle (without Test)
         run: chmod +x ./${{ matrix.service }}/gradlew
 
+      - name: Check service folder path
+        run: echo "./${{ matrix.service }}/gradlew"  # 서비스 폴더 경로 확인
+
+      - name: Make gradlew executable for ${{ matrix.service }}
+        run: chmod +x ./${{ matrix.service }}/gradlew
+
       - name: Build with Gradle
         run: ./${{ matrix.service }}/gradlew clean build -x test --no-daemon
           
