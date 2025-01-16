@@ -79,10 +79,6 @@ jobs:
           for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
             value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
             echo "$secret=$value" >> .env
-            echo "Current directory:" # 현재 디렉토리 출력 
-            pwd 
-            echo ".env file location:"
-            ls -la .env
           done
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -112,4 +108,4 @@ jobs:
           script: |
             sudo docker-compose down
             sudo docker-compose pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file .env up
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/runner/work/quit/quit/.env up -d
