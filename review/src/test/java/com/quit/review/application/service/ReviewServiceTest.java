@@ -14,9 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.application.dto.RatingDetailsDto;
+import com.quit.review.application.dto.ReviewCreateDto;
 import com.quit.review.common.CustomApiException;
 import com.quit.review.domain.model.RatingDetails;
 import com.quit.review.domain.model.Review;
@@ -24,6 +26,7 @@ import com.quit.review.domain.repository.ReviewRepository;
 import com.quit.review.infrastructure.client.ReservationResponse;
 
 @ExtendWith(MockitoExtension.class)
+@DataJpaTest
 class ReviewServiceTest {
 
 	@InjectMocks
@@ -35,15 +38,13 @@ class ReviewServiceTest {
 	@Mock
 	private ReservationService reservationService;
 
-	@Mock
-	private UserService userService;
-
 	@Test
 	@DisplayName("리뷰 생성 성공")
 	void createReviewSuccessWithoutImages() {
 		// given
 		UUID storeId = UUID.randomUUID();
 		Long userId = 1L;
+		String email = "email@email.com";
 		UUID reservationId = UUID.randomUUID();
 		ReviewCreateDto dto = ReviewCreateDto.builder()
 			.content("정말 너무 너무 맛있었어요! 또 올게요!")
@@ -53,7 +54,7 @@ class ReviewServiceTest {
 		ReservationResponse mockReservation = ReservationResponse.builder()
 			.reservationId(reservationId)
 			.storeId(storeId)
-			.customerId(userId)
+			.customerId(email)
 			.guestCount(4)
 			.reservationPrice(10000)
 			.reservationStatus("COMPLETED")
@@ -81,15 +82,13 @@ class ReviewServiceTest {
 			.build();
 
 		given(reservationService.getById(reservationId)).willReturn(mockReservation);
-		given(userService.getNicknameById(userId)).willReturn(mockNickname);
 		given(reviewRepository.save(any(Review.class))).willReturn(mockReview);
 
 		// when
-		UUID reviewId = reviewService.create(storeId, reservationId, userId, dto, List.of());
+		UUID reviewId = reviewService.create(storeId, reservationId, userId, email, dto, List.of());
 
 		// then
 		then(reservationService).should().getById(reservationId);
-		then(userService).should().getNicknameById(userId);
 		then(reviewRepository).should().save(any(Review.class));
 		assertThat(reviewId).isEqualTo(mockReview.getId());
 	}
@@ -100,6 +99,7 @@ class ReviewServiceTest {
 	    // given
 		UUID storeId = UUID.randomUUID();
 		Long userId = 1L;
+		String email = "email@email.com";
 		UUID reservationId = UUID.randomUUID();
 		ReviewCreateDto dto = ReviewCreateDto.builder()
 			.content("정말 너무 너무 맛있었어요! 또 올게요!")
@@ -109,7 +109,7 @@ class ReviewServiceTest {
 		ReservationResponse mockReservation = ReservationResponse.builder()
 			.reservationId(reservationId)
 			.storeId(storeId)
-			.customerId(userId)
+			.customerId(email)
 			.guestCount(4)
 			.reservationPrice(10000)
 			.reservationStatus("PENDING")
@@ -120,39 +120,8 @@ class ReviewServiceTest {
 		given(reservationService.getById(reservationId)).willReturn(mockReservation);
 
 	    // when & then
-		assertThatThrownBy(() -> reviewService.create(storeId, reservationId, userId, dto, List.of()))
+		assertThatThrownBy(() -> reviewService.create(storeId, reservationId, userId, email, dto, List.of()))
 			.isInstanceOf(CustomApiException.class)
 			.hasMessage("방문을 한 이후에 리뷰를 작성할 수 있습니다.");
-	}
-
-	@Test
-	@DisplayName("userId와 에약정보의 customerId가 일치하지 않으면 예외가 발생한다.")
-	void createReviewInvalidUserPermission() {
-	    // given
-		UUID storeId = UUID.randomUUID();
-		Long userId = 1L;
-		UUID reservationId = UUID.randomUUID();
-		ReviewCreateDto dto = ReviewCreateDto.builder()
-			.content("정말 너무 너무 맛있었어요! 또 올게요!")
-			.ratingDetails(new RatingDetailsDto(5, 4, 3, 5))
-			.build();
-
-		ReservationResponse mockReservation = ReservationResponse.builder()
-			.reservationId(reservationId)
-			.storeId(storeId)
-			.customerId(2L)
-			.guestCount(4)
-			.reservationPrice(10000)
-			.reservationStatus("COMPLETED")
-			.reservationDate(LocalDate.now())
-			.reservationTime(LocalTime.of(12, 0))
-			.build();
-
-		given(reservationService.getById(reservationId)).willReturn(mockReservation);
-
-	    // when & then
-		assertThatThrownBy(() -> reviewService.create(storeId, reservationId, userId, dto, List.of()))
-			.isInstanceOf(CustomApiException.class)
-			.hasMessage("리뷰를 작성할 권한이 없습니다.");
 	}
 }
