@@ -8,6 +8,9 @@ services:
       - quit-network
 
   eureka:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
     image: laira2/quit:eureka-latest
     container_name: eureka
     ports:
