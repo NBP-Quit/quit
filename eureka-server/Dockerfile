@@ -4,6 +4,6 @@ VOLUME /tmp
 
 ARG JAR_FILE=build/libs/*.jar
 
-COPY ./eureka-server/build/libs/*.jar app.jar
+COPY ${JAR_FILE} app.jar
 
 ENTRYPOINT ["java","-jar","/app.jar"]
