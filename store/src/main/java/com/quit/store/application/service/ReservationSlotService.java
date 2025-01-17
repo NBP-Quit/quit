@@ -10,12 +10,10 @@ import com.quit.store.domain.entity.ReservationSlot;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.ReservationSlotRepository;
 import com.quit.store.domain.repository.StoreRepository;
-import com.quit.store.infrastructure.redis.CacheService;
 import com.quit.store.infrastructure.redis.DistributedLock;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +39,6 @@ public class ReservationSlotService {
     private final ReservationSlotRepository reservationSlotRepository;
     private final StoreRepository storeRepository;
     private final RoleValidator roleValidator;
-    private final CacheService cacheService;
 
     @Transactional
     public ReservationSlotResponse createSingleSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
@@ -77,7 +74,6 @@ public class ReservationSlotService {
         validateTime(slot, request.getTime());
         validateMaxCapacity(slot, request.getMaxCapacity());
         slot.update(request);
-        cacheService.updateSlotCache(slot);
         return ReservationSlotResponse.from(slot);
     }
 
@@ -89,7 +85,6 @@ public class ReservationSlotService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "reservationSlot", key = "#storeId + '_' + #date.toString() + '_' + #time.toString()")
     public GetReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
         Store store = checkStore(storeId);
         ReservationSlot slot = reservationSlotRepository.findByDateAndTime(store.getId(), date, time)
@@ -106,30 +101,27 @@ public class ReservationSlotService {
         validateSlotBelongsToStore(store.getId(), slot);
         validateReservation(slot);
         slot.delete(userId);
-        cacheService.deleteSlotCache(slot);
     }
 
     @Transactional
-    @DistributedLock(key = "'reservationSlotId:' + #reservationSlotId")
-    public void increaseCapacity(UUID reservationSlotId, Integer currentCapacity) {
-        log.info("현재 예약 인원 감소 시작");
-        ReservationSlot slot = checkSlot(reservationSlotId);
+    @DistributedLock(key = "'reservationSlotId:' + #slotId")
+    public void increaseCapacity(UUID slotId, Integer currentCapacity) {
+        log.info("현재 예약 인원 증가 시작");
+        ReservationSlot slot = checkSlot(slotId);
         validateSlotIsAvailable(slot);
         validateCapacityLimit(slot, currentCapacity);
         slot.increaseCapacity(currentCapacity);
-        cacheService.updateSlotCache(slot);
-        log.info("현재 예약 인원 감소 완료");
+        log.info("현재 예약 인원 증가 완료");
     }
 
     @Transactional
-    @DistributedLock(key = "'reservationSlotId:' + #reservationSlotId")
-    public void restoreCapacity(UUID reservationSlotId, Integer currentCapacity) {
+    @DistributedLock(key = "'reservationSlotId:' + #slotId")
+    public void restoreCapacity(UUID slotId, Integer currentCapacity) {
         log.info("현재 예약 인원 복구 시작");
-        ReservationSlot slot = checkSlot(reservationSlotId);
+        ReservationSlot slot = checkSlot(slotId);
         validateSlotIsAvailable(slot);
         validateSufficientCapacity(slot, currentCapacity);
         slot.restoreCapacity(currentCapacity);
-        cacheService.updateSlotCache(slot);
         log.info("현재 예약 인원 복구 완료");
     }
 
