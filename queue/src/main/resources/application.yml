@@ -12,6 +12,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  main:
+    web-application-type: reactive
 server:
   port: 19096
 
@@ -28,6 +30,9 @@ eureka:
 
 store:
   baseUrl: ${STORE_BASEURL}
+
+gateway:
+  baseUrl: ${GATEWAY_BASEURL}
 
 logging:
   level:
