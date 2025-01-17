@@ -26,6 +26,11 @@ public class PrometheusAuthorizationFilter implements WebFilter {
                 return chain.filter(exchange);
             }
 
+            String authorizationHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                return Mono.error(new RuntimeException("Unauthorized"));
+            }
+
             String headerValue = exchange.getRequest().getHeaders().getFirst("X-User-Role");
             if (headerValue == null || !headerValue.equals("ROLE_MASTER")) {
                 return Mono.error(new RuntimeException("Unauthorized"));
