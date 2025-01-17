@@ -1,9 +1,11 @@
 FROM openjdk:17-jdk-slim
 
 VOLUME /tmp
+# 현재 작업 디렉토리 출력
+RUN echo "Current directory: $(pwd)"
 
-ARG JAR_FILE=build/libs/*.jar
-
-COPY ${JAR_FILE} app.jar
+# 빌드 경로 출력 (예: /eureka-server/build/libs)
+RUN ls -l /eureka-server/build/libs
+COPY build/libs/*.jar app.jar
 
 ENTRYPOINT ["java","-jar","/app.jar"]
