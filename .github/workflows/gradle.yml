@@ -35,7 +35,7 @@ jobs:
           cd ../
       - name: Check if the JAR file exists
         run: |
-          pws
+          pwd
     
 
   Docker:
