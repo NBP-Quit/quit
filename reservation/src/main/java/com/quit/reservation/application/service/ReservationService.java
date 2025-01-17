@@ -38,8 +38,6 @@ public class ReservationService {
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
     //TODO: OWNER 권한에 대한 본인 가게 여부 확인
-    //TODO: 동기 처리 시 취소 제외 다른 상태로 변경 하는 건 OWNER 이상의 권한만 되도록 고려
-    //TODO: 코드 리팩토링!!! -> 코드 줄 수 줄일 방법 찾기....
 
     @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
@@ -73,7 +71,6 @@ public class ReservationService {
         throw new CustomException(ErrorType.FAILED_CREATED_RESERVATION);
     }
 
-    //TODO: 수정(권한) or 삭제 고려
     @Transactional
     public ChangeReservationStatusResponse changeReservationStatus(UUID reservationId,
                                                                    ChangeReservationStatusRequest request,
@@ -166,21 +163,14 @@ public class ReservationService {
                 .orElseThrow(() -> new CustomException(ErrorType.NOT_FOUND_RESERVATION));
     }
 
-    //TODO: 검증 메서드 리팩토링 작업 필요
     private void validateCreateReservationRequest(CreateReservationDto request) {
-        if (request.getStoreId() == null || request.getGuestCount() == null ||
-                request.getReservationDate() == null || request.getReservationTime() == null) {
-            throw new CustomException(ErrorType.COMMON_INVALID_PARAMETER, "필수 입력값이 누락되었습니다.");
-        }
-
         validationService.validateGuestCount(request.getGuestCount());
         validationService.validateReservationDate(request.getReservationDate());
         validationService.validateReservationTime(request.getReservationTime());
     }
 
     private void assertPermission(String requestCustomerId, String customerId, String userRole) {
-        if (requestCustomerId.equals(customerId)
-                || userRole.equals(Role.OWNER.name())
+        if (requestCustomerId.equals(customerId) || userRole.equals(Role.OWNER.name())
                 || userRole.equals(Role.MASTER.name())) {
             return;
         }
@@ -189,7 +179,7 @@ public class ReservationService {
 
     private void sendCancelReservationMessage(Reservation reservation) {
         messageProducer.sendReservationFailed(reservation.getSlotId(), reservation.getGuestCount());
-        log.info("예약 삭제 정보 메시지 송신 완료");
+        log.info("예약 취소 정보 메시지 송신 완료");
     }
 
     private void sendNotificationMessage(Reservation reservation) {
