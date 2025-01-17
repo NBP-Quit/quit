@@ -32,6 +32,7 @@ jobs:
         run: | 
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
           ./gradlew clean build -x test --no-daemon 
+          pwd
           ls -l build/libs
           cd ../
       - name: Check if the JAR file exists
