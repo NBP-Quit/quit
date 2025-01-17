@@ -37,7 +37,10 @@ jobs:
           cd ../
       - name: Check if the JAR file exists
         run: |
-          ls -l build/libs
+          pwd
+          ls -l 
+          cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
+          ls -l 
 
   Docker:
     name: Build docker image and Push to registry
