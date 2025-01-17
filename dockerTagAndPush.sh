@@ -13,7 +13,7 @@ imageName="laira2/quit"
 for service in "${services[@]}"
 do
   latestTag="$service-latest"  # latest 태그
-
+  echo "=======현재 위치 : $(pwd) ========="
   # 도커 이미지 빌드 (각 서비스 디렉토리에 Dockerfile이 있어야 함)
   docker build -t "$imageName:$latestTag" "./$service"
 
