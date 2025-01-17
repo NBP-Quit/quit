@@ -65,7 +65,9 @@ jobs:
       - name: Build, Tag and Push docker image to Hub
         run: |
           docker compose build
-          echo "=========="
+          echo "==========+++++++++"
+          ls -l /home/runner/work/quit/quit/eureka-server/build/libs
+          echo "==========+++++++++"
           pwd
           ./dockerTagAndPush.sh
           echo "=========="
