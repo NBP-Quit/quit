@@ -1,7 +1,5 @@
 FROM openjdk:17-jdk-slim
 
-VOLUME /tmp
-
 WORKDIR /app
 
 ARG FILE_DIRECTORY
