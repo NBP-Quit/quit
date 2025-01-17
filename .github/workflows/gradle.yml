@@ -63,16 +63,10 @@ jobs:
 
       - name: Build, Tag and Push docker image to Hub
         run: |
-          docker compose build
-          echo "==========+++++++++"
-          ls -l /home/runner/work/quit/quit/
-          ls -l /home/runner/work/quit/quit/eureka-server/
-          ls -l /home/runner/work/quit/quit/eureka-server/build/
-          echo "==========+++++++++"
+          DOCKER_BUILDKIT=0 docker-compose build
           pwd
           ./dockerTagAndPush.sh
-          echo "=========="
-          pwd
+
         env:
           DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
           DOCKER_HUB_REPOSITORY: "quit"

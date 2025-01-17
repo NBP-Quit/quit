@@ -9,8 +9,8 @@ services:
 
   eureka:
     build:
-      context: .  # ./eureka-server -> ./로 수정
-      dockerfile: ./eureka-server/Dockerfile
+      context: ./eureka-server
+      dockerfile: Dockerfile
     image: laira2/quit:eureka-latest
     container_name: eureka
     ports:
