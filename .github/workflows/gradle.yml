@@ -34,35 +34,6 @@ jobs:
           ./gradlew clean build -x test --no-daemon 
           cd ../
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.service }}-build
-          path: ${{ matrix.service }}/build/libs/*.jar
-
-  Docker:
-    name: Build docker image and Push to registry
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [ eureka-server, gateway-server, user, store, queue, reservation, payment, review ]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.service }}-build
-          path: ${{ matrix.service }}/build/libs  # 동일한 위치에 저장
-
-      - name: Verify Downloaded Files
-        run: |
-          echo "Downloaded files for service: ${{ matrix.service }}"
-          ls -l ${{ matrix.service }}/build/libs                
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -87,7 +58,7 @@ jobs:
 
   Deploy:
     name: Deploy
-    needs: Docker
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
