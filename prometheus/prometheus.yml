@@ -6,6 +6,10 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: [ 'host.docker.internal:19092' ]
+  - job_name: 'store-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19093' ]
   - job_name: 'queue-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
