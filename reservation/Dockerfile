@@ -1,8 +1,13 @@
 FROM openjdk:17-jdk-slim
 
 VOLUME /tmp
-ARG JAR_FILE=/build/libs/*.jar
 
-COPY ${JAR_FILE} app.jar
+WORKDIR /app
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+ARG FILE_DIRECTORY
+
+COPY $FILE_DIRECTORY /app
+
+COPY /app/build/libs/*.jar /app.jar
+
+ENTRYPOINT ["java","-jar","app.jar"]
