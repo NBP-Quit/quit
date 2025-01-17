@@ -15,7 +15,7 @@ do
   latestTag="$service-latest"  # latest 태그
   echo "=======현재 위치 : $(pwd) ========="
   # 도커 이미지 빌드 (각 서비스 디렉토리에 Dockerfile이 있어야 함)
-  docker build -t "$imageName:$latestTag" "./$service"
+  docker build -t "$imageName:$latestTag" "/home/runner/work/quit/quit/$service"
 
   # Docker Hub에 푸시
   docker push "$imageName:$latestTag"
