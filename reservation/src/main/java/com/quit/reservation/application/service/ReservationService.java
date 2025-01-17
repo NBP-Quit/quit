@@ -64,6 +64,8 @@ public class ReservationService {
 
             log.info("예약 UUID : {}", reservation.getReservationId());
             log.info("예약 정보 생성 완료");
+            log.info("예약 정보 메시지 전송");
+            messageProducer.sendReservationData(reservation.getSlotId(), reservation.getGuestCount());
             return CreateReservationResponse.of(reservation.getReservationId());
         }
 
@@ -99,8 +101,7 @@ public class ReservationService {
         validationService.validateChangeReservationStatus(status, reservation.getReservationStatus());
 
         reservation.changeStatus(status);
-        log.info("예약 정보 메시지 전송");
-        messageProducer.sendReservationData(reservation.getSlotId(), reservation.getGuestCount());
+        log.info("예약 정보 전송: 예약 -> 알림");
         sendNotificationMessage(reservation);
         log.info("비동기 예약 상태 변경 완료");
     }
