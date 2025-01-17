@@ -37,3 +37,9 @@ logging:
     root: INFO
     com.quit.payment.infrastructure: DEBUG
     feign: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
