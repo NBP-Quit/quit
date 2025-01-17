@@ -1,37 +1,54 @@
 package com.quit.user.infrastructure.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 @Slf4j
 @Component
-public class PrometheusAuthorizationFilter implements WebFilter {
+public class PrometheusAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String path = request.getRequestURI();
 
         if (path.equals("/actuator/prometheus")) {
-            String method = exchange.getRequest().getMethod().name();
+            String method = request.getMethod();
             if (!method.equals("GET")) {
-                return chain.filter(exchange);
+                filterChain.doFilter(request, response);
+                return;
             }
 
-            String userAgent = exchange.getRequest().getHeaders().getFirst("User-Agent");
+            String userAgent = request.getHeader("User-Agent");
             if (userAgent != null && userAgent.contains("Prometheus")) {
-                return chain.filter(exchange);
+                filterChain.doFilter(request, response);
+                return;
             }
 
-            String headerValue = exchange.getRequest().getHeaders().getFirst("X-User-Role");
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.getWriter().write("Unauthorized");
+                return;
+            }
+
+            String headerValue = request.getHeader("X-User-Role");
             if (headerValue == null || !headerValue.equals("ROLE_MASTER")) {
-                return Mono.error(new RuntimeException("Unauthorized"));
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.getWriter().write("Unauthorized");
+                return;
             }
         }
 
-        return chain.filter(exchange);
+        filterChain.doFilter(request, response);
     }
 }
