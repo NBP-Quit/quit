@@ -13,8 +13,13 @@ imageName="laira2/quit"
 for service in "${services[@]}"
 do
   latestTag="$service-latest"  # latest 태그
-  echo "=======현재 위치 : $(pwd) ========="
-  # 도커 이미지 빌드 (각 서비스 디렉토리에 Dockerfile이 있어야 함)
+  echo "======= 현재 위치 : $(pwd) ======="
+  echo "======= 확인 중인 서비스 : $service ======="
+
+  # 디렉토리와 파일 확인
+  echo "=== 디렉토리 내용 확인: /home/runner/work/quit/quit/$service ==="
+  ls -l "/home/runner/work/quit/quit/$service" || echo "디렉토리가 존재하지 않습니다."
+
   docker build -t "$imageName:$latestTag" "/home/runner/work/quit/quit/$service"
 
   # Docker Hub에 푸시
