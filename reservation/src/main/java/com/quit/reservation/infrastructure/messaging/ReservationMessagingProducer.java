@@ -30,7 +30,6 @@ public class ReservationMessagingProducer implements MessageProducer {
     @Value("reservation.notification")
     private String reservationNotificationTopic;
 
-    /* 메시지 전송: 예약 -> 가게-예약 슬롯 예약 생성 정보 전송(slotId, guestCount)*/
     @Override
     public void sendReservationData(UUID slotId, Integer currentCapacity) {
         ReservationToStoreMessage message = ReservationToStoreMessage.of(slotId, currentCapacity);
