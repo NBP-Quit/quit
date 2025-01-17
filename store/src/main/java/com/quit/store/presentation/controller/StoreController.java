@@ -10,7 +10,6 @@ import com.quit.store.presentation.dto.SearchStoreRequest;
 import com.quit.store.presentation.dto.UpdateStoreRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.zookeeper.proto.RequestHeader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
