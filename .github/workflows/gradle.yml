@@ -75,7 +75,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "# Environment Variables" > .env
+          echo "# Environment Variables" > /home/
           for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
             value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
             echo "$secret=$value" >> .env
