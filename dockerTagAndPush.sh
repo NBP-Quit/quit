@@ -20,7 +20,7 @@ do
   # Docker Hub에 푸시
   docker push "$imageName:$latestTag"
 
-  echo "$service 이미지가 빌드되어 Docker Hub에 $latestTag 태그로 푸쉬되었습니다."
+  echo "$service 이미지가 빌드되어 Docker Hub에 $imageName:$latestTag 태그로 푸쉬되었습니다."
 done
 
 echo "모든 서비스의 이미지 빌드 및 푸쉬가 완료되었습니다."

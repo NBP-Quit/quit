@@ -72,21 +72,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Create .env file
-        run: |
-          mkdir -p /home/environment
-          echo "# Environment Variables" > /home/environment/.env # .env 파일 생성 
-          for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do 
-            value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]') 
-            echo "$secret=$value" >> /home/environment/.env 
-          done 
-          echo "Current directory:" # 현재 디렉토리 출력 
-          pwd 
-          echo ".env file location:" # .env 파일 위치 확인
-        env:
-          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-
       - name: Copy Docker compose file to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -99,6 +84,7 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -110,6 +96,12 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
           script: |
+            # EC2에서 .env 파일 생성
+            echo "# Environment Variables" > /home/ubuntu/.env
+              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
+              echo "$secret=$value" >> /home/ubuntu/.env
+            done
             sudo docker-compose down
             sudo docker-compose pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/environment/.env up -d
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/ubuntu/.env up -d
