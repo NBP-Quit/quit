@@ -75,11 +75,14 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "# Environment Variables" > /home/
-          for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
-            value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
-            echo "$secret=$value" >> .env
-          done
+          echo "# Environment Variables" > /home/environment/.env # .env 파일 생성 
+          for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do 
+            value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]') 
+            echo "$secret=$value" >> /home/environment/.env 
+          done 
+          echo "Current directory:" # 현재 디렉토리 출력 
+          pwd 
+          echo ".env file location:" # .env 파일 위치 확인
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
@@ -108,4 +111,4 @@ jobs:
           script: |
             sudo docker-compose down
             sudo docker-compose pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/runner/work/quit/quit/.env up -d
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/environment/.env up -d
