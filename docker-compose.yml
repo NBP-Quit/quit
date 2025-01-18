@@ -120,7 +120,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
     depends_on:
       - node_exporter
