@@ -6,7 +6,6 @@ services:
       - "6379:6379"
     networks:
       - quit-network
-#테스트
   eureka:
     image: laira2/quit:eureka-server-latest
     container_name: eureka
