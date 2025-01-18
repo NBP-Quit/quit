@@ -8,10 +8,10 @@ services:
       - quit-network
 #테스트
   eureka:
-    image: laira2/quit:eureka-latest
+    image: laira2/quit:eureka-server-latest
     container_name: eureka
     ports:
-      - "8761:8761"  # Eureka 서버는 표준 포트 유지
+      - "19090:8761"  # Eureka 서버는 표준 포트 유지
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     env_file:
@@ -20,7 +20,7 @@ services:
       - quit-network
 
   gateway:
-    image: laira2/quit:gateway-latest
+    image: laira2/quit:gateway-server-latest
     container_name: gateway
     ports:
       - "19091:8080"  # 외부:내부
