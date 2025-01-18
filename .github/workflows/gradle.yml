@@ -74,7 +74,7 @@ jobs:
           source: "docker-compose.yml"
           target: "/home/ubuntu"
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2  #EC2 용량 증가
         uses: appleboy/ssh-action@v1.0.3
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
