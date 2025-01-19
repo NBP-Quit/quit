@@ -81,8 +81,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "./prometheus/prometheus.yml"
-          target: "/home/ubuntu/prometheus.yml"
+          source: "./prometheus/prometheus. yml"
+          target: "/home/ubuntu"
 
       - name: Deploy to EC2  #EC2 용량 증가
         uses: appleboy/ssh-action@v1.0.3
