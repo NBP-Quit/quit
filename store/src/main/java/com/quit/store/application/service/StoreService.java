@@ -74,6 +74,12 @@ public class StoreService {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkStoreOwnership(UUID storeId, String userId) {
+        Store store = checkStore(storeId);
+        return store.getUserId().equals(userId);
+    }
+
     private Store checkStore(UUID storeId) {
         return storeRepository.findByIdAndIsDeletedFalse(storeId)
                 .orElseThrow(() -> new CustomException(STORE_NOT_FOUND));
