@@ -27,8 +27,6 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
     env_file:
       - .env
-    depends_on:
-      - eureka
     networks:
       - quit-network
 
@@ -42,7 +40,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - eureka
       - gateway
     networks:
       - quit-network
@@ -57,7 +54,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - eureka
       - gateway
       - redis
     networks:
@@ -73,7 +69,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - eureka
       - gateway
       - redis
     networks:
@@ -89,7 +84,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - eureka
       - gateway
       - redis
     networks:
@@ -105,7 +99,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - eureka
       - gateway
       - redis
       - zookeeper
