@@ -76,7 +76,7 @@ jobs:
 
       # eureka-server-compose.yml 복제
       - name: Copy Eureka compose file to EC2
-      - uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EUREKA_EC2_HOST }}
           username: ubuntu
