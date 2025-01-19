@@ -70,7 +70,7 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "store", key = "args[0]")
-    public Boolean getStoreForInternal(UUID storeId) {
+    public boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }
 
