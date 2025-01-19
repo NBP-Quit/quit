@@ -5,7 +5,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheous/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
     depends_on:
       - node_exporter

@@ -67,7 +67,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Copy Docker compose file to EC2 # v2에 prometheus-compose.yml COPY
+      - name: Copy Docker compose file to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
