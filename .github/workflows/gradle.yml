@@ -53,6 +53,7 @@ jobs:
       - name: Build, Tag and Push docker image to Hub
         run: |
           DOCKER_BUILDKIT=0 docker compose -f eureka-server-compose.yml build
+          DOCKER_BUILDKIT=0 docker compose -f prometheus-compose.yml build
           DOCKER_BUILDKIT=0 docker compose build
           ./dockerTagAndPush.sh
         env:
@@ -66,7 +67,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Copy Docker compose file to EC2 # v2에 docker-compose.yml COPY
+      - name: Copy Docker compose file to EC2 # v2에 prometheus-compose.yml COPY
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -89,10 +90,20 @@ jobs:
       - name: Copy prometheus.yml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           source: "prometheus.yml"
+          target: "/home/ubuntu"
+
+      # Copy prometheus-compose.yml to EC2
+      - name: Copy prometheus.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus-compose.yml"
           target: "/home/ubuntu"
 
       - name: Deploy Eureka to EC2  #Eureka server 배포
@@ -146,3 +157,29 @@ jobs:
             sudo docker-compose down
             sudo docker-compose pull
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose --env-file /home/ubuntu/.env up -d
+
+      - name: Deploy Prometheus to EC2  #Prometheus server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
+          script: |
+            # EC2에서 .env 파일 생성
+            echo "# Environment Variables" > /home/ubuntu/.env
+              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
+              echo "$secret=$value" >> /home/ubuntu/.env
+            done
+            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            sudo docker-compose -f /home/ubuntu/prometheus-compose.yml down
+            sudo docker-compose -f /home/ubuntu/prometheus-compose.yml pull
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/prometheus-compose.yml --env-file /home/ubuntu/.env up -d
