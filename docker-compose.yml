@@ -69,7 +69,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     ports:
-      - "19093:8080"
+      - "19096:8080"
     env_file:
       - .env
     depends_on:
