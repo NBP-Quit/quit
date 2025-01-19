@@ -1,0 +1,12 @@
+service:
+  eureka:
+    image: laira2/quit:eureka-server-latest
+    container_name: eureka
+    ports:
+      - "19090:8761"  # Eureka 서버는 표준 포트 유지
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    env_file:
+      - .env
+    networks:
+      - quit-network

@@ -65,6 +65,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # v2에 docker-compose.yml COPY
       - name: Copy Docker compose file to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -72,6 +74,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           source: "docker-compose.yml"
+          target: "/home/ubuntu"
+
+      # eureka-server-compose.yml 복제
+      - name: Copy Eureka compose file to EC2
+      - uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "eureka-server-compose.yml"
           target: "/home/ubuntu"
 
       # Copy prometheus.yml to EC2
@@ -83,6 +95,32 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "prometheus.yml"
           target: "/home/ubuntu"
+
+      - name: Deploy Eureka to EC2  #Eureka server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
+          script: |
+            # EC2에서 .env 파일 생성
+            echo "# Environment Variables" > /home/ubuntu/.env
+              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
+              echo "$secret=$value" >> /home/ubuntu/.env
+            done
+            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml --env-file /home/ubuntu/.env up -d
 
       - name: Deploy to EC2  #EC2 용량 증가
         uses: appleboy/ssh-action@v1.0.3

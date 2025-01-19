@@ -8,4 +8,4 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_PROD_URL}
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_EC2_HOST}
