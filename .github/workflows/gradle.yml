@@ -52,6 +52,7 @@ jobs:
 
       - name: Build, Tag and Push docker image to Hub
         run: |
+          DOCKER_BUILDKIT=0 docker compose -f eureka-server-compose.yml build
           DOCKER_BUILDKIT=0 docker compose build
           ./dockerTagAndPush.sh
         env:
