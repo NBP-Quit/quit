@@ -1,4 +1,4 @@
-service:
+services:
   eureka:
     image: laira2/quit:eureka-server-latest
     container_name: eureka
