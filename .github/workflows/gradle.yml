@@ -65,9 +65,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      # v2에 docker-compose.yml COPY
-      - name: Copy Docker compose file to EC2
+      - name: Copy Docker compose file to EC2 # v2에 docker-compose.yml COPY
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
