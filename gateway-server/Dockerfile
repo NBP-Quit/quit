@@ -11,8 +11,7 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
-# 디버깅을 위한 echo
-RUN echo "file Directory: $FILE_DIRECTORY"
+RUN ./gradlew clean build -x test --no-daemon
 
 COPY $FILE_DIRECTORY/build/libs/gateway-server-0.0.1-SNAPSHOT.jar ./app.jar
 
