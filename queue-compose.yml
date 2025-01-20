@@ -20,7 +20,7 @@ services:
         REDIS_PASSWORD: ${REDIS_PASSWORD}
         STORE_BASEURL: ${STORE_BASEURL}
         GATEWAY_BASEURL: ${GATEWAY_BASEURL}
-        FILE_DIRECTORY: ./queue-server
+        FILE_DIRECTORY: ./queue
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     ports:
