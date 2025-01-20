@@ -15,25 +15,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Update .env file
-        run: |
-          echo "EUREKA_PROD_URL=${{ secrets.EUREKA_PROD_URL }}" > .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" > .env
-          echo "PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}" > .env
-          echo "DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}" > .env
-          echo "DATASOURCE_PROD_USERNAME=${{ secrets.DATASOURCE_PROD_USERNAME }}" > .env
-          echo "DATASOURCE_PROD_PASSWORD=${{ secrets.DATASOURCE_PROD_PASSWORD }}" > .env
-          echo "PAYMENT_DATASOURCE_PROD_URL=${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}" >> .env 
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}" >> .env
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-          echo "STORE_BASEURL=${{ secrets.STORE_BASEURL }}" >> .env
-          echo "GATEWAY_BASEURL=${{ secrets.GATEWAY_BASEURL }}" >> .env
-          echo "RESERVATION_DATASOURCE_PROD_URL=${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}" > .env
-          echo "STORE_DATASOURCE_PROD_URL=${{ secrets.STORE_DATASOURCE_PROD_URL }}" > .env
-          echo "USER_DATASOURCE_PROD_URL=${{ secrets.USER_DATASOURCE_PROD_URL }}" > .env
-
       - name: 도커 로그인
         uses: docker/login-action@v3
         with:
@@ -141,6 +122,8 @@ jobs:
       - name: Build, Tag and Push docker image to Hub
         run: |
           docker compose -f prometheus-compose.yml build
+          docker compose -f reservation-compose.yml build
+          docker compose -f payment-compose.yml build
           docker compose build
           docker push "laira2/quit:user-latest"
           docker push "laira2/quit:store-latest"
@@ -270,13 +253,17 @@ jobs:
           params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
           params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
           params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
           params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
           params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
           params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
           params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
           params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+          params["S3_ACCESS_KEY"]="${{ secrets.S3_ACCESS_KEY }}"
+          params["S3_SECRET_KEY"]="${{ secrets.S3_SECRET_KEY }}"
+          params["S3_BUCKET"]="${{ secrets.S3_BUCKET }}"
+          params["FEIGN_URL"]="${{ secrets.FEIGN_URL }}"
+          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
 
           # Iterate over the parameters and create them in Parameter Store
           for key in "${!params[@]}"; do
@@ -303,12 +290,7 @@ jobs:
           script: |
             # AWS SSM에서 파라미터 가져오기
             EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-      
-            if [ -z "$EUREKA_PROD_URL" ]; then
-              echo "Error: EUREKA_PROD_URL is empty"
-              exit 1
-            fi
-      
+
             # EUREKA_PROD_URL 환경 변수 export
             export EUREKA_PROD_URL
       
