@@ -28,6 +28,11 @@ jobs:
       - name: Make gradlew executable for ${{ matrix.service }}
         run: chmod +x ./${{ matrix.service }}/gradlew
 
+      - name: Create .env file from GitHub secrets
+        run: |
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" > .env
+          echo "EUREKA_PROD_URL=${{ secrets.EUREKA_PROD_URL }}" >> .env
+
       - name: Build with Gradle
         run: | 
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
@@ -121,12 +126,6 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
           script: |
-            # EC2에서 .env 파일 생성
-            echo "# Environment Variables" > /home/ubuntu/.env
-            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
-              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
-              echo "$secret=$value" >> /home/ubuntu/.env
-            done
             echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
@@ -147,12 +146,6 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
           script: |
-            # EC2에서 .env 파일 생성
-            echo "# Environment Variables" > /home/ubuntu/.env
-            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
-              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
-              echo "$secret=$value" >> /home/ubuntu/.env
-            done
             echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
             sudo docker-compose down
             sudo docker-compose pull
@@ -173,12 +166,6 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
           script: |
-            # EC2에서 .env 파일 생성
-            echo "# Environment Variables" > /home/ubuntu/.env
-            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
-              value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
-              echo "$secret=$value" >> /home/ubuntu/.env
-            done
             echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
             sudo docker-compose -f /home/ubuntu/prometheus-compose.yml down
             sudo docker-compose -f /home/ubuntu/prometheus-compose.yml pull

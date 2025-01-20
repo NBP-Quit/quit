@@ -2,6 +2,9 @@ services:
   eureka:
     image: laira2/quit:eureka-server-latest
     container_name: eureka
+    build:
+      args:
+        EUREKA_PROD_URL: ${EUREKA_PROD_URL}
     ports:
       - "19090:8761"  # Eureka 서버는 표준 포트 유지
     environment:
@@ -12,6 +15,10 @@ services:
   gateway:
     image: laira2/quit:gateway-server-latest
     container_name: gateway
+    build:
+      args:
+        JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+        EUREKA_PROD_URL: ${EUREKA_PROD_URL}
     ports:
       - "19091:8080"  # 외부:내부
     environment:
