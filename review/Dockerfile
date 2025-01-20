@@ -6,6 +6,6 @@ ARG FILE_DIRECTORY
 
 COPY $FILE_DIRECTORY /app
 
-COPY /app/build/libs/*.jar /app.jar
+COPY $FILE_DIRECTORY/build/libs/review-0.0.1-SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]

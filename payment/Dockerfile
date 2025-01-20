@@ -21,6 +21,6 @@ ENV PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY
 
 COPY $FILE_DIRECTORY /app
 
-COPY $FILE_DIRECTORY/build/libs/*.jar ./app.jar
+COPY $FILE_DIRECTORY/build/libs/payment-0.0.1-SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
