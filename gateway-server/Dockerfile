@@ -13,9 +13,6 @@ COPY $FILE_DIRECTORY /app
 
 RUN echo "file Directory $FILE_DIRECTORY"
 RUN ls -al
-RUN cd ./build && ls -al
-RUN cd ./build/libs/ && ls -al
-RUN cd ../../../
 
 COPY $FILE_DIRECTORY/build/libs/gateway-server-0.0.1-SNAPSHOT.jar ./app.jar
 
