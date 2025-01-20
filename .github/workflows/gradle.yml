@@ -63,7 +63,7 @@ jobs:
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
            ./gradlew clean build --no-build-cache -x test --no-daemon -Dspring.profiles.active=prod
           ls 
-          ls build/libs   
+          ls build/libs    
           cd ../
           # build 디렉토리가 있는지 확인
           ls ${{ matrix.service }}/build/libs/  
@@ -97,6 +97,9 @@ jobs:
 
       - name: Build, Tag and Push docker image to Hub - Gateway
         run: |
+          ls -al
+          ls gateway-server
+          ls gateway-server/build
           sudo docker system prune -a
           DOCKER_BUILDKIT=0 docker compose -f gateway-server-compose.yml build --no-cache
         env:
