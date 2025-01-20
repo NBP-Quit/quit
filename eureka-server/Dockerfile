@@ -16,6 +16,6 @@ COPY $FILE_DIRECTORY /app
 RUN ls
 RUN ls -al
 
-COPY ./build/libs/*.jar ./app.jar
+COPY $FILE_DIRECTORY/build/libs/*.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
