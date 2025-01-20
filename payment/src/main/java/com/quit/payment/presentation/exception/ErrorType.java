@@ -21,6 +21,7 @@ public enum ErrorType {
     PAYMENT_KEY_EMPTY(BAD_REQUEST, "결제 외주사 결제키가 존재하지 않습니다."),
     PAYMENT_AMOUNT_EMPTY(BAD_REQUEST, "결제 금액이 존재하지 않습니다."),
     PAYMENT_AMOUNT_INVALID(BAD_REQUEST, "결제 금액이 유효하지 않습니다."),
+    PAYMENT_IDEMPOTENCY_KEY_EMPTY(BAD_REQUEST, "멱등키가 존재하지 않습니다."),
 
     RESERVATION_ID_MISMATCH(BAD_REQUEST, "결제 데이터와 예약 ID가 일치하지 않습니다."),
 
@@ -29,6 +30,8 @@ public enum ErrorType {
     FEIGN_CLIENT_INVALID_REQUEST(BAD_REQUEST, "FeignClient 요청에서 잘못된 요청이 발생했습니다."),
     FEIGN_CLIENT_RESOURCE_NOT_FOUND(NOT_FOUND, "FeignClient 요청에서 리소스를 찾을 수 없습니다."),
     FEIGN_CLIENT_UNKNOWN_ERROR(INTERNAL_SERVER_ERROR, "FeignClient 요청 중 알 수 없는 에러가 발생했습니다."),
+
+    REQUEST_ALREADY_PROCESSED(CONFLICT, "이미 처리된 요청입니다.")
     ;
 
     private final HttpStatus httpStatus;
