@@ -22,6 +22,6 @@ ENV GATEWAY_BASEURL=$GATEWAY_BASEURL
 
 COPY $FILE_DIRECTORY /app
 
-COPY $FILE_DIRECTORY/build/libs/queue-0.0.1-SNAPSHOT.jar ./app.jar
+COPY $FILE_DIRECTORY/build/libs/*.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]

@@ -34,20 +34,24 @@ jobs:
           echo "STORE_DATASOURCE_PROD_URL=${{ secrets.STORE_DATASOURCE_PROD_URL }}" > .env
           echo "USER_DATASOURCE_PROD_URL=${{ secrets.USER_DATASOURCE_PROD_URL }}" > .env
 
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: eureka 빌드
         run: |
           cd eureka-server
           chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========eureka========="
-          ls build/libs
           cd ../
 
       - name: eureka 도커 이미지 빌드 & push
         run: |
-          chmod +x ./dockerTagAndPush.sh
           docker compose -f eureka-server-compose.yml build --no-cache
-          ./dockerTagAndPush.sh
+          docker push "laira2/quit:eureka-server-latest"
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
 
@@ -57,14 +61,12 @@ jobs:
           chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========gateway========="
-          ls build/libs
           cd ../
 
       - name: gateway 도커 이미지 빌드 & push
         run: |
-          chmod +x ./dockerTagAndPush.sh
           docker compose -f gateway-server-compose.yml build --no-cache
-          ./dockerTagAndPush.sh
+          docker push "laira2/quit:gateway-server-latest"
         env:
           EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
@@ -105,6 +107,19 @@ jobs:
           ls build/libs
           cd ../
 
+      - name: queue 도커 이미지 빌드 & push
+        run: |
+          docker compose -f queue-compose.yml build --no-cache
+          docker push "laira2/quit:queue-latest"
+        env:
+          EUREKA_PROD_URL: ${EUREKA_PROD_URL}
+          REDIS_HOST: ${REDIS_HOST}
+          REDIS_PORT: ${REDIS_PORT}
+          REDIS_USERNAME: ${REDIS_USERNAME}
+          REDIS_PASSWORD: ${REDIS_PASSWORD}
+          STORE_BASEURL: ${STORE_BASEURL}
+          GATEWAY_BASEURL: ${GATEWAY_BASEURL}
+
       - name: reservation 빌드
         run: |
           cd reservation
@@ -123,19 +138,39 @@ jobs:
           ls build/libs
           cd ../
 
-      - name: build 폴더 artifacts 업로드
-        uses: actions/upload-artifact@v3
-        with:
-          name: service-artifacts
-          path: |
-            eureka-server/build/libs/*
-            gateway-server/build/libs/*
-            user/build/libs/*
-            store/build/libs/*
-            payment/build/libs/*
-            queue/build/libs/*
-            reservation/build/libs/*
-            review/build/libs/*
+      - name: Build, Tag and Push docker image to Hub
+        run: |
+          docker compose -f prometheus-compose.yml build
+          docker compose build
+          docker push "laira2/quit:user-latest"
+          docker push "laira2/quit:store-latest"
+          docker push "laira2/quit:reservation-latest"
+          docker push "laira2/quit:payment-latest"
+          docker push "laira2/quit:review-latest"
+        env:
+          DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+          DOCKER_HUB_REPOSITORY: "quit"
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          PAYMENT_DATASOURCE_PROD_URL: ${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          STORE_BASEURL: ${{ secrets.STORE_BASEURL }}
+          GATEWAY_BASEURL: ${{ secrets.GATEWAY_BASEURL }}
+          RESERVATION_DATASOURCE_PROD_URL: ${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}
+          STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
+          USER_DATASOURCE_PROD_URL: ${{ secrets.USER_DATASOURCE_PROD_URL }}
+          REVIEW_DATASOURCE_PROD_URL: ${{ secrets.REVIEW_DATASOURCE_PROD_URL }}
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
 
 
   build-images:
@@ -156,33 +191,3 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: 아티펙트 다운로드
-        uses: actions/download-artifact@v3
-        with:
-          name: service-artifacts
-
-      - name: Give execution permission
-        run: chmod +x ./dockerTagAndPush.sh
-
-      - name: 도커 허브 로그인
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-
-
-      - name: gateway 도커 이미지 빌드 & push
-        run: |
-          ls -al /build/libs
-          echo "Checking for eureka-server-0.0.1-SNAPSHOT.jar..."
-          if [ -f "./build/libs/eureka-server-0.0.1-SNAPSHOT.jar" ]; then
-            echo "JAR file exists"
-            else
-            echo "JAR file not found"
-          fi
-          docker compose -f gateway-server-compose.yml build --no-cache
-          ./dockerTagAndPush.sh
-        env:
-          EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}

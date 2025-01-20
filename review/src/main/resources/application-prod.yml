@@ -1,9 +1,9 @@
 spring:
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ${REVIEW_DB_PROD_URL}
-    username: ${REVIEW_DB_PROD_USERNAME}
-    password: ${REVIEW_DB_PROD_PASSWORD}
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS_NAME}
+    url: ${REVIEW_DATASOURCE_PROD_URL}
+    username: ${DATASOURCE_PROD_USERNAME}
+    password: ${DATASOURCE_PROD_PASSWORD}
     jpa:
       hibernate:
         ddl-auto: update

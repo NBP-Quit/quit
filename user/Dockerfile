@@ -20,6 +20,6 @@ ENV JWT_SECRET_KEY=$JWT_SECRET_KEY
 
 COPY $FILE_DIRECTORY /app
 
-COPY $FILE_DIRECTORY/build/libs/user-0.0.1-SNAPSHOT.jar ./app.jar
+COPY $FILE_DIRECTORY/build/libs/*.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
