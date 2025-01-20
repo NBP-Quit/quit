@@ -10,7 +10,6 @@ import com.quit.store.presentation.dto.SearchStoreRequest;
 import com.quit.store.presentation.dto.UpdateStoreRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.zookeeper.proto.RequestHeader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +70,12 @@ public class StoreController {
     @GetMapping("/{storeId}/internal")
     public ResponseEntity<ApiResponse<Boolean>> getStoreForInternal(@PathVariable(name = "storeId") UUID storeId) {
         return ResponseEntity.ok(ApiResponse.success(storeService.getStoreForInternal(storeId)));
+    }
+
+    @GetMapping("/{storeId}/internal/ownership/{userId}")
+    public ResponseEntity<ApiResponse<Boolean>> checkStoreOwnership(@PathVariable(name = "storeId") UUID storeId,
+                                                                    @PathVariable(name = "userId") String userId) {
+        return ResponseEntity.ok(ApiResponse.success(storeService.checkStoreOwnership(storeId, userId)));
     }
 
 }
