@@ -84,10 +84,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build, Tag and Push docker image to Hub
+      - name: Build, Tag and Push docker image to Hub - Eureka, Gateway
         run: |
           sudo docker system prune -a
           DOCKER_BUILDKIT=0 docker compose -f eureka-server-compose.yml build --no-cache
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
+
+      - name: Build, Tag and Push docker image to Hub
+        run: |
+          sudo docker system prune -a
           DOCKER_BUILDKIT=0 docker compose -f prometheus-compose.yml build
           DOCKER_BUILDKIT=0 docker compose build
           ./dockerTagAndPush.sh
