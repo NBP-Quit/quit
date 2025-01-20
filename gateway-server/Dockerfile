@@ -11,6 +11,8 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
+RUN ls -al /app  # 빌드 중에 /app 디렉토리의 파일 나열
+
 COPY /app/build/libs/*.jar /app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
