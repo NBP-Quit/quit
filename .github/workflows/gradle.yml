@@ -94,6 +94,22 @@ jobs:
         env:
           DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
           DOCKER_HUB_REPOSITORY: "quit"
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          PAYMENT_DATASOURCE_PROD_URL: ${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          STORE_BASEURL: ${{ secrets.STORE_BASEURL }}
+          GATEWAY_BASEURL: ${{ secrets.GATEWAY_BASEURL }}
+          RESERVATION_DATASOURCE_PROD_URL: ${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}
+          STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
+          USER_DATASOURCE_PROD_URL: ${{ secrets.USER_DATASOURCE_PROD_URL }}
 
       - name: error reports
         if: ${{ failure() }}
