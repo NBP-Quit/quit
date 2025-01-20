@@ -106,6 +106,21 @@ jobs:
           ls build/libs
           cd ../
 
+      - name: build 폴더 artifacts 업로드
+        uses: actions/upload-artifact@v3
+        with:
+          name: service-artifacts
+          path: |
+            eureka-server/build/libs/*
+            gateway-server/build/libs/*
+            user/build/libs/*
+            store/build/libs/*
+            payment/build/libs/*
+            queue/build/libs/*
+            reservation/build/libs/*
+            review/build/libs/*
+
+
   build-images:
     needs:
       - build-services
@@ -123,6 +138,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 아티펙트 다운로드
+        uses: actions/download-artifact@v3
+        with:
+          name: service-artifacts
 
       - name: Give execution permission
         run: chmod +x ./dockerTagAndPush.sh
@@ -142,7 +162,7 @@ jobs:
 
       - name: gateway 도커 이미지 빌드 & push
         run: |
-          docker compose -f gateway-server-compose.yml build --no-cache
+          docker compose -f gateway-server-compose.yml build
           ./dockerTagAndPush.sh
         env:
           EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
