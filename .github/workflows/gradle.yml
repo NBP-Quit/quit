@@ -54,11 +54,16 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
-          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
-          ls 
-          ls build/libs   
-          cd ../
+          services=("eureka-server", "gateway-server", "user', "store", "queue", "reservation", "payment", "review") 
+          for service in "${services[@]}"; do
+            echo "Processing $service..."
+            cd "$service" || { echo "Failed to change directory to $service"; exit 1; }
+            ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod # prod 프로파일 명시적으로 설정
+            ls
+            ls build/libs
+            
+            cd - || exit 1 # 이전 디렉토리로 돌아감
+          done
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
