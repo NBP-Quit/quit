@@ -55,7 +55,7 @@ jobs:
       - name: Build with Gradle
         run: |
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
-          ./gradlew clean build -x test --no-daemon --debug -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
           ls 
           ls build/libs   
           cd ../
@@ -147,6 +147,16 @@ jobs:
           source: "eureka-server-compose.yml"
           target: "/home/ubuntu"
 
+      # Gateway-server-compose.yml 복제
+      - name: Copy Gateway compose file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GATEWAY_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "gateway-server-compose.yml"
+          target: "/home/ubuntu"
+
       # Copy prometheus.yml to EC2
       - name: Copy prometheus.yml to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -186,6 +196,26 @@ jobs:
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml --env-file /home/ubuntu/.env up -d
+
+      - name: Deploy Gateway to EC2  #Eureka server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
+        with:
+          host: ${{ secrets.GATEWAY_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
+          script: |
+            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down
+            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml pull
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml --env-file /home/ubuntu/.env up -d
 
       - name: Deploy to EC2  #EC2 용량 증가
         uses: appleboy/ssh-action@v1.0.3
