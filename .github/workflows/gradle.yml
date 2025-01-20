@@ -123,7 +123,7 @@ jobs:
           script: |
             # EC2에서 .env 파일 생성
             echo "# Environment Variables" > /home/ubuntu/.env
-              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
               value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
               echo "$secret=$value" >> /home/ubuntu/.env
             done
@@ -149,7 +149,7 @@ jobs:
           script: |
             # EC2에서 .env 파일 생성
             echo "# Environment Variables" > /home/ubuntu/.env
-              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
               value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
               echo "$secret=$value" >> /home/ubuntu/.env
             done
@@ -175,7 +175,7 @@ jobs:
           script: |
             # EC2에서 .env 파일 생성
             echo "# Environment Variables" > /home/ubuntu/.env
-              for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
+            for secret in $(echo "$SECRETS_CONTEXT" | jq -r 'keys[]'); do
               value=$(echo "$SECRETS_CONTEXT" | jq -r --arg key "$secret" '.[$key]')
               echo "$secret=$value" >> /home/ubuntu/.env
             done

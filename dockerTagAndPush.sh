@@ -13,14 +13,6 @@ imageName="laira2/quit"
 for service in "${services[@]}"
 do
   latestTag="$service-latest"  # latest 태그
-  echo "======= 현재 위치 : $(pwd) ======="
-  echo "======= 확인 중인 서비스 : $service ======="
-  # 현재 디렉토리 확인
-  echo "현재 경로 확인: $(pwd)"
-
-  # 현재 디렉토리 내 파일 목록 확인
-  echo "현재 경로 내 파일 목록:"
-  ls -l
 
   docker build -t "$imageName:$latestTag" "/home/runner/work/quit/quit/$service"
 
