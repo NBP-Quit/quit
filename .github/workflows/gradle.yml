@@ -94,7 +94,7 @@ jobs:
 
       - name: error reports
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: report_files
           path: report_files_*.tar.gz
