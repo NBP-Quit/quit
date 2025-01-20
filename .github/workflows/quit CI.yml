@@ -45,6 +45,7 @@ jobs:
 
       - name: eureka 도커 이미지 빌드 & push
         run: |
+          chmod +x ./dockerTagAndPush.sh
           docker compose -f eureka-server-compose.yml build --no-cache
           ./dockerTagAndPush.sh
         env:
@@ -58,6 +59,15 @@ jobs:
           echo "========gateway========="
           ls build/libs
           cd ../
+
+      - name: gateway 도커 이미지 빌드 & push
+        run: |
+          chmod +x ./dockerTagAndPush.sh
+          docker compose -f gateway-server-compose.yml build --no-cache
+          ./dockerTagAndPush.sh
+        env:
+          EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
       - name: user 빌드
         run: |

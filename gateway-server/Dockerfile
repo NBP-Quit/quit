@@ -15,11 +15,7 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
-RUN ls -al
-# build 디렉토리 내에 있는 파일을 확인
-RUN pwd
-
-COPY ./build/libs/gateway-0.0.1-SNAPSHOT.jar ./app.jar
+COPY $FILE_DIRECTORY/build/libs/*.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
 
