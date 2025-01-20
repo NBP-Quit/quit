@@ -59,7 +59,7 @@ jobs:
           set +o allexport
           
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
-          ./gradlew clean build -x test --no-daemon --info
+          ./gradlew clean build -x test --no-daemon --info -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
           ls 
           ls build/libs   
           cd ../
