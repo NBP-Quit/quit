@@ -13,6 +13,6 @@ RUN echo "file Directory $FILE_DIRECTORY"
 RUN ls -al
 RUN cd ./build/libs && ls -al
 
-COPY ./build/libs/SNAPSHOT.jar ./app.jar
+COPY ./build/libs/*.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
