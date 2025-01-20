@@ -14,3 +14,4 @@ COPY $FILE_DIRECTORY /app
 COPY ./build/libs/*SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
+
