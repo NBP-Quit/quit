@@ -19,7 +19,7 @@ public class IdempotencyService {
         redisTemplate.opsForValue().set(
                 "idempotencyKey::" + idempotencyKey,
                 paymentKey,
-                Duration.ofDays(15) // 15일간 유효
+                Duration.ofDays(15)
         );
     }
 
