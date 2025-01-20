@@ -37,8 +37,6 @@ public class ReservationService {
      * 3. 가게로 예약 정보 보내고, 결제 시스템에 결제 요청 보내기
      * 4. 결제 완료되면 예약 상태 변경하기*/
 
-    //TODO: OWNER 권한에 대한 본인 가게 여부 확인
-
     @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
@@ -169,13 +167,14 @@ public class ReservationService {
         validationService.validateReservationTime(request.getReservationTime());
     }
 
-    private void assertPermission(String requestCustomerId, String customerId, String userRole, UUID storeId) {
+    private void assertPermission(String customerId, String requestCustomerId, String userRole, UUID storeId) {
         if (requestCustomerId.equals(customerId) || userRole.equals(Role.MASTER.name())) {
             return;
         }
 
         if (userRole.equals(Role.OWNER.name())) {
             checkOwnerPermission(storeId, requestCustomerId);
+            return;
         }
 
         throw new CustomException(ErrorType.ACCESS_DENIED);

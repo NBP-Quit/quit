@@ -60,7 +60,7 @@ public class ReservationMessagingConsumer {
 
         log.info("예약 상태 변경 호출");
         UUID slotId = reservationService.findReservationSlotId(reservationId);
-        ReservationStatus status = ReservationStatus.ACCEPTED;
+        ReservationStatus status = ReservationStatus.CONFIRMED;
         reservationService.changeReservationStatusAsync(reservationId, status, slotId);
     }
 
