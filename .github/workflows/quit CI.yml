@@ -250,42 +250,42 @@ jobs:
           source: "prometheus-compose.yml"
           target: "/home/ubuntu"
 
-#      - name: Add environment variables to Parameter Store
-#        run: |
-#          declare -A params
-#          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
-#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-#          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
-#          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
-#          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
-#          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
-#          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
-#          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
-#          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
-#          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
-#          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
-#          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-#          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
-#          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
-#          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
-#          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
-#          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
-#          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
-#          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
-#          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
-#          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
-#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-#          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-#          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
-#
-#          # Iterate over the parameters and create them in Parameter Store
-#          for key in "${!params[@]}"; do
-#            aws ssm put-parameter \
-#              --name "/quit/$key" \
-#              --value "${params[$key]}" \
-#              --type "SecureString" \
-#              --overwrite
-#          done
+      - name: Add environment variables to Parameter Store
+        run: |
+          declare -A params
+          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
+          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
+          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
+          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
+          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
+          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
+          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
+          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
+          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
+          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
+          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
+          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
+          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
+          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
+          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
+          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
+          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+
+          # Iterate over the parameters and create them in Parameter Store
+          for key in "${!params[@]}"; do
+            aws ssm put-parameter \
+              --name "/quit/$key" \
+              --value "${params[$key]}" \
+              --type "SecureString" \
+              --overwrite
+          done
 
       - name: Eureka server 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -359,12 +359,97 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
-            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_USERNAME=$(aws ssm get-parameter --name "/quit/REDIS_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PASSWORD=$(aws ssm get-parameter --name "/quit/REDIS_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            STORE_BASEURL=$(aws ssm get-parameter --name "/quit/STORE_BASEURL" --with-decryption --query "Parameter.Value" --output text)
+            GATEWAY_BASEURL=$(aws ssm get-parameter --name "/quit/GATEWAY_BASEURL" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export REDIS_HOST
+            export REDIS_PORT
+            export REDIS_USERNAME
+            export REDIS_PASSWORD
+            export STORE_BASEURL
+            export GATEWAY_BASEURL
+            
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/queue-compose.yml up -d
 
-      - name: Deploy to EC2  #EC2 용량 증가
+      - name: reservation 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.RESERVATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            RESERVATION_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/RESERVATION_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            FEIGN_URL=$(aws ssm get-parameter --name "/quit/FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export REDIS_HOST
+            export REDIS_PORT
+            export DATASOURCE_DRIVER_CLASS_NAME
+            export DATASOURCE_PROD_USERNAME
+            export DATASOURCE_PROD_PASSWORD
+            export RESERVATION_DATASOURCE_PROD_URL
+            export FEIGN_URL
+            
+            sudo docker-compose -f /home/ubuntu/reservation-compose.yml down
+            sudo docker-compose -f /home/ubuntu/reservation-compose.yml pull
+            
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/reservation-compose.yml up -d
+
+      - name: payment 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.PAYMENT_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            PAYMENT_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/PAYMENT_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            PAYMENT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/PAYMENT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export DATASOURCE_DRIVER_CLASS_NAME
+            export DATASOURCE_PROD_USERNAME
+            export DATASOURCE_PROD_PASSWORD
+            export PAYMENT_DATASOURCE_PROD_URL
+            export PAYMENT_SECRET_KEY
+
+            sudo docker-compose -f /home/ubuntu/payment-compose.yml down
+            sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
+
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/payment-compose.yml up -d
+
+      - name: user, store, review 배포
         uses: appleboy/ssh-action@v1.0.3
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -379,9 +464,55 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
           script: |
-            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_USERNAME=$(aws ssm get-parameter --name "/quit/REDIS_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PASSWORD=$(aws ssm get-parameter --name "/quit/REDIS_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            
+            USER_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/USER_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            
+            STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            
+            REVIEW_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/REVIEW_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            RABBITMQ_HOST=$(aws ssm get-parameter --name "/quit/RABBITMQ_HOST" --with-decryption --query "Parameter.Value" --output text)
+            RABBITMQ_PORT=$(aws ssm get-parameter --name "/quit/RABBITMQ_PORT" --with-decryption --query "Parameter.Value" --output text)
+            RABBITMQ_USERNAME=$(aws ssm get-parameter --name "/quit/RABBITMQ_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            RABBITMQ_PASSWORD=$(aws ssm get-parameter --name "/quit/RABBITMQ_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            S3_ACCESS_KEY=$(aws ssm get-parameter --name "/quit/S3_ACCESS_KEY" --with-decryption --query "Parameter.Value" --output text)
+            S3_SECRET_KEY=$(aws ssm get-parameter --name "/quit/S3_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            S3_BUCKET=$(aws ssm get-parameter --name "/quit/S3_BUCKET" --with-decryption --query "Parameter.Value" --output text)
+            
+            export EUREKA_PROD_URL
+            export REDIS_HOST
+            export REDIS_PORT
+            export REDIS_USERNAME
+            export REDIS_PASSWORD
+            export DATASOURCE_DRIVER_CLASS_NAME
+            export DATASOURCE_PROD_USERNAME
+            export DATASOURCE_PROD_PASSWORD
+            
+            export USER_DATASOURCE_PROD_URL
+            export JWT_SECRET_KEY
+            
+            export STORE_DATASOURCE_PROD_URL
+            
+            export REVIEW_DATASOURCE_PROD_URL
+            export RABBITMQ_HOST
+            export RABBITMQ_PORT
+            export RABBITMQ_USERNAME
+            export RABBITMQ_PASSWORD
+            export S3_ACCESS_KEY
+            export S3_SECRET_KEY
+            export S3_BUCKET
+            
             sudo docker-compose down
             sudo docker-compose pull
+            
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose up -d
 
       - name: Prometheus server 배포
@@ -398,7 +529,7 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
-            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
             sudo docker-compose -f /home/ubuntu/prometheus-compose.yml down
             sudo docker-compose -f /home/ubuntu/prometheus-compose.yml pull
+            
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/prometheus-compose.yml up -d
