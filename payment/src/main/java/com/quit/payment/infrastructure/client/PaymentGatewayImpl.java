@@ -14,8 +14,8 @@ public class PaymentGatewayImpl implements PaymentGateway {
     private final PaymentClient paymentClient;
 
     @Override
-    public ConfirmPaymentResponse confirmPayment(PaymentDto request) {
-        return paymentClient.confirmPayment(request);
+    public ConfirmPaymentResponse confirmPayment(String idempotencyKey, PaymentDto request) {
+        return paymentClient.confirmPayment(idempotencyKey, request);
     }
 
     @Override
