@@ -52,10 +52,16 @@ jobs:
           echo "STORE_DATASOURCE_PROD_URL=${{ secrets.STORE_DATASOURCE_PROD_URL }}" > .env
           echo "USER_DATASOURCE_PROD_URL=${{ secrets.USER_DATASOURCE_PROD_URL }}" > .env
 
+      - name: Clean build environment
+        run: |
+          sudo docker system prune -af
+          rm -rf ~/.gradle/caches/
+          rm -rf */build
+
       - name: Build with Gradle
         run: |
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
-          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
+           ./gradlew clean build --no-build-cache -x test --no-daemon -Dspring.profiles.active=prod
           ls 
           ls build/libs   
           cd ../
