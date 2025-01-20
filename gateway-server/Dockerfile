@@ -11,13 +11,9 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
-# gradlew 파일에 실행 권한 추가
-RUN chmod +x gradlew
-# gradle 빌드 실행 (build 디렉토리 생성)
-RUN ./gradlew clean build -x test --no-daemon
-
+RUN ls -al
 # build 디렉토리 내에 있는 파일을 확인
-RUN ls -al ./build/libs
+RUN pwd
 
 COPY $FILE_DIRECTORY/build/libs/gateway-server-0.0.1-SNAPSHOT.jar ./app.jar
 
