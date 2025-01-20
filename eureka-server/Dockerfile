@@ -9,6 +9,6 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
-COPY /eureka-server/app/build/libs/*.jar /app.jar
+COPY /app/build/libs/*.jar /app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
