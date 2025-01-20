@@ -11,8 +11,9 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
 COPY $FILE_DIRECTORY /app
 
-RUN cd ./build/libs/ && ls -al
-RUN cd ../../
+RUN ls -al
+RUN cd ./build/libs && ls -al
+
 COPY $FILE_DIRECTORY/build/libs/gateway-server-0.0.1-SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
