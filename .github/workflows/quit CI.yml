@@ -68,7 +68,7 @@ jobs:
           docker compose -f gateway-server-compose.yml build --no-cache
           docker push "laira2/quit:gateway-server-latest"
         env:
-          EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
       - name: user 빌드
@@ -271,13 +271,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
         with:
           host: ${{ secrets.GATEWAY_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, DOCKER_HUB_NAMESPACE
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
             echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down

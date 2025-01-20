@@ -14,5 +14,3 @@ services:
       - "19091:8080"  # 외부:내부
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    env_file:
-      - .env
