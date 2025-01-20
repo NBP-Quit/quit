@@ -54,7 +54,7 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          services=("eureka-server", "gateway-server", "user", "store", "queue", "reservation", "payment", "review") 
+          services=("eureka-server" "gateway-server" "user" "store" "queue" "reservation" "payment" "review") 
           for service in "${services[@]}"; do
             echo "Processing $service..."
             cd "$service" || { echo "Failed to change directory to $service"; exit 1; }
