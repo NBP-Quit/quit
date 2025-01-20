@@ -6,7 +6,7 @@ on:
       - feat/112-quit
 
 jobs:
-  build:
+  build-build-eureka:
     runs-on: ubuntu-latest
     strategy:
       matrix:
