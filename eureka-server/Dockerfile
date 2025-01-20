@@ -10,7 +10,8 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 COPY $FILE_DIRECTORY /app
 
 RUN echo "file Directory $FILE_DIRECTORY"
-RUN cd ./build/libs && ls -al
+RUN ls -al
+RUN cd ./build && ls -al
 COPY ./build/libs/*.jar /app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
