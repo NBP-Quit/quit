@@ -18,7 +18,7 @@ RUN chmod +x gradlew
 RUN ./gradlew clean build -x test --no-daemon
 
 # build 디렉토리 내에 있는 파일을 확인
-RUN ls -al ./build/libs
+RUN ls -al
 
 COPY $FILE_DIRECTORY/build/libs/gateway-server-0.0.1-SNAPSHOT.jar ./app.jar
 
