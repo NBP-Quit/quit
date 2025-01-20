@@ -11,9 +11,8 @@ COPY $FILE_DIRECTORY /app
 
 RUN echo "file Directory $FILE_DIRECTORY"
 RUN ls -al
-RUN cd /app && ls -al
-RUN cd /app/build && ls -al
-RUN cd /app/build/libs/ && ls -al
+RUN cd ./build && ls -al
+RUN cd ./build/libs/ && ls -al
 
 COPY ./build/libs/eureka-server-0.0.1-SNAPSHOT.jar ./app.jar
 
