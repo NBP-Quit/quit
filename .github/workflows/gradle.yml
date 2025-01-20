@@ -92,6 +92,13 @@ jobs:
           DOCKER_HUB_NAMESPACE: ${{ secrets.DOCKER_HUB_NAMESPACE }}
           DOCKER_HUB_REPOSITORY: "quit"
 
+      - name: error reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: report_files
+          path: report_files_*.tar.gz
+
   Deploy:
     name: Deploy
     needs: build
