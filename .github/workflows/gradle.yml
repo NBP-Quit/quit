@@ -90,7 +90,7 @@ jobs:
 
       - name: Build, Tag and Push docker image to Hub
         run: |
-          sudo docker system prune -a
+          sudo docker system prune 
           DOCKER_BUILDKIT=0 docker compose -f prometheus-compose.yml build
           DOCKER_BUILDKIT=0 docker compose build
           ./dockerTagAndPush.sh
