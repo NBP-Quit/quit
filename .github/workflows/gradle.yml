@@ -59,6 +59,8 @@ jobs:
           ls 
           ls build/libs   
           cd ../
+          # build 디렉토리가 있는지 확인
+          ls ${{ matrix.service }}/build/libs/  
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
