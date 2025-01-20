@@ -9,9 +9,7 @@ ARG EUREKA_PROD_URL
 ENV JWT_SECRET_KEY=$JWT_SECRET_KEY
 ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 
-COPY $FILE_DIRECTORY /app
-
-RUN ls -al /app  # 빌드 중에 /app 디렉토리의 파일 나열
+COPY $FILE_DIRECTORY/eureka-server /app
 
 COPY /app/build/libs/*.jar /app.jar
 
