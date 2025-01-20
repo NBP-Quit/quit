@@ -28,6 +28,29 @@ jobs:
       - name: Make gradlew executable for ${{ matrix.service }}
         run: chmod +x ./${{ matrix.service }}/gradlew
 
+      - name: Update .env file
+        run: |
+          echo "EUREKA_PROD_URL=${{ secrets.EUREKA_PROD_URL }}" > .env
+          
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" > .env
+          
+          echo "PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}" > .env
+          echo "DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}" > .env
+          echo "DATASOURCE_PROD_USERNAME=${{ secrets.DATASOURCE_PROD_USERNAME }}" > .env
+          echo "DATASOURCE_PROD_PASSWORD=${{ secrets.DATASOURCE_PROD_PASSWORD }}" > .env
+          echo "PAYMENT_DATASOURCE_PROD_URL=${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}" >> .env 
+          
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}" >> .env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+          echo "STORE_BASEURL=${{ secrets.STORE_BASEURL }}" >> .env
+          echo "GATEWAY_BASEURL=${{ secrets.GATEWAY_BASEURL }}" >> .env
+          
+          echo "RESERVATION_DATASOURCE_PROD_URL=${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}" > .env
+          
+          echo "STORE_DATASOURCE_PROD_URL=${{ secrets.STORE_DATASOURCE_PROD_URL }}" > .env
+          echo "USER_DATASOURCE_PROD_URL=${{ secrets.USER_DATASOURCE_PROD_URL }}" > .env
 
       - name: Build with Gradle
         run: | 
