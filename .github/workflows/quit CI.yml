@@ -172,8 +172,7 @@ jobs:
           RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
 
-
-  build-images:
+  deploy:
     needs:
       - build-services
     runs-on: ubuntu-latest
@@ -191,3 +190,76 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - uses: actions/checkout@v4
+      - name: docker-compose 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: eureka-server-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "eureka-server-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: Gateway-server-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GATEWAY_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "gateway-server-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: prometheus.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus.yml"
+          target: "/home/ubuntu"
+
+      - name: prometheus-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: queue-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.QUEUE_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: Eureka server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
