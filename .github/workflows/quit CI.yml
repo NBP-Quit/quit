@@ -250,42 +250,42 @@ jobs:
           source: "prometheus-compose.yml"
           target: "/home/ubuntu"
 
-      - name: Add environment variables to Parameter Store
-        run: |
-          declare -A params
-          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
-          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
-          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
-          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
-          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
-          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
-          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
-          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
-          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
-          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
-          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
-          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
-          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
-          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
-          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
-          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
-          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
-          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
-          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
-          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
-          
-          # Iterate over the parameters and create them in Parameter Store
-          for key in "${!params[@]}"; do
-            aws ssm put-parameter \
-              --name "/quit/$key" \
-              --value "${params[$key]}" \
-              --type "SecureString" \
-              --overwrite
-          done
+#      - name: Add environment variables to Parameter Store
+#        run: |
+#          declare -A params
+#          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
+#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+#          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+#          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
+#          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
+#          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
+#          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
+#          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
+#          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
+#          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
+#          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
+#          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+#          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+#          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
+#          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
+#          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
+#          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+#          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
+#          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
+#          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
+#          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
+#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+#          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+#          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+#
+#          # Iterate over the parameters and create them in Parameter Store
+#          for key in "${!params[@]}"; do
+#            aws ssm put-parameter \
+#              --name "/quit/$key" \
+#              --value "${params[$key]}" \
+#              --type "SecureString" \
+#              --overwrite
+#          done
 
       - name: Eureka server 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -333,9 +333,16 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
-            echo ${{secrets.DOCKER_PASSWORD }} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+            # AWS SSM에서 파라미터 가져오기
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export JWT_SECRET_KEY
+            
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml pull
+            
             SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
 
       - name: Queue 배포
