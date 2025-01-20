@@ -301,14 +301,23 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
+            # AWS SSM에서 파라미터 가져오기
             EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            
-            echo "EUREKA_PROD_URL=$EUREKA_PROD_URL"
-            
+      
+            if [ -z "$EUREKA_PROD_URL" ]; then
+              echo "Error: EUREKA_PROD_URL is empty"
+              exit 1
+            fi
+      
+            # EUREKA_PROD_URL 환경 변수 export
+            export EUREKA_PROD_URL
+      
+            # Docker Compose 실행
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
       
-            SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
+            # 환경 변수를 설정하고 Docker Compose up
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
 
       - name:  gateway server 배포
         uses: appleboy/ssh-action@v1.0.3
