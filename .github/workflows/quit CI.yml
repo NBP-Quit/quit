@@ -133,7 +133,7 @@ jobs:
 
       - name: eureka 도커 이미지 빌드 & push
         run: |
-          docker compose -f gateway-server-compose.yml build --no-cache
+          docker compose -f eureka-server-compose.yml build --no-cache
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
 
