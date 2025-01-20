@@ -107,6 +107,8 @@ jobs:
           cd ../
 
   build-images:
+    needs:
+      - build-services
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -134,6 +136,14 @@ jobs:
       - name: eureka 도커 이미지 빌드 & push
         run: |
           docker compose -f eureka-server-compose.yml build --no-cache
+          ./dockerTagAndPush.sh
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
 
+      - name: gateway 도커 이미지 빌드 & push
+        run: |
+          docker compose -f gateway-server-compose.yml build --no-cache
+          ./dockerTagAndPush.sh
+        env:
+          EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
