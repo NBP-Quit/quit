@@ -37,6 +37,7 @@ public class PaymentService {
     private final ReservationGateway reservationGateway;
     private final PaymentGateway paymentGateway;
     private final KafkaProducer kafkaProducer;
+    private final IdempotencyService idempotencyService;
     private static final String PAYMENT_SUCCESS_TOPIC = "payment.create.success";
     private static final String PAYMENT_FAILED_TOPIC = "payment.create.failed";
 
@@ -49,11 +50,16 @@ public class PaymentService {
     public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
         TempPayment tempPayment = validateTempPayment(request);
         UUID retrievedReservationId = reservationGateway.getReservation(reservationId).getData();
-        log.info("reservationId= {}", retrievedReservationId);
-        ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
+        String idempotencyKey = request.getIdempotencyKey();
+        String paymentKey = idempotencyService.getPaymentKeyByIdempotencyKey(idempotencyKey);
+        if (paymentKey != null) {
+            throw new CustomException(REQUEST_ALREADY_PROCESSED);
+        }
+        ConfirmPaymentResponse response = paymentGateway.confirmPayment(idempotencyKey, request);
         log.info("Confirm payment response: {}", response);
         Payment payment = create(response, retrievedReservationId);
         paymentRepository.save(payment);
+        idempotencyService.saveIdempotencyKey(idempotencyKey, request.getPaymentKey());
         sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(retrievedReservationId, payment.getId(), payment.getAmount()));
         return PaymentResponse.from(payment);
     }
