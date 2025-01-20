@@ -12,7 +12,7 @@ ENV EUREKA_PROD_URL=$EUREKA_PROD_URL
 COPY $FILE_DIRECTORY /app
 
 # gradlew 파일에 실행 권한 추가
-RUN chmod +x gradlew
+RUN chmod +x /app/gradlew
 
 # gradle 빌드 실행 (build 디렉토리 생성)
 RUN ./gradlew clean build -x test --no-daemon
