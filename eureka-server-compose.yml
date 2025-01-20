@@ -3,6 +3,8 @@ services:
     image: laira2/quit:eureka-server-latest
     container_name: eureka
     build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
       args:
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
     ports:
@@ -16,6 +18,8 @@ services:
     image: laira2/quit:gateway-server-latest
     container_name: gateway
     build:
+      context: .
+      dockerfile: gateway-server/Dockerfile
       args:
         JWT_SECRET_KEY: ${JWT_SECRET_KEY}
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
