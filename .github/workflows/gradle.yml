@@ -54,12 +54,8 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          set -o allexport
-          source .env
-          set +o allexport
-          
           cd ${{ matrix.service }} # 각 서비스 디렉토리로 이동 
-          ./gradlew clean build -x test --no-daemon --info -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod  # prod 프로파일을 명시적으로 설정
           ls 
           ls build/libs   
           cd ../
@@ -91,7 +87,6 @@ jobs:
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-
 
       - name: Build, Tag and Push docker image to Hub
         run: |
