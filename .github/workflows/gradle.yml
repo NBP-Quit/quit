@@ -51,17 +51,7 @@ jobs:
 
       - name: Build, Tag and Push docker image to Hub
         run: |          
-          cd eureka-server
-          docker build \
-            --build-arg EUREKA_PROD_URL=${{secrets.EUREKA_PROD_URL}} \
-            --build-arg JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
-            -t laira2/quit:eureka-server-latest .
-          cd ../gateway-server
-          docker build \
-            --build-arg EUREKA_PROD_URL=${{secrets.EUREKA_PROD_URL}} \
-            --build-arg JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
-            -t laira2/quit:gateway-server-latest .
-          cd ../
+          DOCKER_BUILDKIT=0 docker compose -f eureka-server-compose.yml build
           DOCKER_BUILDKIT=0 docker compose -f prometheus-compose.yml build
           DOCKER_BUILDKIT=0 docker compose build
           ./dockerTagAndPush.sh

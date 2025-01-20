@@ -14,6 +14,9 @@ for service in "${services[@]}"
 do
   latestTag="$service-latest"  # latest 태그
 
+
+  docker build -t "$imageName:$latestTag" "/home/runner/work/quit/quit/$service"
+
   # Docker Hub에 푸시
   docker push "$imageName:$latestTag"
 
