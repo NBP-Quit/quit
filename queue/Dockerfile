@@ -6,6 +6,6 @@ ARG FILE_DIRECTORY
 
 COPY $FILE_DIRECTORY /app
 
-COPY /app/build/libs/*.jar /app.jar
+COPY /eureka-server/app/build/libs/*.jar /app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
