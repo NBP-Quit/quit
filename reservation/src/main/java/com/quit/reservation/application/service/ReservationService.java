@@ -29,7 +29,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationValidationService validationService;
     private final MessageProducer messageProducer;
-    private final ReservationSlotClientService reservationSlotClientService;
+    private final StoreClientService storeClientService;
     private final ReservationValidationService reservationValidationService;
     /* 예약 생성 및 확정
      * 1. 가게에서 예약 정보 가져오기
@@ -42,7 +42,7 @@ public class ReservationService {
     @DistributedLock(key = "#request.storeId + ':' + #request.reservationDate + ':' + #request.reservationTime")
     public CreateReservationResponse createReservation(CreateReservationDto request, String customerId) {
         log.info("예약 생성 작업 시작");
-        GetReservationSlotResponse response = reservationSlotClientService
+        GetReservationSlotResponse response = storeClientService
                 .getSlotByDateAndTime(request.getStoreId(), request.getReservationDate(), request.getReservationTime())
                 .getData();
 
@@ -83,7 +83,7 @@ public class ReservationService {
 
         validationService.validateChangeReservationStatus(
                 request.getReservationStatus(), reservation.getReservationStatus());
-        assertPermission(reservation.getCustomerId(), customerId, userRole);
+        assertPermission(reservation.getCustomerId(), customerId, userRole, reservation.getStoreId());
 
         reservation.changeStatus(request.getReservationStatus());
         log.info("예약 상태 변경 작업 완료");
@@ -109,7 +109,7 @@ public class ReservationService {
         Reservation reservation = findReservation(reservationId);
 
         validationService.validateCancelReservationStatus(reservation.getReservationStatus());
-        assertPermission(reservation.getCustomerId(), customerId, userRole);
+        assertPermission(reservation.getCustomerId(), customerId, userRole, reservation.getStoreId());
 
         reservation.cancel();
         sendCancelReservationMessage(reservation);
@@ -169,11 +169,15 @@ public class ReservationService {
         validationService.validateReservationTime(request.getReservationTime());
     }
 
-    private void assertPermission(String requestCustomerId, String customerId, String userRole) {
-        if (requestCustomerId.equals(customerId) || userRole.equals(Role.OWNER.name())
-                || userRole.equals(Role.MASTER.name())) {
+    private void assertPermission(String requestCustomerId, String customerId, String userRole, UUID storeId) {
+        if (requestCustomerId.equals(customerId) || userRole.equals(Role.MASTER.name())) {
             return;
         }
+
+        if (userRole.equals(Role.OWNER.name())) {
+            checkOwnerPermission(storeId, requestCustomerId);
+        }
+
         throw new CustomException(ErrorType.ACCESS_DENIED);
     }
 
@@ -189,5 +193,13 @@ public class ReservationService {
                 reservation.getGuestCount(), reservation.getReservationDate(), reservation.getReservationTime(),
                 reservation.getReservationStatus(), reservation.getReservationPrice());
         log.info("예약 알림 정보 메시지 송신 완료");
+    }
+
+    private void checkOwnerPermission(UUID storeId, String ownerId) {
+        Boolean isOwnerPermission = storeClientService.checkStoreOwnership(storeId, ownerId).getData();
+        if (isOwnerPermission) {
+            return;
+        }
+        throw new CustomException(ErrorType.ACCESS_DENIED_OWNER);
     }
 }
