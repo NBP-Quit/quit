@@ -37,6 +37,7 @@ jobs:
       - name: eureka 빌드
         run: |
           cd eureka-server
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========eureka========="
           ls build/libs
@@ -45,6 +46,7 @@ jobs:
       - name: gateway 빌드
         run: |
           cd gateway-server
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========gateway========="
           ls build/libs
@@ -53,6 +55,7 @@ jobs:
       - name: user 빌드
         run: |
           cd user
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========user========="
           ls build/libs
@@ -61,6 +64,7 @@ jobs:
       - name: store 빌드
         run: |
           cd store
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========store========="
           ls build/libs
@@ -69,6 +73,7 @@ jobs:
       - name: payment 빌드
         run: |
           cd payment
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========payment========="
           ls build/libs
@@ -77,6 +82,7 @@ jobs:
       - name: queue 빌드
         run: |
           cd queue
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========queue========="
           ls build/libs
@@ -85,6 +91,7 @@ jobs:
       - name: reservation 빌드
         run: |
           cd reservation
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========reservation========="
           ls build/libs
@@ -93,6 +100,7 @@ jobs:
       - name: review 빌드
         run: |
           cd review
+          chmod +x gradlew
           ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
           echo "========review========="
           ls build/libs
