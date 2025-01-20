@@ -43,6 +43,13 @@ jobs:
           ls build/libs
           cd ../
 
+      - name: eureka 도커 이미지 빌드 & push
+        run: |
+          docker compose -f eureka-server-compose.yml build --no-cache
+          ./dockerTagAndPush.sh
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+
       - name: gateway 빌드
         run: |
           cd gateway-server
@@ -153,16 +160,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: eureka 도커 이미지 빌드 & push
-        run: |
-          docker compose -f eureka-server-compose.yml build --no-cache
-          ./dockerTagAndPush.sh
-        env:
-          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+
 
       - name: gateway 도커 이미지 빌드 & push
         run: |
-          docker compose -f gateway-server-compose.yml build
+          ls -al /build/libs
+          echo "Checking for eureka-server-0.0.1-SNAPSHOT.jar..."
+          if [ -f "./build/libs/eureka-server-0.0.1-SNAPSHOT.jar" ]; then
+            echo "JAR file exists"
+            else
+            echo "JAR file not found"
+          fi
+          docker compose -f gateway-server-compose.yml build --no-cache
           ./dockerTagAndPush.sh
         env:
           EUREKA_PROD_URL: ${{ secrets.GATEWAY_PROD_URL }}
