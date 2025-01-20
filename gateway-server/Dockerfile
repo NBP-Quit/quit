@@ -19,7 +19,7 @@ RUN ls -al
 # build 디렉토리 내에 있는 파일을 확인
 RUN pwd
 
-COPY $FILE_DIRECTORY/build/libs/gateway-0.0.1-SNAPSHOT.jar ./app.jar
+COPY build/libs/gateway-0.0.1-SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
 
