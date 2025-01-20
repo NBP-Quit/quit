@@ -84,7 +84,6 @@ jobs:
         run: |
           sudo docker system prune -a
           DOCKER_BUILDKIT=0 docker compose -f eureka-server-compose.yml build --no-cache
-          DOCKER_BUILDKIT=0 docker compose -f gateway-server-compose.yml build --no-cache
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
 
