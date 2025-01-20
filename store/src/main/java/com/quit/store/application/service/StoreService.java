@@ -70,8 +70,14 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "store", key = "args[0]")
-    public Boolean getStoreForInternal(UUID storeId) {
+    public boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkStoreOwnership(UUID storeId, String userId) {
+        Store store = checkStore(storeId);
+        return isUserOwner(store, userId);
     }
 
     private Store checkStore(UUID storeId) {
@@ -81,10 +87,14 @@ public class StoreService {
 
     private void checkUser(Store store, String userId, String userRole) {
         if (userRole.equals("ROLE_OWNER")) {
-            if (!store.getUserId().equals(userId)) {
+            if(!isUserOwner(store, userId)) {
                 throw new CustomException(USER_NOT_SAME);
             }
         }
+    }
+
+    private boolean isUserOwner(Store store, String userId) {
+        return store.getUserId().equals(userId);
     }
 
     private Store create(StoreDto request, String userId) {
