@@ -12,7 +12,6 @@ COPY $FILE_DIRECTORY /app
 RUN echo "file Directory $FILE_DIRECTORY"
 RUN ls -al
 RUN cd ./build/libs && ls -al
-
-COPY ./build/libs/*SNAPSHOT.jar /app/app.jar
+COPY ./build/libs/eureka-server-0.0.1-SNAPSHOT.jar ./app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
