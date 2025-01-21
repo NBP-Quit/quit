@@ -233,6 +233,24 @@ jobs:
           source: "queue-compose.yml"
           target: "/home/ubuntu"
 
+      - name: reservation-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.RESERVATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "reservation-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: payment-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PAYMENT_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "payment-compose.yml"
+          target: "/home/ubuntu"
+
 #      - name: Add environment variables to Parameter Store
 #        run: |
 #          declare -A params
