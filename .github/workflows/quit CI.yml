@@ -325,6 +325,7 @@ jobs:
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
             
             sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=JWT_SECRET_KEY docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --no-build
+            docker inspect gateway-server | grep -A 5 "Env"
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -358,7 +359,7 @@ jobs:
             
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/queue-compose.yml up -d
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
 
       - name: reservation 배포
         uses: appleboy/ssh-action@v1.0.3
