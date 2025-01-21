@@ -446,7 +446,7 @@ jobs:
             DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
             PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
             PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
-            docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --no-build
+            docker-compose -f /home/ubuntu/payment-compose.yml up -d --no-build
 
       - name: user, store, review 배포
         uses: appleboy/ssh-action@v1.0.3
