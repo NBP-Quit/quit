@@ -1,4 +1,12 @@
 services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - quit-payment-network
+      -
   zookeeper:
     image: wurstmeister/zookeeper:latest
     platform: linux/amd64
@@ -7,7 +15,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-
+    networks:
+      - quit-payment-network
+      -
   kafka:
     image: wurstmeister/kafka:latest
     platform: linux/amd64
@@ -21,6 +31,8 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - quit-payment-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -32,6 +44,8 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
       KAFKA_CLUSTERS_0_READONLY: "false"
+    networks:
+      - quit-payment-network
 
   payment:
     image: laira2/quit:payment-latest
@@ -62,3 +76,9 @@ services:
       - zookeeper
       - kafka
       - kafka-ui
+    networks:
+      - quit-payment-network
+
+networks:
+  quit-payment-network:
+    driver: bridge
