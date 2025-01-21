@@ -233,46 +233,46 @@ jobs:
           source: "queue-compose.yml"
           target: "/home/ubuntu"
 
-      - name: Add environment variables to Parameter Store
-        run: |
-          declare -A params
-          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
-          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
-          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
-          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
-          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
-          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
-          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
-          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
-          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
-          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
-          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
-          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
-          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
-          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
-          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
-          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
-          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
-          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
-          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
-          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
-          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
-          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
-          params["S3_ACCESS_KEY"]="${{ secrets.S3_ACCESS_KEY }}"
-          params["S3_SECRET_KEY"]="${{ secrets.S3_SECRET_KEY }}"
-          params["S3_BUCKET"]="${{ secrets.S3_BUCKET }}"
-          params["FEIGN_URL"]="${{ secrets.FEIGN_URL }}"
-          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
-
-          # Iterate over the parameters and create them in Parameter Store
-          for key in "${!params[@]}"; do
-            aws ssm put-parameter \
-              --name "/quit/$key" \
-              --value "${params[$key]}" \
-              --type "SecureString" \
-              --overwrite
-          done
+#      - name: Add environment variables to Parameter Store
+#        run: |
+#          declare -A params
+#          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
+#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+#          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+#          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
+#          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
+#          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
+#          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
+#          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
+#          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
+#          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
+#          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
+#          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+#          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+#          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
+#          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
+#          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
+#          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+#          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+#          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
+#          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
+#          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
+#          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
+#          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+#          params["S3_ACCESS_KEY"]="${{ secrets.S3_ACCESS_KEY }}"
+#          params["S3_SECRET_KEY"]="${{ secrets.S3_SECRET_KEY }}"
+#          params["S3_BUCKET"]="${{ secrets.S3_BUCKET }}"
+#          params["FEIGN_URL"]="${{ secrets.FEIGN_URL }}"
+#          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+#
+#          # Iterate over the parameters and create them in Parameter Store
+#          for key in "${!params[@]}"; do
+#            aws ssm put-parameter \
+#              --name "/quit/$key" \
+#              --value "${params[$key]}" \
+#              --type "SecureString" \
+#              --overwrite
+#          done
 
       - name: Eureka server 배포
         uses: appleboy/ssh-action@v1.0.3
