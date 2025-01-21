@@ -127,11 +127,16 @@ jobs:
           echo "========notification========="
           ls build/libs
           cd ../
+
+      - name: notification 도커 이미지 빌드 & push
+        run: |
+          docker compose -f notification-compose.yml build --no-cache
+          docker push "laira2/quit:notification-latest"
         env:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
-          SLACK_TOKEN: ${SLACK_TOKEN}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
 
       - name: Build, Tag and Push docker image to Hub
         run: |
@@ -144,7 +149,6 @@ jobs:
           docker push "laira2/quit:reservation-latest"
           docker push "laira2/quit:payment-latest"
           docker push "laira2/quit:review-latest"
-          docker push "laira2/quit:notification-latest"
         env:
           DOCKER_HUB_REPOSITORY: "quit"
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
