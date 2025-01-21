@@ -7,6 +7,7 @@ services:
       dockerfile: eureka-server/Dockerfile
       args:
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
+        EUREKA_EC2_HOST: ${EUREKA_EC2_HOST}
         FILE_DIRECTORY: ./eureka-server
         SERVICE: "eureka"
     ports:
@@ -14,6 +15,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - EUREKA_EC2_HOST=${EUREKA_EC2_HOST}
     env_file:
       - .env
-
+    networks:
+      - host
+networks:
+  host:
+    external: true
