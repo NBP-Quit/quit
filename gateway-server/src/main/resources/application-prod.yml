@@ -1,6 +1,8 @@
 eureka:
   client:
+    fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: ${EUREKA_PROD_URL}
-    fetch-registry: true
+  instance:
+    prefer-ip-address: true
