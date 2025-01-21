@@ -1,0 +1,18 @@
+services:
+  eureka:
+    image: laira2/quit:notification-latest
+    container_name: notification
+    build:
+      context: .
+      dockerfile: notification/Dockerfile
+      args:
+        EUREKA_PROD_URL: ${EUREKA_PROD_URL}
+        SLACK_TOKEN: ${SLACK_TOKEN}
+        FILE_DIRECTORY: ./notification
+        SERVICE: "notification"
+    ports:
+      - "19097:8761"  # Eureka 서버는 표준 포트 유지
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - SLACK_TOKEN=${SLACK_TOKEN}
