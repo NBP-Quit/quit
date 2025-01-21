@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-public interface ReservationSlotClientService {
+public interface StoreClientService {
     ApiResponse<GetReservationSlotResponse> getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time);
+    ApiResponse<Boolean> checkStoreOwnership(UUID storeId, String ownerId);
 }
