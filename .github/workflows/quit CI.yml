@@ -295,11 +295,11 @@ jobs:
             export EUREKA_PROD_URL
       
             # Docker Compose 실행
-            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
       
             # 환경 변수를 설정하고 Docker Compose up
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
+            SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
 
       - name:  gateway server 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -322,10 +322,10 @@ jobs:
             export EUREKA_PROD_URL
             export JWT_SECRET_KEY
             
-            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down
+            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml pull
             
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
+            SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=JWT_SECRET_KEY sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
