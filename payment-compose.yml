@@ -17,7 +17,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - quit-payment-network
-      -
+
   kafka:
     image: wurstmeister/kafka:latest
     platform: linux/amd64
