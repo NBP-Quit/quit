@@ -18,7 +18,8 @@ public enum ErrorType {
     ACCESS_DENIED(UNAUTHORIZED, "작업을 수행하기 위한 권한이 없습니다."),
     NOT_FOUND_RESERVATION(BAD_REQUEST, "해당하는 예약 정보를 찾을 수 없습니다."),
     FAILED_CREATED_RESERVATION(BAD_REQUEST, "예약을 생성할 수 없습니다."),
-    FAILED_CHANGE_RESERVATION_STATUS(BAD_REQUEST, "예약 상태를 변경할 수 없습니다.")
+    FAILED_CHANGE_RESERVATION_STATUS(BAD_REQUEST, "예약 상태를 변경할 수 없습니다."),
+    ACCESS_DENIED_OWNER(UNAUTHORIZED, "가게에 대한 권한이 없습니다.")
     ;
 
     private final HttpStatus httpStatus;

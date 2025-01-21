@@ -82,5 +82,4 @@ public class ReservationSlotController {
         return ResponseEntity.ok(ApiResponse.success("삭제가 완료되었습니다."));
     }
 
-
 }

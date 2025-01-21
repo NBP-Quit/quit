@@ -20,8 +20,8 @@ public class StoreServerAssignmentController {
         return storeServerAssignmentService.assignStoreToServer(storeId, userRole);
     }
 
-    @PatchMapping("/changeAssignment")
-    public Mono<ApiResponse<Object>> changeStoreAssignment(@RequestParam UUID storeId,
+    @PatchMapping("{storeId}/server")
+    public Mono<ApiResponse<Object>> changeStoreAssignment(@PathVariable UUID storeId,
                                                            @RequestParam String fromServerId,
                                                            @RequestParam String toServerId,
                                                            @RequestHeader(value = "X-User-Role") String userRole) {

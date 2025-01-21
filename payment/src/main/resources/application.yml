@@ -2,7 +2,7 @@ spring:
   application:
     name: payment
   profiles:
-    active: prod
+    active: dev
   jpa:
     hibernate:
       ddl-auto: update
@@ -11,6 +11,7 @@ spring:
         show_sql: true
         format_sql: true
         use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -34,3 +35,9 @@ logging:
     root: INFO
     com.quit.payment.infrastructure: DEBUG
     feign: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

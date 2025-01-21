@@ -55,6 +55,14 @@ dependencies {
 
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // prometheus
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    //redisson
+    implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
+
 }
 
 dependencyManagement {
