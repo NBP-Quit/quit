@@ -51,7 +51,7 @@ services:
     image: laira2/quit:payment-latest
     container_name: payment-service
     build:
-      context: payment
+      context: .
       dockerfile: payment/Dockerfile
       args:
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
