@@ -9,6 +9,17 @@ services:
   queue:
     image: laira2/quit:queue-latest
     container_name: queue-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - STORE_BASEURL=${STORE_BASEURL}
+      - GATEWAY_BASEURL=${GATEWAY_BASEURL}
+    ports:
+      - "19096:8080"
     build:
       context: .
       dockerfile: queue/Dockerfile
@@ -21,17 +32,6 @@ services:
         STORE_BASEURL: ${STORE_BASEURL}
         GATEWAY_BASEURL: ${GATEWAY_BASEURL}
         FILE_DIRECTORY: ./queue
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - STORE_BASEURL=${STORE_BASEURL}
-      - GATEWAY_BASEURL=${GATEWAY_BASEURL}
-    ports:
-      - "19096:8080"
     depends_on:
       - redis
     networks:

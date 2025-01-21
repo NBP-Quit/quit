@@ -2,6 +2,12 @@ services:
   gateway:
     image: laira2/quit:gateway-server-latest
     container_name: gateway-server
+    ports:
+      - "19091:8080"  # 외부:내부
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     build:
       context: .
       dockerfile: gateway-server/Dockerfile
@@ -9,9 +15,3 @@ services:
         JWT_SECRET_KEY: ${JWT_SECRET_KEY}
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
         FILE_DIRECTORY: ./gateway-server
-    ports:
-      - "19091:8080"  # 외부:내부
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}

@@ -324,7 +324,7 @@ jobs:
             
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
             
-            sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=JWT_SECRET_KEY docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --no-build
+            sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=$JWT_SECRET_KEY docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --no-build
             docker inspect gateway-server | grep -A 5 "Env"
 
       - name: Queue 배포
@@ -341,25 +341,18 @@ jobs:
           port: 22
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
           script: |
-            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
-            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
-            REDIS_USERNAME=$(aws ssm get-parameter --name "/quit/REDIS_USERNAME" --with-decryption --query "Parameter.Value" --output text)
-            REDIS_PASSWORD=$(aws ssm get-parameter --name "/quit/REDIS_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
-            STORE_BASEURL=$(aws ssm get-parameter --name "/quit/STORE_BASEURL" --with-decryption --query "Parameter.Value" --output text)
-            GATEWAY_BASEURL=$(aws ssm get-parameter --name "/quit/GATEWAY_BASEURL" --with-decryption --query "Parameter.Value" --output text)
-
-            export EUREKA_PROD_URL
-            export REDIS_HOST
-            export REDIS_PORT
-            export REDIS_USERNAME
-            export REDIS_PASSWORD
-            export STORE_BASEURL
-            export GATEWAY_BASEURL
+            echo "EUREKA_PROD_URL=$(aws ssm get-parameter --name /quit/EUREKA_PROD_URL --with-decryption --query Parameter.Value --output text)" > .env
+            echo "REDIS_HOST=$(aws ssm get-parameter --name /quit/REDIS_HOST --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_PORT=$(aws ssm get-parameter --name /quit/REDIS_PORT --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_USERNAME=$(aws ssm get-parameter --name /quit/REDIS_USERNAME --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_PASSWORD=$(aws ssm get-parameter --name /quit/REDIS_PASSWORD --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "STORE_BASEURL=$(aws ssm get-parameter --name /quit/STORE_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
-            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
+            
+            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
 
       - name: reservation 배포
         uses: appleboy/ssh-action@v1.0.3
