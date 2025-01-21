@@ -544,8 +544,8 @@ jobs:
             export REDIS_HOST
             export REDIS_PORT
             
-            sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/notification-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/notification-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   SLACK_TOKEN=$SLACK_TOKEN \ 
