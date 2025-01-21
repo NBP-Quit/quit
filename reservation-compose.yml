@@ -41,4 +41,4 @@ services:
 
 networks:
   quit-network:
-    driver: bride
+    driver: bridge
