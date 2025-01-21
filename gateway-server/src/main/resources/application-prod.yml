@@ -2,5 +2,5 @@ eureka:
   client:
     register-with-eureka: true
     service-url:
-      defaultZone: ${EUREK_PROD_URL}
+      defaultZone: ${EUREKA_PROD_URL}
     fetch-registry: true
