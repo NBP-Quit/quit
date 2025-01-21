@@ -1,5 +1,5 @@
 services:
-  gateway:
+  gateway-server:
     image: laira2/quit:gateway-server-latest
     container_name: gateway-server
     ports:
