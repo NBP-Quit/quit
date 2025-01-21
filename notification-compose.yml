@@ -8,6 +8,8 @@ services:
       args:
         EUREKA_PROD_URL: ${EUREKA_PROD_URL}
         SLACK_TOKEN: ${SLACK_TOKEN}
+        REDIS_HOST: ${REDIS_HOST}
+        REDIS_PORT: ${REDIS_PORT}
         FILE_DIRECTORY: ./notification
         SERVICE: "notification"
     ports:
@@ -16,3 +18,5 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - SLACK_TOKEN=${SLACK_TOKEN}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}

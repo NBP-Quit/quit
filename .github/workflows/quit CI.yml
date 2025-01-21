@@ -127,6 +127,11 @@ jobs:
           echo "========notification========="
           ls build/libs
           cd ../
+        env:
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          SLACK_TOKEN: ${SLACK_TOKEN}
 
       - name: Build, Tag and Push docker image to Hub
         run: |
@@ -521,15 +526,21 @@ jobs:
           script: |
             EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             SLACK_TOKEN=$(aws ssm get-parameter --name "/quit/SLACK_TOKEN" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
             
             export EUREKA_PROD_URL
             export SLACK_TOKEN
-
+            export REDIS_HOST
+            export REDIS_PORT
+            
             sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
-                  SLACK_TOKEN=$SLACK_TOKEN \            
+                  SLACK_TOKEN=$SLACK_TOKEN \ 
+                  REDIS_HOST=$REDIS_HOST \        
+                  REDIS_PORT=$REDIS_PORT \        
                   docker-compose -f /home/ubuntu/notification-compose.yml up -d --no-build
 
       - name: user, store, review 배포
