@@ -380,8 +380,11 @@ jobs:
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
       
-            # 환경 변수를 설정하고 Docker Compose up
-            sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL EUREKA_EC2_HOST=$EUREKA_EC2_HOST docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
+            # 환경 변수를 설정하고 Docker Compose up            
+            sudo SPRING_PROFILES_ACTIVE=prod \
+                  EUREKA_PROD_URL=$EUREKA_PROD_URL \
+                  EUREKA_EC2_HOST=$EUREKA_EC2_HOST \
+                  docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
 
       - name:  gateway server 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -404,12 +407,15 @@ jobs:
             export EUREKA_PROD_URL
             export JWT_SECRET_KEY
             
+            # Docker Compose 실행
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml pull
             
+            # 환경 변수를 설정하고 Docker Compose up            
             sudo SPRING_PROFILES_ACTIVE=prod \
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
-                  EUREKA_EC2_HOST=$EUREKA_EC2_HOST \
-                  docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
+                  JWT_SECRET_KEY=JWT_SECRET_KEY \
+                  docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -507,12 +513,12 @@ jobs:
             sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
-            DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
-            DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
-            DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
-            PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
-            PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
-            docker-compose -f /home/ubuntu/payment-compose.yml up -d --no-build
+              DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
+              DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
+              DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
+              PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
+              PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
+              docker-compose -f /home/ubuntu/payment-compose.yml up -d --no-build
 
       - name: notification 배포
         uses: appleboy/ssh-action@v1.0.3
