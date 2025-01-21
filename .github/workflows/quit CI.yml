@@ -230,7 +230,7 @@ jobs:
           host: ${{ secrets.QUEUE_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "prometheus-compose.yml"
+          source: "queue-compose.yml"
           target: "/home/ubuntu"
 
       - name: Add environment variables to Parameter Store
@@ -324,7 +324,7 @@ jobs:
             
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
             
-            sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=JWT_SECRET_KEY docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --pull always --no-build
+            sudo SPRING_PROFILES_ACTIVE=prod EUREKA_PROD_URL=$EUREKA_PROD_URL JWT_SECRET_KEY=JWT_SECRET_KEY docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d --no-build
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
