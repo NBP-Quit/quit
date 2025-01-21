@@ -414,7 +414,7 @@ jobs:
             # 환경 변수를 설정하고 Docker Compose up            
             sudo SPRING_PROFILES_ACTIVE=prod \
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
-                  JWT_SECRET_KEY=JWT_SECRET_KEY \
+                  JWT_SECRET_KEY=$JWT_SECRET_KEY \
                   docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
 
       - name: Queue 배포
