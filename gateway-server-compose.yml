@@ -17,7 +17,6 @@ services:
         FILE_DIRECTORY: ./gateway-server
     networks:
       - quit-gateway-network
-
 networks:
   quit-gateway-network:
     driver: bridge

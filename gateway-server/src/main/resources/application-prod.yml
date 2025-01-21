@@ -4,5 +4,3 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: ${EUREKA_PROD_URL}
-  instance:
-    prefer-ip-address: true
