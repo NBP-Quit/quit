@@ -367,7 +367,7 @@ jobs:
             echo "STORE_BASEURL=$(aws ssm get-parameter --name /quit/STORE_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             
-            sudo docker-compose -f /home/ubuntu/queue-compose.yml down
+            sudo docker-compose -f /home/ubuntu/queue-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
             
             sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
@@ -437,7 +437,7 @@ jobs:
             export PAYMENT_DATASOURCE_PROD_URL
             export PAYMENT_SECRET_KEY
 
-            sudo docker-compose -f /home/ubuntu/payment-compose.yml down
+            sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
@@ -510,7 +510,7 @@ jobs:
             echo "S3_SECRET_KEY=$S3_SECRET_KEY" >> .env
             echo "S3_BUCKET=$S3_BUCKET" >> .env
                       
-            sudo docker-compose down
+            sudo docker-compose down --remove-orphans
             sudo docker-compose pull
             
             sudo SPRING_PROFILES_ACTIVE=prod docker-compose up -d --no-build

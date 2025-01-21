@@ -110,7 +110,7 @@ services:
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_BUCKET=${S3_BUCKET}
     ports:
-      - "19093:8080"
+      - "19097:8080"
     depends_on:
       - redis
     networks:
