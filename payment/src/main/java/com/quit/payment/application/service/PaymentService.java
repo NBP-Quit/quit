@@ -37,6 +37,7 @@ public class PaymentService {
     private final ReservationGateway reservationGateway;
     private final PaymentGateway paymentGateway;
     private final KafkaProducer kafkaProducer;
+    private final IdempotencyService idempotencyService;
     private static final String PAYMENT_SUCCESS_TOPIC = "payment.create.success";
     private static final String PAYMENT_FAILED_TOPIC = "payment.create.failed";
 
@@ -47,23 +48,26 @@ public class PaymentService {
     }
 
     public PaymentResponse createPayment(UUID reservationId, PaymentDto request) {
-        TempPayment tempPayment = validateTempPayment(request);
-        UUID retrievedReservationId = reservationGateway.getReservation(reservationId).getData();
-        log.info("reservationId= {}", retrievedReservationId);
-        ConfirmPaymentResponse response = paymentGateway.confirmPayment(request);
+        checkIdempotency(request.getIdempotencyKey());
+        validateRequest(request);
+        UUID retrievedReservationId = checkReservationId(reservationId);
+        ConfirmPaymentResponse response = confirmPaymentRequest(request);
         log.info("Confirm payment response: {}", response);
         Payment payment = create(response, retrievedReservationId);
         paymentRepository.save(payment);
-        sendKafkaMessage(PAYMENT_SUCCESS_TOPIC,"paymentId:" + payment.getId(), PaymentEvent.of(retrievedReservationId, payment.getId(), payment.getAmount()));
+        saveIdempotencyKey(request.getIdempotencyKey(), request.getPaymentKey());
+        publishPaymentEvent(PAYMENT_SUCCESS_TOPIC, retrievedReservationId, payment);
         return PaymentResponse.from(payment);
     }
 
     public PaymentResponse cancelPayment(UUID paymentId, UUID reservationId, CancelPaymentRequest request) {
+        checkIdempotency(request.getIdempotencyKey());
         Payment payment = validatePayment(paymentId, reservationId);
-        CancelPaymentResponse response = paymentGateway.cancelPayment(payment.getPaymentKey(), request);
+        CancelPaymentResponse response = cancelPaymentRequest(payment.getPaymentKey(), request);
         log.info("Cancel payment response: {}", response);
         payment.cancel(Status.CANCELED, request.getCancelReason());
-        sendKafkaMessage(PAYMENT_FAILED_TOPIC, "paymentId:" + payment.getId(), PaymentEvent.of(payment.getReservationId(), payment.getId(), payment.getAmount()));
+        saveIdempotencyKey(request.getIdempotencyKey(), payment.getPaymentKey());
+        publishPaymentEvent(PAYMENT_FAILED_TOPIC, payment.getReservationId(), payment);
         return PaymentResponse.from(payment);
     }
 
@@ -74,10 +78,20 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    private TempPayment validateTempPayment(PaymentDto request) {
+    private void checkIdempotency(String idempotencyKey) {
+        String existingPaymentKey = idempotencyService.getPaymentKeyByIdempotencyKey(idempotencyKey);
+        if (existingPaymentKey != null) {
+            throw new CustomException(REQUEST_ALREADY_PROCESSED);
+        }
+    }
+
+    private void validateRequest(PaymentDto request) {
+        validateTempPayment(request);
+    }
+
+    private void validateTempPayment(PaymentDto request) {
         TempPayment tempPayment = checkTempPayment(request);
         validateAmount(tempPayment, request.getAmount());
-        return tempPayment;
     }
 
     private TempPayment checkTempPayment(PaymentDto request) {
@@ -91,6 +105,14 @@ public class PaymentService {
         }
     }
 
+    private UUID checkReservationId(UUID reservationId) {
+        return reservationGateway.getReservation(reservationId).getData();
+    }
+
+    private ConfirmPaymentResponse confirmPaymentRequest(PaymentDto request) {
+        return paymentGateway.confirmPayment(request.getIdempotencyKey(), request);
+    }
+
     private Payment create(ConfirmPaymentResponse response, UUID reservationId) {
         return Payment.of(
                 response.getTotalAmount(),
@@ -98,6 +120,27 @@ public class PaymentService {
                 response.getPaymentKey(),
                 response.getOrderId(),
                 reservationId);
+    }
+
+    private void saveIdempotencyKey(String idempotencyKey, String paymentKey) {
+        idempotencyService.saveIdempotencyKey(idempotencyKey, paymentKey);
+    }
+
+    private void publishPaymentEvent(String topic, UUID reservationId, Payment payment) {
+        sendKafkaMessage(
+                topic,
+                "paymentId:" + payment.getId(),
+                PaymentEvent.of(reservationId, payment.getId(), payment.getAmount())
+        );
+    }
+
+    private void sendKafkaMessage(String topic, String key, PaymentEvent event) {
+        try {
+            kafkaProducer.sendMessage(topic, key, event);
+        } catch (Exception e) {
+            log.error("Failed to send Kafka message: topic= {}, key= {}", topic, key);
+            throw new CustomException(KAFKA_MESSAGE_SEND_FAILED);
+        }
     }
 
     private Payment validatePayment(UUID paymentId, UUID reservationId) {
@@ -117,13 +160,8 @@ public class PaymentService {
         }
     }
 
-    private void sendKafkaMessage(String topic, String key, PaymentEvent event) {
-        try {
-            kafkaProducer.sendMessage(topic, key, event);
-        } catch (Exception e) {
-            log.error("Failed to send Kafka message: topic= {}, key= {}", topic, key);
-            throw new CustomException(KAFKA_MESSAGE_SEND_FAILED);
-        }
+    private CancelPaymentResponse cancelPaymentRequest(String paymentId, CancelPaymentRequest request) {
+        return paymentGateway.cancelPayment(request.getIdempotencyKey(), paymentId, request.toDto());
     }
 
 }
