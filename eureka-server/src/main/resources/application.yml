@@ -16,3 +16,13 @@ eureka:
     prefer-ip-address: true
     non-secure-port: 19090         # 컨테이너 내부 포트
     non-secure-port-enabled: true
+  dashboard:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
