@@ -5,7 +5,7 @@ spring:
   application:
     name: gateway-server
   profiles:
-    active: dev
+    active: prod
 
   main:
     web-application-type: reactive
@@ -64,4 +64,4 @@ logging:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+    key: Mp8vKzSTkr5tC91Yn8ThXUAZnkLkWZXVbf7GKuSkp2c=
