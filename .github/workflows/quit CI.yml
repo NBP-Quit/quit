@@ -623,7 +623,7 @@ jobs:
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml pull
             
-            sudo SPRING_PROFILES_ACTIVE=prod -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
+            sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
 
       - name: Prometheus server 배포
         uses: appleboy/ssh-action@v1.0.3
