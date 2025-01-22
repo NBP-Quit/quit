@@ -975,7 +975,7 @@ jobs:
               S3_ACCESS_KEY=$S3_ACCESS_KEY \
               S3_SECRET_KEY=$S3_SECRET_KEY \
               S3_BUCKET=$S3_BUCKET \
-              REVIEW_DATASOURCE_PROD_URL-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
+              docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
 
   deploy-prometheus:
     needs:
