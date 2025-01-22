@@ -1,17 +1,14 @@
 services:
   gateway-server:
     image: laira2/quit:gateway-server-latest
-    container_name: gateway-server
-    ports:
-      - "19091:19091"  # 외부:내부
+    container_name: gateway-server # 외부:내부
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     env_file:
       - .env
-    networks:
-      - gateway-network
+    network_mode: host
 networks:
-  gateway-network:
-    driver: bridge
+  host:
+    external: true

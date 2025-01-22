@@ -205,7 +205,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: eureka-server-compose.yml 복제
@@ -259,7 +259,7 @@ jobs:
           host: ${{ secrets.RESERVATION_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "reservation-compose.yml"
+          source: "reservation-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: payment-compose.yml 복제
@@ -268,7 +268,7 @@ jobs:
           host: ${{ secrets.PAYMENT_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "payment-compose.yml"
+          source: "payment-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: notification-compose.yml 복제
@@ -277,7 +277,7 @@ jobs:
           host: ${{ secrets.NOTIFICATION_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "notification-compose.yml"
+          source: "notification-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: Add environment variables to Parameter Store
@@ -378,13 +378,14 @@ jobs:
             
             # Docker Compose 실행
             sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/eureka-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/eureka-deploy-compose.yml pull
       
             # 환경 변수를 설정하고 Docker Compose up            
             sudo SPRING_PROFILES_ACTIVE=prod \
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   EUREKA_EC2_HOST=$EUREKA_EC2_HOST \
-                  docker-compose -f /home/ubuntu/eureka-server-compose.yml up -d
+                  docker-compose -f /home/ubuntu/eureka-deploy-compose.yml up -d
 
       - name:  gateway server 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -409,13 +410,14 @@ jobs:
             
             # Docker Compose 실행
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/gateway-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/gateway-deploy-compose.yml pull
             
             # 환경 변수를 설정하고 Docker Compose up            
             sudo SPRING_PROFILES_ACTIVE=prod \
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   JWT_SECRET_KEY=$JWT_SECRET_KEY \
-                  docker-compose -f /home/ubuntu/gateway-server-compose.yml up -d
+                  docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -440,9 +442,10 @@ jobs:
             echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/queue-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/queue-deploy-compose.yml pull
             
-            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
+            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-deploy-compose.yml up -d --no-build
 
       - name: reservation 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -477,9 +480,10 @@ jobs:
             echo "FEIGN_URL=$FEIGN_URL" >> .env
             
             sudo docker-compose -f /home/ubuntu/reservation-compose.yml down
-            sudo docker-compose -f /home/ubuntu/reservation-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml down
+            sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml pull
             
-            sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/reservation-compose.yml up -d --no-build
+            sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/reservation-deploy-compose.yml up -d --no-build
 
       - name: payment 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -508,9 +512,9 @@ jobs:
             export DATASOURCE_PROD_PASSWORD
             export PAYMENT_DATASOURCE_PROD_URL
             export PAYMENT_SECRET_KEY
-
-            sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/payment-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
+            sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
               DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
@@ -518,7 +522,7 @@ jobs:
               DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
               PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
               PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
-              docker-compose -f /home/ubuntu/payment-compose.yml up -d --no-build
+              docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
 
       - name: notification 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -545,13 +549,14 @@ jobs:
             export REDIS_PORT
             
             sudo docker-compose -f /home/ubuntu/notification-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/notification-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/notification-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/notification-deploy-compose.yml pull
 
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   SLACK_TOKEN=$SLACK_TOKEN \ 
                   REDIS_HOST=$REDIS_HOST \        
                   REDIS_PORT=$REDIS_PORT \        
-                  docker-compose -f /home/ubuntu/notification-compose.yml up -d --no-build
+                  docker-compose -f /home/ubuntu/notification-deploy-compose.yml up -d --no-build
 
       - name: user, store, review 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -616,9 +621,10 @@ jobs:
             echo "S3_BUCKET=$S3_BUCKET" >> .env
                       
             sudo docker-compose down --remove-orphans
-            sudo docker-compose pull
+            sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml pull
             
-            sudo SPRING_PROFILES_ACTIVE=prod docker-compose up -d --no-build
+            sudo SPRING_PROFILES_ACTIVE=prod -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
 
       - name: Prometheus server 배포
         uses: appleboy/ssh-action@v1.0.3
