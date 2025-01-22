@@ -6,7 +6,7 @@ on:
       - feat/112-quit
 
 jobs:
-  build-services:
+  build-eureka:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,21 @@ jobs:
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
 
+  build-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: gateway 빌드
         run: |
           cd gateway-server
@@ -52,23 +67,20 @@ jobs:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
-      - name: user 빌드
-        run: |
-          cd user
-          chmod +x gradlew
-          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
-          echo "========user========="
-          ls build/libs
-          cd ../
+  build-payment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: store 빌드
-        run: |
-          cd store
-          chmod +x gradlew
-          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
-          echo "========store========="
-          ls build/libs
-          cd ../
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: payment 빌드
         run: |
@@ -78,6 +90,33 @@ jobs:
           echo "========payment========="
           ls build/libs
           cd ../
+
+      - name: payment push
+        run: |
+          docker compose -f reservation-compose.yml build
+          docker push "laira2/quit:reservation-latest"
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          PAYMENT_DATASOURCE_PROD_URL: ${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}
+
+  build-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: queue 빌드
         run: |
@@ -101,6 +140,21 @@ jobs:
           STORE_BASEURL: ${STORE_BASEURL}
           GATEWAY_BASEURL: ${GATEWAY_BASEURL}
 
+  build-reservation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: reservation 빌드
         run: |
           cd reservation
@@ -110,14 +164,35 @@ jobs:
           ls build/libs
           cd ../
 
-      - name: review 빌드
+      - name: reservation push
         run: |
-          cd review
-          chmod +x gradlew
-          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
-          echo "========review========="
-          ls build/libs
-          cd ../
+          docker compose -f reservation-compose.yml build
+          docker push "laira2/quit:reservation-latest"
+        env:
+          DOCKER_HUB_REPOSITORY: "quit"
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          RESERVATION_DATASOURCE_PROD_URL: ${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}
+          STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
+          FEIGN_URL: ${{ secrets.FEIGN_URL }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+  build-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: notification 빌드
         run: |
@@ -138,16 +213,54 @@ jobs:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
 
+  build-others:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: review 빌드
+        run: |
+          cd review
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========review========="
+          ls build/libs
+          cd ../
+
+      - name: user 빌드
+        run: |
+          cd user
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========user========="
+          ls build/libs
+          cd ../
+
+      - name: store 빌드
+        run: |
+          cd store
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========store========="
+          ls build/libs
+          cd ../
+
       - name: Build, Tag and Push docker image to Hub
         run: |
           docker compose -f prometheus-compose.yml build
-          docker compose -f reservation-compose.yml build
-          docker compose -f payment-compose.yml build
           docker compose build
           docker push "laira2/quit:user-latest"
           docker push "laira2/quit:store-latest"
-          docker push "laira2/quit:reservation-latest"
-          docker push "laira2/quit:payment-latest"
           docker push "laira2/quit:review-latest"
         env:
           DOCKER_HUB_REPOSITORY: "quit"
@@ -157,14 +270,12 @@ jobs:
           DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
           DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
           DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
-          PAYMENT_DATASOURCE_PROD_URL: ${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           STORE_BASEURL: ${{ secrets.STORE_BASEURL }}
           GATEWAY_BASEURL: ${{ secrets.GATEWAY_BASEURL }}
-          RESERVATION_DATASOURCE_PROD_URL: ${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}
           STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
           USER_DATASOURCE_PROD_URL: ${{ secrets.USER_DATASOURCE_PROD_URL }}
           REVIEW_DATASOURCE_PROD_URL: ${{ secrets.REVIEW_DATASOURCE_PROD_URL }}
@@ -174,9 +285,15 @@ jobs:
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
 
-  deploy:
+  copy-yml:
     needs:
-      - build-services
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -279,7 +396,21 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "notification-deploy-compose.yml"
           target: "/home/ubuntu"
+  add-env:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Add environment variables to Parameter Store
         run: |
           declare -A params
@@ -354,6 +485,38 @@ jobs:
               --overwrite
           done
 
+  deploy-eureka:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Eureka server 배포
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -387,6 +550,39 @@ jobs:
                   EUREKA_EC2_HOST=$EUREKA_EC2_HOST \
                   docker-compose -f /home/ubuntu/eureka-deploy-compose.yml up -d
 
+  deploy-gateway:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name:  gateway server 배포
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -418,6 +614,38 @@ jobs:
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   JWT_SECRET_KEY=$JWT_SECRET_KEY \
                   docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
+  deploy-queue:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Queue 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -445,6 +673,39 @@ jobs:
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
             
             sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
+
+  deploy-reservation:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: reservation 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -483,6 +744,38 @@ jobs:
             sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml pull
             
             sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/reservation-deploy-compose.yml up -d --no-build
+  deploy-payment:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: payment 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -523,6 +816,39 @@ jobs:
               PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
               docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
 
+  deploy-notification:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: notification 배포
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -556,6 +882,39 @@ jobs:
                   REDIS_HOST=$REDIS_HOST \        
                   REDIS_PORT=$REDIS_PORT \        
                   docker-compose -f /home/ubuntu/notification-deploy-compose.yml up -d --no-build
+
+  deploy-others:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: user, store, review 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -624,6 +983,39 @@ jobs:
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml pull
             
             sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build
+
+  deploy-prometheus:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Prometheus server 배포
         uses: appleboy/ssh-action@v1.0.3
