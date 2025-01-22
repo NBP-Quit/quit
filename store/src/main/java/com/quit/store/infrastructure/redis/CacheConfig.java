@@ -1,5 +1,11 @@
 package com.quit.store.infrastructure.redis;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -33,23 +39,32 @@ public class CacheConfig {
     }
 
     @Bean
-    public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+    public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+        ObjectMapper objectMapperWithTypeValidator = new ObjectMapper();
+        PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator
+                .builder()
+                .allowIfSubType(Object.class)
+                .build();
+        objectMapperWithTypeValidator
+                .findAndRegisterModules()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .activateDefaultTyping(typeValidator, ObjectMapper.DefaultTyping.NON_FINAL)
+                .registerModule(new JavaTimeModule());
 
-        RedisCacheConfiguration configuration = RedisCacheConfiguration
+        RedisCacheConfiguration configurationWithTypeValidator = RedisCacheConfiguration
                 .defaultCacheConfig()
                 .disableCachingNullValues()
                 .entryTtl(Duration.ofHours(1))
                 .computePrefixWith(CacheKeyPrefix.simple())
-                .serializeKeysWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
-                )
                 .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer())
+                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapperWithTypeValidator))
                 );
 
         return RedisCacheManager
                 .builder(redisConnectionFactory)
-                .cacheDefaults(configuration)
+                .cacheDefaults(configurationWithTypeValidator)
                 .build();
     }
 
