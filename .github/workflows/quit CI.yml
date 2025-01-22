@@ -93,8 +93,8 @@ jobs:
 
       - name: payment push
         run: |
-          docker compose -f reservation-compose.yml build
-          docker push "laira2/quit:reservation-latest"
+          docker compose -f payment-compose.yml build
+          docker push "laira2/quit:payment-latest"
         env:
           EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
           PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
