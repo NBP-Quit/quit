@@ -46,7 +46,7 @@ public class QueueScheduler {
         return reactiveRedisTemplate.opsForValue().setIfAbsent(statusKey, "processing")
                 .flatMap(lockAcquired -> {
                     if (lockAcquired) {
-                        return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 499L))
+                        return reactiveRedisTemplate.opsForZSet().rangeWithScores(queueKey, Range.closed(0L, 999L))
                                 .collectList()
                                 .flatMap(entries -> {
                                     if (entries.isEmpty()) {
