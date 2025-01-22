@@ -4,12 +4,6 @@ server:
 spring:
   application:
     name: reservation
-  spring:
-    datasource:
-      driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
-      username: ${SPRING_DATASOURCE_LOCAL_USERNAME}
-      password: ${SPRING_DATASOURCE_LOCAL_PASSWORD}
-      url: ${SPRING_DATASOURCE_LOCAL_URL}
   jpa:
     show-sql: true
     database: postgresql
@@ -23,11 +17,16 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+  datasource:
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${DATASOURCE_PROD_USERNAME}
+    password: ${DATASOURCE_PROD_PASSWORD}
+    url: ${RESERVATION_DATASOURCE_PROD_URL}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: ${EUREKA_PROD_URL}
 
 management:
   endpoints:

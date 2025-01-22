@@ -1,8 +1,6 @@
 spring:
   application:
-    name: server
-  profiles:
-    active: dev
+    name: eureka
 
 server:
   port: 8761
@@ -12,6 +10,9 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: ${EUREKA_PROD_URL}
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_EC2_HOST}  # EC2 퍼블릭 IP
+    prefer-ip-address: true
+    non-secure-port: 19090         # 컨테이너 내부 포트
+    non-secure-port-enabled: true

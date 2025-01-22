@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: gateway-server
-  profiles:
-    active: prod
 
   main:
     web-application-type: reactive
@@ -50,10 +48,8 @@ spring:
            
 eureka:
   client:
-    register-with-eureka: true
     service-url:
-      defaultZone: http://localhost:19090/eureka/
-    fetch-registry: true
+      defaultZone: http://3.15.206.155:19090/eureka/
 
 logging:
   level:
@@ -61,6 +57,8 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
 
 jwt:
   secret:
