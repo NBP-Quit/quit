@@ -442,10 +442,9 @@ jobs:
             echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/queue-deploy-compose.yml down --remove-orphans
-            sudo docker-compose -f /home/ubuntu/queue-deploy-compose.yml pull
+            sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
             
-            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-deploy-compose.yml up -d --no-build
+            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
 
       - name: reservation 배포
         uses: appleboy/ssh-action@v1.0.3
