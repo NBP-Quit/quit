@@ -42,6 +42,7 @@
 ### 🥨 **데이터 일관성 및 트랜잭션 관리**
 - Kafka를 이용한 SAGA 패턴으로 분산 트랜잭션 관리.
 
+<br>
 
 ## KEY Summary
 
@@ -83,7 +84,19 @@
 <br>
 
 ## 주요 기능
+🍪 [예약](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%98%88%EC%95%BD)
 
+🍪 [대기열](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%8C%80%EA%B8%B0%EC%97%B4)
+
+🍪 [가게](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C)
+
+🍪 [결제](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B2%B0%EC%A0%9C)
+
+🍪 [유저](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%9C%A0%EC%A0%80)
+
+🍪 [리뷰](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%A6%AC%EB%B7%B0)
+
+🍪 [알림](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%95%8C%EB%A6%BC)
 
 <br>
 
@@ -149,5 +162,5 @@
 | 한미수 | 리더     | ▶ **대기열**: <br>▶ **모니터링**: | [https://github.com/HMisu](https://github.com/HMisu) |
 | 박용운 | 부리더   | ▶ **예약**: <br> - Kafka 메시지 기반 비동기 예약 처리 및 권한에 따른 동기 처리 구현 <br> - Redisson 분산 락 적용 예약 작업 동시성 제어 <br> - 예약 시 feign client 사용 예약 가능 여부 확인 및 가게 주인 여부 확인 <br> - 외부 서비스 호출 시 circuit breaker 적용, fallback 처리 구현 | [https://github.com/eleunadeu](https://github.com/eleunadeu)    |
 | 양혜지 | 팀원     | ▶ **인증/인가**: <br>▶ **배포**: | [https://github.com/laira2](https://github.com/laira2)   |
-| 이건 | 팀원     | ▶ **리뷰**: <br>▶ **알림**: | [https://github.com/geon8692](https://github.com/geon8692)    |
-| 이소현 | 팀원     | ▶ **가게**: <br>▶ **결제**:  | [https://github.com/sohyuneeee](https://github.com/sohyuneeee)    |
+| 이건 | 팀원     | ▶ **리뷰**: <br> **알림**: | [https://github.com/geon8692](https://github.com/geon8692)    |
+| 이소현 | 팀원     | ▶ **가게**: <br> - QueryDSL 활용하여 검색 기능 구현 <br> - Redis 사용하여 빈번하게 조회 되는 데이터 캐싱 적용 <br> - Kafka 비동기 처리로 예약 슬롯(예약 스케줄)의 현재 예약 인원 감소 및 복구 <br> - 현재 예약 인원 감소 및 복구 시 Redisson 분산 락 적용하여 동시성 제어  <br>▶ **결제**: <br> - OpenFeign 사용하여 토스페이먼츠 연동 (테스트환경) <br> - 멱등키 적용하여 결제 승인 및 취소 요청 시 멱등성 보장 <br> - kafka 비동기 처리 | [https://github.com/sohyuneeee](https://github.com/sohyuneeee)    |
