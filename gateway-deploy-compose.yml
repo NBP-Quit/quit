@@ -8,13 +8,8 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-    build:
-      context: .
-      dockerfile: gateway-server/Dockerfile
-      args:
-        JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-        EUREKA_PROD_URL: ${EUREKA_PROD_URL}
-        FILE_DIRECTORY: ./gateway-server
+    env_file:
+      - .env
     networks:
       - gateway-network
 networks:

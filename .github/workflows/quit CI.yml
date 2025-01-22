@@ -214,7 +214,7 @@ jobs:
           host: ${{ secrets.EUREKA_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "eureka-server-compose.yml"
+          source: "eureka-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: Gateway-server-compose.yml 복제
@@ -223,7 +223,7 @@ jobs:
           host: ${{ secrets.GATEWAY_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "gateway-server-compose.yml"
+          source: "gateway-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: prometheus.yml 복제
