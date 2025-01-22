@@ -6,3 +6,5 @@ eureka:
       defaultZone: ${EUREKA_PROD_URL}
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    ip-address: 3.142.241.181
