@@ -1,4 +1,4 @@
-## QUIT : 대규모 트래픽 처리 식당 예약 서비스
+## 🍽️ QUIT : 대규모 트래픽 처리 식당 예약 서비스
 
 ![박람회장_이미지_뒷면_노션](https://github.com/user-attachments/assets/4f5805ab-3227-461a-b910-2e557cbac132)
 
@@ -27,22 +27,90 @@
 
 ## 프로젝트 핵심 목표
 
-1. **대규모 트래픽 대응**
-   - Redis와 Kafka를 활용한 비동기 처리를 통해 API 요청 200req/sec 이상 처리.
-   - 동시성 문제를 해결하며 식당 예약 서비스 제공.
+### 🥨 **대규모 트래픽 대응**
+- Redis와 Kafka를 활용한 비동기 처리를 통해 API 요청 200req/sec 이상 처리.
+- 동시성 문제를 해결하며 식당 예약 서비스 제공.
 
-2. **성능 최적화**
-   - Redis 기반 캐싱으로 실시간 상품 조회 성능을 향상.
-   - Redisson을 사용하여 안정적 데이터 처리 구현.
+### 🥨 **성능 최적화**
+- Redis 기반 캐싱으로 실시간 상품 조회 성능을 향상.
+- Redisson을 사용하여 안정적 데이터 처리 구현.
 
-3. **운영 및 배포 효율화**
-   - Docker와 Github Actions를 이용한 CI/CD 파이프라인 구축으로 배포 자동화.
-   - Prometheus와 Grafana를 활용한 실시간 모니터링으로 시스템 안정성 확보.
+### 🥨 **운영 및 배포 효율화**
+- Docker와 Github Actions를 이용한 CI/CD 파이프라인 구축으로 배포 자동화.
+- Prometheus와 Grafana를 활용한 실시간 모니터링으로 시스템 안정성 확보.
 
-4. **데이터 일관성 및 트랜잭션 관리**
-   - Kafka를 이용한 SAGA 패턴으로 분산 트랜잭션 관리.
+### 🥨 **데이터 일관성 및 트랜잭션 관리**
+- Kafka를 이용한 SAGA 패턴으로 분산 트랜잭션 관리.
+
+
+## KEY Summary
+
+### 🥐 **Kafka를 통한 비동기 메시징 처리**
+
+- 대기열, 예약, 예약 인원 관리, 결제, 알림 간 비동기 메시지 처리로 서비스 간 독립성과 확장성 확보.
+- 대규모 트래픽 환경에서도 안정적인 데이터 전송과 처리 지원.
+
+### 🥐 **WebFlux 기반 비동기 대기열 서비스**
+
+- 대기열 서비스에 **WebFlux 비동기 모델** 도입으로 높은 동시성과 빠른 응답 속도 제공.
+- 비동기 처리 방식으로 대규모 트래픽 처리와 리소스 사용 최적화.
+
+### 🥐 **Redisson 분산 락을 활용한 동시성 제어**
+
+- 예약 관련 로직에 분산 락을 적용.
+- 데이터 정합성 유지하여 동시성 문제를 방지하고 안정적인 데이터 처리 구현
+
+### 🥐 **Redis를 활용한 캐싱 처리**
+
+- 빈번하게 조회되는 자원에 캐싱을 적용하여 데이터베이스 부하를 감소.
+- 빠른 데이터 응답 속도로 사용자 경험 개선.
 
 <br>
+
+## ERD
+<img width="1576" alt="image" src="https://github.com/user-attachments/assets/29210eeb-0237-4dd7-9064-07ae9447c03f" />
+
+<br>
+
+## 인프라 아키텍처
+
+### 아키텍처 다이어그램
+<img width="1209" alt="image" src="https://github.com/user-attachments/assets/3067a8f3-bb28-4663-aab2-e90e986121ee" />
+
+위 아키텍처는 **MSA 기반의 서비스** 구조를 나타냅니다.  
+각 모듈은 OpenFeign, Kafka를 통해 통신하며, Docker로 컨테이너화되어 CI/CD를 통해 자동 배포됩니다.
+
+<br>
+
+## 주요 기능
+
+
+<br>
+
+## 기술적 의사결정
+🥨 [대규모 트래픽 처리와 안정성을 위한 Kafka 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B7%9C%EB%AA%A8-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EC%99%80-%EC%95%88%EC%A0%95%EC%84%B1%EC%9D%84-%EC%9C%84%ED%95%9C-Kafka-%EB%8F%84%EC%9E%85)
+
+🥨 [대기열 서비스 WebFlux 기반 비동기 모델 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B9%84%EC%8A%A4-WebFlux-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%EB%AA%A8%EB%8D%B8-%EB%8F%84%EC%9E%85)
+
+🥨 [Toss Payments API 연동 방식 선정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-Toss-Payments-API-%EC%97%B0%EB%8F%99-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
+
+🥨 [동시성 제어 방식 선정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%A0%9C%EC%96%B4-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
+
+<br>
+
+## 트러블슈팅
+🥖 [프로메테우스 매트릭 수집과 인증 처리 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%ED%94%84%EB%A1%9C%EB%A9%94%ED%85%8C%EC%9A%B0%EC%8A%A4-%EB%A7%A4%ED%8A%B8%EB%A6%AD-%EC%88%98%EC%A7%91%EA%B3%BC-%EC%9D%B8%EC%A6%9D-%EC%B2%98%EB%A6%AC-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Kafka 메시지 직렬화/역직렬화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%5D-Kafka-%EB%A9%94%EC%8B%9C%EC%A7%80-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Redisson 분산락 적용으로 동시성 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-%EC%A0%81%EC%9A%A9%EC%9C%BC%EB%A1%9C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Redisson 분산락 Key 적용 시 내부 함수 사용 불가 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-Key-%EC%A0%81%EC%9A%A9-%EC%8B%9C-%EB%82%B4%EB%B6%80-%ED%95%A8%EC%88%98-%EC%82%AC%EC%9A%A9-%EB%B6%88%EA%B0%80-%EB%AC%B8%EC%A0%9C)
+
+🥖 [대용량 트래픽 처리가 요구되는 대기열 서버의 과부화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%EB%8C%80%EC%9A%A9%EB%9F%89-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EA%B0%80-%EC%9A%94%EA%B5%AC%EB%90%98%EB%8A%94-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B2%84%EC%9D%98-%EA%B3%BC%EB%B6%80%ED%99%94-%EB%AC%B8%EC%A0%9C)
+
+<br>
+
 
 ## 기술 스택
 ### Backend
@@ -69,124 +137,6 @@
 
 ### Etc.
 ![Amazon S3](https://img.shields.io/badge/Amazon%20S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white)
-
-<br>
-
-## KEY Summary
-
-### 🍁 성능 개선 : 자주 조회되는 데이터 
-
-
-1. **한 줄 요약**  
-   - Redis 도입으로 기존 DB 조회보다 **348% 성능 개선**  
-   - 대규모 트래픽 환경에서도 안정적인 서비스 유지  
-
-   ![성능 개선 이미지]
-
-2. **도입 배경**  
-   - 상품의 최저가를 제공하기 위해 외부 서버에서 제공하는 타임세일 상품의 할인율과  
-     상품 자체의 할인율을 비교하는 기능이 필요  
-
-3. **기술적 선택지**  
-
-   1. **DB 데이터 적재**  
-      - 스케줄링 작업으로 짧은 시간 내 대량의 데이터를 수정하는 것은 데이터베이스에 과도한 부하 발생  
-      - 상품 자체의 할인율과 타임세일 할인율을 분리하여 별도 컬럼 저장 필요  
-
-   2. **Redis 캐싱**  
-      - 실시간 최저가 할인율로 최신 정보와 가격 제공  
-      - TTL 설정으로 타임세일 종료 시 자동 데이터 삭제  
-
-   **결론:** Redis 도입을 결정하여 성능 및 효율성을 크게 개선  
-
-<br>
-
-
-### 🍁 트러블 슈팅 : 대용량 트래픽 처리가 요구되는 대기열 서버의 과부화 문제
-1. **배경**  
-   - **사용자의 가게별 대기열 진입**  
-     - 가게별로 대기열을 구성하여 사용자가 해당 대기열에 대기하게 함.
-   - **단일 서버**  
-     - 단일 서버로 대기열을 모두 처리.
-   - **스케줄러를 이용한 놀이동산 방식의 대기열 -> 예약 서비스 진입 방식**  
-     - 일정 시간마다 특정 인원만을 대기열 서비스의 스케줄러를 통해 예약 서비스로 진입시킴.
-     - 대기열 처리 방식은 keys 명령어를 사용해 대기열을 병렬 처리.
-
-2. **문제**  
-   - 대기열 서버로 다수의 사용자가 동시 진입 시 트래픽이 집중되어 처리 속도가 저하됨.
-   - 일정 시간마다 대기열 서비스의 스케줄러로 사용자를 예약 서비스로 진입시키지만, 단일 대기열 서버가 수많은 가게별 대기열을 처리하면서 서버 과부하 문제가 발생.
-   - 기존의 스케줄러를 이용한 대기열 처리 방식에서는 keys 명령어를 사용하여 대기열을 병렬 처리하는데, 서버를 여러 대 확장할 경우 동일 키가 중복 처리되는 문제 발생 가능성 있음.
-
-3. **해결 방안**  
-   - 멀티 인스턴스 활용해 대용량 트래픽 발생 시 서버의 부담 분산.
-   - 각 서버가 개별적으로 대기열 데이터를 처리하게 분리. 데이터의 충돌과 병목 현상 예방.
-     - 가게 생성 시 `queue:server:{serverId}`에 가게 아이디를 저장해 미리 서버별로 작업 대기열을 분리.
-     - 가게와 서버 매핑이 고정되어 디버깅이 용이해 작업 흐름이 단순해 복잡하지 않은 스케줄러 구현.
-     - 장애가 발생한 서버의 처리를 다른 서버로 이관하는 관리자용 장애 처리 API 구현.
-
-4. [**해결 완료 및 JMeter 테스트 결과**](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%EB%8C%80%EC%9A%A9%EB%9F%89-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EA%B0%80-%EC%9A%94%EA%B5%AC%EB%90%98%EB%8A%94-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B2%84%EC%9D%98-%EA%B3%BC%EB%B6%80%ED%99%94-%EB%AC%B8%EC%A0%9C)
-
-<br>
-
-## ERD
-<img width="1576" alt="image" src="https://github.com/user-attachments/assets/29210eeb-0237-4dd7-9064-07ae9447c03f" />
-
-<br>
-
-## 인프라 아키텍처
-
-### 아키텍처 다이어그램
-<img width="1209" alt="image" src="https://github.com/user-attachments/assets/3067a8f3-bb28-4663-aab2-e90e986121ee" />
-
-위 아키텍처는 **MSA 기반의 서비스** 구조를 나타냅니다.  
-각 모듈은 OpenFeign, Kafka를 통해 통신하며, Docker로 컨테이너화되어 CI/CD를 통해 자동 배포됩니다.
-
-<br>
-
-## 주요 기능
-### 🥐 **Kafka를 통한 비동기 메시징 처리**
-
-- 대기열, 예약, 예약 인원 관리, 결제, 알림 간 비동기 메시지 처리로 서비스 간 독립성과 확장성 확보.
-- 대규모 트래픽 환경에서도 안정적인 데이터 전송과 처리 지원.
-
-### 🥐 **WebFlux 기반 비동기 대기열 서비스**
-
-- 대기열 서비스에 **WebFlux 비동기 모델** 도입으로 높은 동시성과 빠른 응답 속도 제공.
-- 비동기 처리 방식으로 대규모 트래픽 처리와 리소스 사용 최적화.
-
-### 🥐 **Redisson 분산 락을 활용한 동시성 제어**
-
-- 예약 관련 로직에 분산 락을 적용.
-- 데이터 정합성 유지하여 동시성 문제를 방지하고 안정적인 데이터 처리 구현
-
-### 🥐 **Redis를 활용한 캐싱 처리**
-
-- 빈번하게 조회되는 자원에 캐싱을 적용하여 데이터베이스 부하를 감소.
-- 빠른 데이터 응답 속도로 사용자 경험 개선.
-
-<br>
-
-## 기술적 의사결정
-🥨 [대규모 트래픽 처리와 안정성을 위한 Kafka 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B7%9C%EB%AA%A8-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EC%99%80-%EC%95%88%EC%A0%95%EC%84%B1%EC%9D%84-%EC%9C%84%ED%95%9C-Kafka-%EB%8F%84%EC%9E%85)
-
-🥨 [대기열 서비스 WebFlux 기반 비동기 모델 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B9%84%EC%8A%A4-WebFlux-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%EB%AA%A8%EB%8D%B8-%EB%8F%84%EC%9E%85)
-
-🥨 [Toss Payments API 연동 방식 선정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-Toss-Payments-API-%EC%97%B0%EB%8F%99-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
-
-🥨 [동시성 제어 방식 선정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%A0%9C%EC%96%B4-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
-
-<br>
-
-## 트러블슈팅
-🥖 [프로메테우스 매트릭 수집과 인증 처리 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%ED%94%84%EB%A1%9C%EB%A9%94%ED%85%8C%EC%9A%B0%EC%8A%A4-%EB%A7%A4%ED%8A%B8%EB%A6%AD-%EC%88%98%EC%A7%91%EA%B3%BC-%EC%9D%B8%EC%A6%9D-%EC%B2%98%EB%A6%AC-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
-
-🥖 [Kafka 메시지 직렬화/역직렬화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%5D-Kafka-%EB%A9%94%EC%8B%9C%EC%A7%80-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
-
-🥖 [Redisson 분산락 적용으로 동시성 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-%EC%A0%81%EC%9A%A9%EC%9C%BC%EB%A1%9C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
-
-🥖 [Redisson 분산락 Key 적용 시 내부 함수 사용 불가 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-Key-%EC%A0%81%EC%9A%A9-%EC%8B%9C-%EB%82%B4%EB%B6%80-%ED%95%A8%EC%88%98-%EC%82%AC%EC%9A%A9-%EB%B6%88%EA%B0%80-%EB%AC%B8%EC%A0%9C)
-
-🥖 [대용량 트래픽 처리가 요구되는 대기열 서버의 과부화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%EB%8C%80%EC%9A%A9%EB%9F%89-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EA%B0%80-%EC%9A%94%EA%B5%AC%EB%90%98%EB%8A%94-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B2%84%EC%9D%98-%EA%B3%BC%EB%B6%80%ED%99%94-%EB%AC%B8%EC%A0%9C)
 
 <br>
 
