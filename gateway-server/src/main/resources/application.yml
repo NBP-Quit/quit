@@ -49,7 +49,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_PROD_URL}
+      defaultZone: ${ EUREKA_PROD_URL }
 
 logging:
   level:
