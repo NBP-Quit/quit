@@ -49,8 +49,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: "http://3.147.67.60:8761/eureka/"
-
+      defaultZone: ${ EUREKA_PROD_URL }
 logging:
   level:
     root: INFO

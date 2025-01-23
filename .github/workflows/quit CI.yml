@@ -959,7 +959,7 @@ jobs:
               DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
               DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
               USER_DATASOURCE_PROD_URL=$USER_DATASOURCE_PROD_URL \
-              JWT_SECRET_KEY=JWT_SECRET_KEY \
+              JWT_SECRET_KEY=$JWT_SECRET_KEY \
               docker-compose -f /home/ubuntu/user-deploy-compose.yml up -d --no-build
   deploy-others:
     needs:
