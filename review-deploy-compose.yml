@@ -6,7 +6,7 @@ services:
       - "6379:6379"
     networks:
       - quit-network
-      -
+
   review:
     image: laira2/quit:review-latest
     container_name: review-service
