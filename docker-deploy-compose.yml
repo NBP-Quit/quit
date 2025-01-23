@@ -6,7 +6,6 @@ services:
       - "6379:6379"
     networks:
       - quit-network
-      -
   store:
     image: laira2/quit:store-latest
     container_name: store-service
