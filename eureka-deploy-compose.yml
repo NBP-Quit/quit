@@ -3,7 +3,6 @@ services:
     image: laira2/quit:eureka-server-latest
     container_name: eureka
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - EUREKA_EC2_HOST=${EUREKA_EC2_HOST}
     network_mode: host

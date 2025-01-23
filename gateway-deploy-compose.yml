@@ -3,7 +3,6 @@ services:
     image: laira2/quit:gateway-server-latest
     container_name: gateway-server # 외부:내부
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     network_mode: host
