@@ -31,6 +31,6 @@ services:
     networks:
       - quit-network
 
-  networks:
-    quit-network:
-      driver: bridge
+networks:
+  quit-network:
+    driver: bridge
