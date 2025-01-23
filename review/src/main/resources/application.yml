@@ -36,12 +36,10 @@ message:
   exchange: likeExchange
   queue: likeQueue
   routing-key: like.routing.key
+
 server:
   port: 19096
-eureka:
-  client:
-    service-url:
-      defaultZone: ${ EUREKA_PROD_URL }
+
 cloud:
   aws:
     credentials:
@@ -65,3 +63,10 @@ logging:
     root: INFO
     com.netflix.eureka: DEBUG
     com.netflix.discovery: DEBUG
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_PROD_URL}
+    registry-fetch-interval-seconds: 5
+
