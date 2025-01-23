@@ -4,7 +4,7 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-      -
+
   notification:
     image: laira2/quit:notification-latest
     container_name: notification  # Eureka 서버는 표준 포트 유지
@@ -12,7 +12,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - SLACK_TOKEN=${SLACK_TOKEN}
-      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_HOST=localhost
       - REDIS_PORT=${REDIS_PORT}
     network_mode: host
 networks:
