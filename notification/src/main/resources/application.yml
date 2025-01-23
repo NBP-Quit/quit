@@ -13,4 +13,8 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_PROD_URL}
 slack:
-  token: ${SLACK_TOKEN}
+  token: ${SLACK_TOKEN
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG}
