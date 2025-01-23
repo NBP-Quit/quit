@@ -10,8 +10,6 @@ services:
       - DATASOURCE_PROD_PASSWORD=${DATASOURCE_PROD_PASSWORD}
       - USER_DATASOURCE_PROD_URL=${USER_DATASOURCE_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-    env_file:
-      - .env
     network_mode: host
 
 networks:
