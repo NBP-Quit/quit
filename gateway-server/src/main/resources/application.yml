@@ -45,19 +45,21 @@ spring:
           uri: lb://payment
           predicates:
             - Path=/api/payments/**
-           
+
 eureka:
   client:
     service-url:
       defaultZone: ${ EUREKA_PROD_URL }
+
 logging:
   level:
     root: INFO
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+    com.netflix.eureka: TRACE
+    com.netflix.discovery: TRACE
+    org.springframework.cloud.netflix.eureka: TRACE
 
 jwt:
   secret:
