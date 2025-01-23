@@ -23,7 +23,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       - redis
-    network_mode: host
+    networks:
+      - quit-network
 
   review:
     image: laira2/quit:review-latest
@@ -46,7 +47,8 @@ services:
       - S3_BUCKET=${S3_BUCKET}
     depends_on:
       - redis
-    network_mode: host
+    networks:
+      - quit-network
 
 networks:
   quit-network :
