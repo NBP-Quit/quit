@@ -4,6 +4,8 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - quit-noti
 
   notification:
     image: laira2/quit:notification-latest
@@ -14,7 +16,9 @@ services:
       - SLACK_TOKEN=${SLACK_TOKEN}
       - REDIS_HOST=localhost
       - REDIS_PORT=${REDIS_PORT}
-    network_mode: host
+    networks:
+      - quit-noti
+
 networks:
-  host:
-    external: true
+  quit-noti:
+    driver: bridge

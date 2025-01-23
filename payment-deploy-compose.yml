@@ -63,7 +63,8 @@ services:
       - zookeeper
       - kafka
       - kafka-ui
-    network_mode: host
+    networks:
+      - quit-payment-network
 
 networks:
   quit-payment-network:
