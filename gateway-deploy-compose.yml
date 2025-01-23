@@ -5,7 +5,3 @@ services:
     environment:
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-    network_mode: host
-networks:
-  host:
-    external: true
