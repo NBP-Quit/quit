@@ -31,7 +31,6 @@
 
 - **MSA 구조**를 통해 서비스의 확장성과 유연성을 확보
 - **Redis**, **Kafka**로 **대규모 트래픽 안정적** 처리
-- 주요 API 요청 200.0req/sec 이상 처리
 - **동시성 문제를 해결**하며 안정적 서비스 제공
 - 부하 테스트
 
@@ -69,6 +68,10 @@
 - Redis를 활용하여 실시간 대기열 상태를 관리하고 가게별로 독립적인 대기열을 운영하여 효율적인 대기 관리.
 - 놀이동산 방식으로 일정 시간마다 일정 인원이 순차적으로 대기열에서 진입.
 - 멀티 인스턴스 환경에서 각 서버에 특정 가게를 할당하여 대기열 서비스를 분배하고 부하를 분산.
+
+### 🥐 **다양한 외부 API 연동**
+
+- 
 
 <br>
 
@@ -120,6 +123,7 @@
 <br>
 
 ## 트러블슈팅
+### BackEnd
 🥖 [프로메테우스 매트릭 수집과 인증 처리 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%ED%94%84%EB%A1%9C%EB%A9%94%ED%85%8C%EC%9A%B0%EC%8A%A4-%EB%A7%A4%ED%8A%B8%EB%A6%AD-%EC%88%98%EC%A7%91%EA%B3%BC-%EC%9D%B8%EC%A6%9D-%EC%B2%98%EB%A6%AC-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
 
 🥖 [Kafka 메시지 직렬화/역직렬화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%5D-Kafka-%EB%A9%94%EC%8B%9C%EC%A7%80-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
