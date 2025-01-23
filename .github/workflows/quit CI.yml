@@ -1018,7 +1018,6 @@ jobs:
             export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export USER_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/USER_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            export JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
             export STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             export REVIEW_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/REVIEW_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             export RABBITMQ_HOST=$(aws ssm get-parameter --name "/quit/RABBITMQ_HOST" --with-decryption --query "Parameter.Value" --output text)
@@ -1039,9 +1038,7 @@ jobs:
               DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
               DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
               DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
-              USER_DATASOURCE_PROD_URL=$USER_DATASOURCE_PROD_URL \
               STORE_DATASOURCE_PROD_URL=$STORE_DATASOURCE_PROD_URL \
-              REDIS_HOST=$REDIS_HOST \
               REDIS_PORT=$REDIS_PORT \
               REDIS_USERNAME=$REDIS_USERNAME \
               REDIS_PASSWORD=$REDIS_PASSWORD \
