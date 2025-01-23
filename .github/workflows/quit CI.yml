@@ -349,7 +349,7 @@ jobs:
           host: ${{ secrets.USER_EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "gateway-deploy-compose.yml"
+          source: "user-deploy-compose.yml"
           target: "/home/ubuntu"
 
       - name: prometheus.yml 복제
