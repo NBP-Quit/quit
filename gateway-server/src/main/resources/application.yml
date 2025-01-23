@@ -49,7 +49,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${ EUREKA_PROD_URL }
+      defaultZone: ${EUREKA_PROD_URL}
 
 logging:
   level:
@@ -63,4 +63,4 @@ logging:
 
 jwt:
   secret:
-    key: Mp8vKzSTkr5tC91Yn8ThXUAZnkLkWZXVbf7GKuSkp2c=
+    key: ${JWT_SECRET_KEY}
