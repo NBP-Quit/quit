@@ -625,6 +625,7 @@ jobs:
       - build-others
       - copy-yml
       - add-env
+      - deploy-eureka
       - deploy-gateway
     runs-on: ubuntu-latest
     steps:
@@ -685,6 +686,7 @@ jobs:
       - build-others
       - copy-yml
       - add-env
+      - deploy-eureka
       - deploy-gateway
     runs-on: ubuntu-latest
     steps:
@@ -755,6 +757,7 @@ jobs:
       - build-others
       - copy-yml
       - add-env
+      - deploy-eureka
       - deploy-gateway
     runs-on: ubuntu-latest
     steps:
@@ -827,6 +830,7 @@ jobs:
       - build-others
       - copy-yml
       - add-env
+      - deploy-eureka
       - deploy-gateway
     runs-on: ubuntu-latest
     steps:
@@ -883,6 +887,18 @@ jobs:
                   REDIS_PORT=$REDIS_PORT \        
                   docker-compose -f /home/ubuntu/notification-deploy-compose.yml up -d --no-build
   deploy-user:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
