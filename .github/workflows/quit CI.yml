@@ -343,6 +343,15 @@ jobs:
           source: "gateway-deploy-compose.yml"
           target: "/home/ubuntu"
 
+      - name: user-deploy-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.USER_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "gateway-deploy-compose.yml"
+          target: "/home/ubuntu"
+
       - name: prometheus.yml 복제
         uses: appleboy/scp-action@v0.1.7
         with:
