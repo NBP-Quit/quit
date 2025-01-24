@@ -974,7 +974,7 @@ jobs:
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export USER_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/USER_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             export JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
-            export USER_EC2_HOST=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            export USER_EC2_HOST=$(aws ssm get-parameter --name "/quit/USER_EC2_HOST" --with-decryption --query "Parameter.Value" --output text)
             
             sudo docker-compose -f /home/ubuntu/user-deploy-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/user-deploy-compose.yml pull
