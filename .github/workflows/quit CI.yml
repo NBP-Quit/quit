@@ -316,7 +316,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - uses: actions/checkout@v4
-      - name: docker-compose 복제
+      - name: store-compose 복제
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.STORE_EC2_HOST }}
