@@ -35,40 +35,37 @@ public class SlackNotificationServiceImpl implements SlackNotificationService {
 	private String token;
 
 	@Override
-	public String sendDirectMessage(String slackEmail, String storeName, ReservationMessage reservationMessage) {
-		try {
-			String slackId = getSlackIdByEmail(slackEmail);
-			return chatPostMessage(slackId, storeName, reservationMessage);
-		} catch (SlackApiException | IOException e) {
-			throw new RuntimeException(e);
-		}
+	public String sendDirectMessage
+		(String slackEmail, String storeName, ReservationMessage reservationMessage) throws
+		SlackApiException,
+		IOException {
+		String slackId = getSlackIdByEmail(slackEmail);
+		return chatPostMessage(slackId, storeName, reservationMessage);
 	}
 
 	private String chatPostMessage(String slackId, String storeName, ReservationMessage reservationMessage) throws
 		SlackApiException,
 		IOException {
 		ChatPostMessageResponse response = slack.methods(token).chatPostMessage(request -> request
-			.channel(slackId)
-			.blocks(createBlocks(storeName, reservationMessage)));
+				.channel(slackId)
+				.blocks(createBlocks(storeName, reservationMessage)));
 		if (response.isOk()) {
 			log.info("Message posted successfully");
 			return response.getMessage().getText();
 		} else {
-			log.error("Failed to send notification to Slack for user {}: {}", slackId, response.getError());
-			return "false";
+			throw new RuntimeException("Failed to send notification to Slack for user " + slackId + " : " + response.getError());
 		}
 	}
 
 	private String getSlackIdByEmail(String email) throws SlackApiException, IOException {
 		UsersLookupByEmailResponse response = slack.methods().usersLookupByEmail(request -> request
-			.email(email)
-			.token(token));
+				.email(email)
+				.token(token));
 		if (response.isOk()) {
 			log.info("Slack user found: {}", response.getUser().getId());
 			return response.getUser().getId();
 		} else {
-			log.error("Failed to look up user by email {}: {}", email, response.getError());
-			return null;
+			throw new RuntimeException("Failed to look up user by " + email + " : " + response.getError());
 		}
 	}
 

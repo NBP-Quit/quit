@@ -6,8 +6,12 @@ spring:
     consumer:
       group-id: notification-service
       auto-offset-reset: earliest
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 server:
-  port: 19097
+  port: 19098
 eureka:
   client:
     service-url:

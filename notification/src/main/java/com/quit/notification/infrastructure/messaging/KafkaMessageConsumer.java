@@ -19,6 +19,6 @@ public class KafkaMessageConsumer {
 	@KafkaListener(groupId = "notification", topics = "reservation.notification")
 	public void consume(ReservationMessage message) {
 		log.info("consume reservation message: {}", message.toString());
-		notificationService.send(message);
+		notificationService.notifyReservation(message);
 	}
 }
