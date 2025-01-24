@@ -125,7 +125,7 @@
 
 🍪 [대기열](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%8C%80%EA%B8%B0%EC%97%B4)
 
-🍪 [가게, 예약스케줄](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C)
+🍪 [가게, 예약스케줄](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C-%EB%B0%8F-%EC%98%88%EC%95%BD%EC%8A%A4%EC%BC%80%EC%A4%84)
 
 🍪 [결제](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B2%B0%EC%A0%9C)
 
