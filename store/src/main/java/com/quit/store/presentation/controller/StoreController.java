@@ -72,4 +72,10 @@ public class StoreController {
         return ResponseEntity.ok(ApiResponse.success(storeService.getStoreForInternal(storeId)));
     }
 
+    @GetMapping("/{storeId}/internal/ownership/{userId}")
+    public ResponseEntity<ApiResponse<Boolean>> checkStoreOwnership(@PathVariable(name = "storeId") UUID storeId,
+                                                                    @PathVariable(name = "userId") String userId) {
+        return ResponseEntity.ok(ApiResponse.success(storeService.checkStoreOwnership(storeId, userId)));
+    }
+
 }

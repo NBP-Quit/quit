@@ -9,6 +9,10 @@ import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,7 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
-import static com.quit.store.presentation.exception.ErrorType.*;
+import static com.quit.store.presentation.exception.ErrorType.STORE_NOT_FOUND;
+import static com.quit.store.presentation.exception.ErrorType.USER_NOT_SAME;
 
 
 @Service
@@ -28,13 +33,17 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final RoleValidator roleValidator;
 
+    private final QueueClientService queueClientService;
+
     public CreateStoreResponse createStore(StoreDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = create(request, userId);
         storeRepository.save(store);
+        queueClientService.assignStoreToServer(store.getId(), userRole);
         return CreateStoreResponse.from(store.getId());
     }
 
+    @CachePut(cacheNames = "storeDetails", key = "'storeId:' + #storeId")
     public StoreResponse updateStore(UUID storeId, StoreDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, UPDATE);
         Store store = checkStore(storeId);
@@ -44,6 +53,7 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "storeDetails", key = "'storeId:' + #storeId")
     public StoreResponse getStore(UUID storeId) {
         Store store = checkStore(storeId);
         return StoreResponse.from(store);
@@ -51,10 +61,14 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     public Page<StoreResponse> searchStores(SearchStoreDto request, Pageable pageable) {
-        Page<Store> storePage =  storeRepository.findAllBySearchRequest(request, pageable);
+        Page<Store> storePage = storeRepository.findAllBySearchRequest(request, pageable);
         return storePage.map(StoreResponse::from);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "storeDetails", key = "'storeId:' + #storeId"),
+            @CacheEvict(cacheNames = "storeExistence", key = "'storeId:' + #storeId")
+    })
     public void deleteStore(UUID storeId, String userId, String userRole) {
         roleValidator.validateRole(userRole, STORE_DELETE);
         Store store = checkStore(storeId);
@@ -62,8 +76,15 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
-    public Boolean getStoreForInternal(UUID storeId) {
+    @Cacheable(cacheNames = "storeExistence", key = "'storeId:' + #storeId")
+    public boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkStoreOwnership(UUID storeId, String userId) {
+        Store store = checkStore(storeId);
+        return isUserOwner(store, userId);
     }
 
     private Store checkStore(UUID storeId) {
@@ -73,10 +94,14 @@ public class StoreService {
 
     private void checkUser(Store store, String userId, String userRole) {
         if (userRole.equals("ROLE_OWNER")) {
-            if (!store.getUserId().equals(userId)) {
+            if(!isUserOwner(store, userId)) {
                 throw new CustomException(USER_NOT_SAME);
             }
         }
+    }
+
+    private boolean isUserOwner(Store store, String userId) {
+        return store.getUserId().equals(userId);
     }
 
     private Store create(StoreDto request, String userId) {

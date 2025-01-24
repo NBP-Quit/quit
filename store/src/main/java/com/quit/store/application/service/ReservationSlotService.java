@@ -1,26 +1,31 @@
 package com.quit.store.application.service;
 
-import com.quit.store.application.dto.ReservationEvent;
+import com.quit.store.application.dto.BatchReservationSlotsDto;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
+import com.quit.store.application.dto.res.GetReservationSlotResponse;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
 import com.quit.store.common.util.RoleValidator;
 import com.quit.store.domain.entity.ReservationSlot;
 import com.quit.store.domain.entity.Store;
 import com.quit.store.domain.repository.ReservationSlotRepository;
 import com.quit.store.domain.repository.StoreRepository;
+import com.quit.store.infrastructure.redis.DistributedLock;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.quit.store.common.util.RoleValidator.Action.*;
 import static com.quit.store.presentation.exception.ErrorType.*;
@@ -36,13 +41,24 @@ public class ReservationSlotService {
     private final RoleValidator roleValidator;
 
     @Transactional
-    public ReservationSlotResponse createSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
+    public ReservationSlotResponse createSingleSlot(UUID storeId, ReservationSlotDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, CREATE);
         Store store = checkStore(storeId);
         checkUser(store, userId, userRole);
         ReservationSlot slot = create(store, request);
         reservationSlotRepository.save(slot);
         return ReservationSlotResponse.from(slot);
+    }
+
+    @Transactional
+    public void createBatchSlots(UUID storeId, BatchReservationSlotsDto request, String userId, String userRole) {
+        roleValidator.validateRole(userRole, CREATE);
+        Store store = checkStore(storeId);
+        checkUser(store, userId, userRole);
+        List<ReservationSlot> existingSlots = findExistingSlots(storeId, request.getStartDate(), request.getEndDate());
+        Set<String> existingSlotKeys = generateSlotKeys(existingSlots);
+        List<ReservationSlot> newSlots = generateBatchSlots(request, existingSlotKeys, store);
+        reservationSlotRepository.saveAll(newSlots);
     }
 
     @Transactional
@@ -69,11 +85,11 @@ public class ReservationSlotService {
     }
 
     @Transactional(readOnly = true)
-    public ReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
+    public GetReservationSlotResponse getSlotByDateAndTime(UUID storeId, LocalDate date, LocalTime time) {
         Store store = checkStore(storeId);
         ReservationSlot slot = reservationSlotRepository.findByDateAndTime(store.getId(), date, time)
                 .orElseThrow(() -> new CustomException(RESERVATION_SLOT_NOT_FOUND));
-        return ReservationSlotResponse.from(slot);
+        return GetReservationSlotResponse.from(slot);
     }
 
     @Transactional
@@ -88,25 +104,48 @@ public class ReservationSlotService {
     }
 
     @Transactional
-    @KafkaListener(topics = "reservation.confirm.success", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
-    public void increaseCapacity(ReservationEvent reservationEvent) {
-        log.info(">>>>>>> increaseCapacity <<<<<<<<<");
-        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
-        validateSlotIsAvailable(reservationSlot);
-        validateCapacityLimit(reservationSlot, reservationEvent.getCurrentCapacity());
-        reservationSlot.increaseCapacity(reservationEvent.getCurrentCapacity());
-        log.info("<<<<<<< reservation slot increased <<<<<<<<<");
+    @DistributedLock(key = "'reservationSlotId:' + #slotId")
+    public void increaseCapacity(UUID slotId, Integer currentCapacity) {
+        log.info("현재 예약 인원 증가 시작");
+        ReservationSlot slot = checkSlot(slotId);
+        validateSlotIsAvailable(slot);
+        validateCapacityLimit(slot, currentCapacity);
+        slot.increaseCapacity(currentCapacity);
+        log.info("현재 예약 인원 증가 완료");
     }
 
     @Transactional
-    @KafkaListener(topics = "reservation.confirm.failed", groupId = "reservation-slot", containerFactory = "kafkaReservationEventContainerFactory")
-    public void restoreCapacity(ReservationEvent reservationEvent) {
-        log.info(">>>>>>> restoreCapacity <<<<<<<<<");
-        ReservationSlot reservationSlot = checkSlot(reservationEvent.getReservationSlotId());
-        validateSlotIsAvailable(reservationSlot);
-        validateSufficientCapacity(reservationSlot, reservationEvent.getCurrentCapacity());
-        reservationSlot.restoreCapacity(reservationEvent.getCurrentCapacity());
-        log.info("<<<<<<< reservation slot restored <<<<<<<<<");
+    @DistributedLock(key = "'reservationSlotId:' + #slotId")
+    public void restoreCapacity(UUID slotId, Integer currentCapacity) {
+        log.info("현재 예약 인원 복구 시작");
+        ReservationSlot slot = checkSlot(slotId);
+        validateSlotIsAvailable(slot);
+        validateSufficientCapacity(slot, currentCapacity);
+        slot.restoreCapacity(currentCapacity);
+        log.info("현재 예약 인원 복구 완료");
+    }
+
+    private Set<String> generateSlotKeys(List<ReservationSlot> existingSlots) {
+        return existingSlots.stream()
+                .map(slot -> slot.getDate().toString() + "_" + slot.getTime().toString())
+                .collect(Collectors.toSet());
+    }
+
+    private List<ReservationSlot> findExistingSlots(UUID storeId, LocalDate startDate, LocalDate endDate) {
+        return reservationSlotRepository.findAllByStoreIdAndDateRange(storeId, startDate, endDate);
+    }
+
+    private List<ReservationSlot> generateBatchSlots(BatchReservationSlotsDto request, Set<String> existingSlotKeys, Store store) {
+        List<ReservationSlot> newSlots = new ArrayList<>();
+        for (LocalDate date = request.getStartDate(); !date.isAfter(request.getEndDate()); date = date.plusDays(1)) {
+            for (LocalTime time = request.getStartTime(); !time.isAfter(request.getEndTime()); time = time.plusMinutes(request.getInterval())) {
+                String key = date + "_" + time;
+                if (!existingSlotKeys.contains(key)) {
+                    newSlots.add(ReservationSlot.of(date, time, request.getMaxCapacity(), store));
+                }
+            }
+        }
+        return newSlots;
     }
 
     private void validateSlotIsAvailable(ReservationSlot slot) {

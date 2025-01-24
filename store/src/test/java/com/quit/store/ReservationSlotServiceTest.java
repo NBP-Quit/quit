@@ -1,5 +1,6 @@
 package com.quit.store;
 
+import com.quit.store.application.dto.BatchReservationSlotsDto;
 import com.quit.store.application.dto.ReservationSlotDto;
 import com.quit.store.application.dto.UpdateReservationSlotDto;
 import com.quit.store.application.dto.res.ReservationSlotResponse;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 import static com.quit.store.presentation.exception.ErrorType.*;
@@ -69,12 +71,12 @@ class ReservationSlotServiceTest {
 
     @Test
     @DisplayName("예약 슬롯을 생성할 수 있다.")
-    void createSlot() {
+    void createSingleSlot() {
         // given
         ReservationSlotDto requestDto = ReservationSlotDto.of(date, time, maxCapacity);
 
         // when
-        ReservationSlotResponse response = reservationSlotService.createSlot(storeId, requestDto, userId, userRole);
+        ReservationSlotResponse response = reservationSlotService.createSingleSlot(storeId, requestDto, userId, userRole);
 
         // then
         ReservationSlot actualSlot = findSlotById(response.getSlotId());
@@ -86,15 +88,96 @@ class ReservationSlotServiceTest {
 
     @Test
     @DisplayName("권한이 없는 사용자가 슬롯을 생성하려고 하면 예외가 발생한다.")
-    void createSlotUnauthorized() {
+    void createSingleSlotUnauthorized() {
         // given
         String invalidRole = "ROLE_USER";
         ReservationSlotDto requestDto = ReservationSlotDto.of(date, time, maxCapacity);
 
         // when & then
-        assertThatThrownBy(() -> reservationSlotService.createSlot(storeId, requestDto, userId, invalidRole))
+        assertThatThrownBy(() -> reservationSlotService.createSingleSlot(storeId, requestDto, userId, invalidRole))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(USER_NOT_AUTHORIZED.getMessage());
+    }
+
+    @Test
+    @DisplayName("예약 슬롯 배치를 생성할 수 있다.")
+    void createBatchSlots() {
+        // given
+        BatchReservationSlotsDto requestDto = BatchReservationSlotsDto.of(
+                LocalDate.of(2025, 1, 15),
+                LocalDate.of(2025, 1, 15),
+                LocalTime.of(10, 0),
+                LocalTime.of(18, 0),
+                30,
+                10
+        );
+
+        // when
+        reservationSlotService.createBatchSlots(storeId, requestDto, userId, userRole);
+
+        // then
+        List<ReservationSlot> slots = reservationSlotRepository.findAllByStoreIdAndDateRange(
+                storeId,
+                requestDto.getStartDate(),
+                requestDto.getEndDate()
+        );
+        assertThat(slots).isNotNull();
+        assertThat(slots).hasSize(17);
+        assertThat(slots.get(0).getMaxCapacity()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("권한이 없는 사용자가 슬롯 배치를 생성하려고 하면 예외가 발생한다.")
+    void createBatchSlotsUnauthorized() {
+        // given
+        String invalidRole = "ROLE_USER";
+        BatchReservationSlotsDto requestDto = BatchReservationSlotsDto.of(
+                LocalDate.of(2025, 1, 15),
+                LocalDate.of(2025, 1, 15),
+                LocalTime.of(10, 0),
+                LocalTime.of(18, 0),
+                30,
+                10
+        );
+
+        // when & then
+        assertThatThrownBy(() -> reservationSlotService.createBatchSlots(storeId, requestDto, userId, invalidRole))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(USER_NOT_AUTHORIZED.getMessage());
+    }
+
+    @Test
+    @DisplayName("중복된 예약 슬롯은 생성되지 않는다.")
+    void createBatchSlotsAvoidDuplicate() {
+        // given
+        LocalDate startDate = LocalDate.of(2025, 1, 15);
+        LocalDate endDate = LocalDate.of(2025, 1, 15);
+        LocalTime startTime = LocalTime.of(10, 0);
+        LocalTime endTime = LocalTime.of(18, 0);
+        int interval = 30;
+        int maxCapacity = 10;
+
+        ReservationSlot existingSlot = ReservationSlot.of(
+                startDate,
+                LocalTime.of(10, 30),
+                maxCapacity,
+                storeRepository.findById(storeId).orElseThrow()
+        );
+        reservationSlotRepository.save(existingSlot);
+
+        BatchReservationSlotsDto requestDto = BatchReservationSlotsDto.of(
+                startDate, endDate, startTime, endTime, interval, maxCapacity
+        );
+
+        // when
+        reservationSlotService.createBatchSlots(storeId, requestDto, userId, userRole);
+
+        // then
+        List<ReservationSlot> slots = reservationSlotRepository.findAllByStoreIdAndDateRange(storeId, startDate, endDate);
+
+        assertThat(slots).isNotNull();
+        assertThat(slots).hasSize(17);
+
     }
 
     @Test

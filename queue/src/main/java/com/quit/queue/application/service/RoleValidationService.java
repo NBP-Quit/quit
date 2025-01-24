@@ -26,6 +26,11 @@ public class RoleValidationService {
                         return Mono.error(new UnauthorizedException("Unauthorized role: " + userRole));
                     }
                     break;
+                case RoleValidationType.NOT_USER:
+                    if (!(userRole.equals("ROLE_OWNER") || userRole.equals("ROLE_MASTER") || userRole.equals("ROLE_MANAGER"))) {
+                        return Mono.error(new UnauthorizedException("Unauthorized role: " + userRole));
+                    }
+                    break;
                 default:
                     return Mono.error(new IllegalArgumentException("Invalid validation type: " + validationType));
             }

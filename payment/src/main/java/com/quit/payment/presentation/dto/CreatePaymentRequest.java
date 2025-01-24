@@ -22,11 +22,15 @@ public class CreatePaymentRequest {
     @NotNull(message = "PAYMENT_KEY_EMPTY")
     private String paymentKey;
 
+    @NotNull(message = "PAYMENT_IDEMPOTENCY_KEY_EMPTY")
+    private String idempotencyKey;
+
     public PaymentDto toDto() {
         return PaymentDto.of(
                 this.orderId,
                 this.amount,
-                this.paymentKey
+                this.paymentKey,
+                this.idempotencyKey
         );
     }
 
