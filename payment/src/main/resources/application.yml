@@ -22,7 +22,6 @@ spring:
     username: ${DATASOURCE_PROD_USERNAME}
     password: ${DATASOURCE_PROD_PASSWORD}
     url: ${PAYMENT_DATASOURCE_PROD_URL}
-
   data:
     redis:
       host: ${REDIS_HOST}
