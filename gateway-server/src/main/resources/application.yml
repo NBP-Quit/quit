@@ -15,7 +15,7 @@ spring:
           enabled: true
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**, /api/auth/**
           filters:
@@ -26,23 +26,23 @@ spring:
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
         - id: queue
-          uri: lb://queue
+          uri: lb://QUEUE
           predicates:
             - Path=/api/queues, /api/queues/**
         - id: reservation
-          uri: lb://reservation
+          uri: lb://RESERVATION
           predicates:
             - Path=/api/reservations, /api/reservations/**
         - id: review
-          uri: lb://review
+          uri: lb://REVIEW
           predicates:
             - Path=/api/stores/{storeId}/reviews/**, /api/stores/{storeId}/reservations/{reservationId}/reviews/**
         - id: store
-          uri: lb://store
+          uri: lb://STORE
           predicates:
             - Path=/api/stores/**
         - id: payment
-          uri: lb://payment
+          uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
 
