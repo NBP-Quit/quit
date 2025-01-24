@@ -43,6 +43,7 @@ logging:
     org.springframework.cloud: DEBUG
     org.springframework.web: DEBUG
     com.quit: DEBUG
+    com.netflix.discovery: OFF
 
 
 management:
