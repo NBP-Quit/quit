@@ -10,3 +10,6 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_PROD_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${USER_EC2_HOST} # 명시적으로 EC2 내부 IP를 설정
