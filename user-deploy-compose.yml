@@ -11,7 +11,7 @@ services:
       - USER_DATASOURCE_PROD_URL=${USER_DATASOURCE_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     ports:
-      - "19092:8080"
+      - "19092:19092"
     networks:
       - quit-network
 

@@ -13,7 +13,7 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - FEIGN_URL=${FEIGN_URL}
     ports:
-      - "19094:8080"
+      - "19094:19094"
     depends_on:
       - redis
     networks:

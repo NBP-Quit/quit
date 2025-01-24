@@ -18,6 +18,8 @@ services:
       - STORE_DATASOURCE_PROD_URL=${STORE_DATASOURCE_PROD_URL}
       - REDIS_HOST=redis
       - REDIS_PORT=${REDIS_PORT}
+    ports:
+      - "19093:19093"
     depends_on:
       - redis
     networks:

@@ -62,6 +62,8 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "19095:19095"
     depends_on:
       - redis
       - zookeeper
