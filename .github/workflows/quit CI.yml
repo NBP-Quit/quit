@@ -819,6 +819,8 @@ jobs:
             DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             PAYMENT_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/PAYMENT_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             PAYMENT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/PAYMENT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
 
             export EUREKA_PROD_URL
             export DATASOURCE_DRIVER_CLASS_NAME
@@ -826,6 +828,8 @@ jobs:
             export DATASOURCE_PROD_PASSWORD
             export PAYMENT_DATASOURCE_PROD_URL
             export PAYMENT_SECRET_KEY
+            export REDIS_HOST
+            export REDIS_PORT
             
             sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
             sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
