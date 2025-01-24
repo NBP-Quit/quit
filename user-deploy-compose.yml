@@ -14,7 +14,7 @@ services:
       - "19092:8080"
     networks:
       - quit-network
-      -
+
   redis:
     image: redis:latest
     container_name: redis
