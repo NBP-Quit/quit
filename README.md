@@ -129,7 +129,7 @@
 
 🍪 [결제](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B2%B0%EC%A0%9C)
 
-🍪 [유저](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%9C%A0%EC%A0%80)
+🍪 [회원관리, 인증인가](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%ED%9A%8C%EC%9B%90-%EA%B4%80%EB%A6%AC-%EB%B0%8F-%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80)
 
 🍪 [리뷰](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%A6%AC%EB%B7%B0)
 
