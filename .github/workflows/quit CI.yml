@@ -3,7 +3,7 @@ name: Quit CI
 on:
   push:
     branches:
-      - feat/112-quit
+      - dev
 
 jobs:
   build-eureka:
