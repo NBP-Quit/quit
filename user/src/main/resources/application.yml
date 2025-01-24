@@ -32,6 +32,7 @@ eureka:
     hostname: ${USER_EC2_HOST}
     metadata-map:
       ip: ${USER_EC2_HOST}
+    instance-id: ${USER_EC2_HOST}
 
 jwt:
   access-expiration: "#{60 * 60 * 1000}"
