@@ -5,3 +5,5 @@ services:
     environment:
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    ports:
+      - "19091:8080"
