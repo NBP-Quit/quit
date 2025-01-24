@@ -826,6 +826,7 @@ jobs:
             export DATASOURCE_PROD_PASSWORD
             export PAYMENT_DATASOURCE_PROD_URL
             export PAYMENT_SECRET_KEY
+            
             sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
             sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml pull
@@ -836,6 +837,8 @@ jobs:
               DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
               PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
               PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
+              REDIS_HOST=$REDIS_HOST \        
+              EDIS_PORT=$REDIS_PORT \ 
               docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
 
   deploy-notification:
