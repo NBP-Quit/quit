@@ -10,8 +10,8 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
 
+      port: ${REDIS_PORT}
   cloud:
     gateway:
       discovery:
@@ -19,7 +19,7 @@ spring:
           enabled: true
       routes:
         - id: user-service
-          uri: lb://USER-SERVICE
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**, /api/auth/**
           filters:
@@ -29,24 +29,25 @@ spring:
                 redis-rate-limiter.burstCapacity: 10
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
-        - id: queue
-          uri: lb://QUEUE
+        - id: queue-service
+          uri: lb://queue-service
           predicates:
             - Path=/api/queues, /api/queues/**
-        - id: reservation
-          uri: lb://RESERVATION
+
+        - id: reservation-service
+          uri: lb://reservation-service
           predicates:
             - Path=/api/reservations, /api/reservations/**
-        - id: review
-          uri: lb://REVIEW
+        - id: review-service
+          uri: lb://review-service
           predicates:
             - Path=/api/stores/{storeId}/reviews/**, /api/stores/{storeId}/reservations/{reservationId}/reviews/**
-        - id: store
-          uri: lb://STORE
+        - id: store-service
+          uri: lb://store-service
           predicates:
             - Path=/api/stores/**
-        - id: payment
-          uri: lb://PAYMENT-SERVICE
+        - id: payment-service
+          uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
 

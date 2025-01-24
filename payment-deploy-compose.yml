@@ -47,7 +47,7 @@ services:
     networks:
       - quit-payment-network
 
-  payment:
+  payment-service:
     image: laira2/quit:payment-latest
     container_name: payment-service
     environment:

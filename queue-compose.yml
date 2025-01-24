@@ -6,7 +6,7 @@ services:
       - "6379:6379"
     networks:
       - quit-queue-network
-  queue:
+  queue-service:
     image: laira2/quit:queue-latest
     container_name: queue-service
     environment:

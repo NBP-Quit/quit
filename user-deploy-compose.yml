@@ -1,5 +1,5 @@
 services:
-  user:
+  user-service:
     image: laira2/quit:user-latest
     container_name: user-service
     environment:

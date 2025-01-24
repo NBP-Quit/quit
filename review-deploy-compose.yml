@@ -7,7 +7,7 @@ services:
     networks:
       - quit-network
 
-  review:
+  review-service:
     image: laira2/quit:review-latest
     container_name: review-service
     environment:

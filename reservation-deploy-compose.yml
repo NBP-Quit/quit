@@ -1,5 +1,5 @@
 services:
-  reservation:
+  reservation-service:
     image: laira2/quit:reservation-latest
     container_name: reservation-service
     environment:
