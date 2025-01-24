@@ -1,28 +1,28 @@
 package com.quit.review.infrastructure.service;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.quit.review.application.service.LikeEvent;
 import com.quit.review.application.service.MessagePublisher;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitMqMessagePublisher implements MessagePublisher {
+@Slf4j
+public class RedisMessagePublisher implements MessagePublisher {
 
-	private final RabbitTemplate rabbitTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
 
-	@Value("${message.exchange}")
-	private String exchange;
-
-	@Value("${message.routing-key}")
-	private String routingKey;
+	@Value("${spring.data.redis.channel.name}")
+	private String channelName;
 
 	@Override
 	public void publishLikeEvent(LikeEvent likeEvent) {
-		rabbitTemplate.convertAndSend(exchange, routingKey, likeEvent);
+		log.info("message publish");
+		redisTemplate.convertAndSend(channelName, likeEvent);
 	}
 }

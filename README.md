@@ -19,6 +19,8 @@
 
 🍪 [인프라 아키텍처](#인프라-아키텍처)
 
+🍪 [시퀀스 다이어그램](#시퀀스-다이어그램)
+
 🍪 [주요 기능](#주요-기능)
 
 🍪 [역할 분담](#역할-분담)
@@ -93,16 +95,41 @@
 
 <br>
 
+## 시퀀스 다이어그램
+![Screenshot_1](https://github.com/user-attachments/assets/b6447c9c-a7fd-41a0-9e8d-13f680740986)
+
+**서비스 흐름: 예약 신청 -> 대기열 -> 결제 -> 예약 확정 -> 알림 전송**
+
+ > 사용자가 예약을 신청하면 대기열에서 전달받은 사용자 정보, 예약 정보, 대기 순번을 Redis에 저장.<br>
+   대기열 서버에서 5초마다 브라우저 접속 상태를 갱신 요청.<br>
+   가게 별로 관리되는 대기열에서 10초마다 최대 1,000명의 사용자를 예약 서비스로 이동.<br>
+   예약 스케줄의 예약 인원을 변경하여 예약을 선점하고 결제 진행 후 예약 확정.<br>
+   Slack DM을 통해 사용자에게 예약 확정 완료 알림 발송.
+
+- 외부 API 사용
+  - Slack
+    - 예약 완료 및 취소 등 주요 이벤트에 대한 실시간 알림 전송에 활용.
+  - Toss
+    - 결제 처리 API로 활용.
+    - 예약 확정 단계에서 사용자의 결제를 안전하고 간편하게 처리.
+- Kafka
+  - `queue.process.success` 대기열 -> 예약: 예약 정보(예약자, 가게, 예약일, 시간, 인원)
+  - `payment.create.success/payment.create.failed` 결제 -> 예약: 결제 정보 제공
+  - `reservation.confirm.success/reservation.confirm.failed` 예약 -> 가게: 예약 정보(예약 슬롯, 예약 인원)
+  - `reservation.notification` 예약 -> 알림: 예약 전체 정보 제공
+
+<br>
+
 ## 주요 기능
 🍪 [예약](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%98%88%EC%95%BD)
 
 🍪 [대기열](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%8C%80%EA%B8%B0%EC%97%B4)
 
-🍪 [가게, 예약스케줄](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C)
+🍪 [가게, 예약스케줄](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C-%EB%B0%8F-%EC%98%88%EC%95%BD%EC%8A%A4%EC%BC%80%EC%A4%84)
 
 🍪 [결제](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B2%B0%EC%A0%9C)
 
-🍪 [유저](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%9C%A0%EC%A0%80)
+🍪 [회원관리, 인증인가](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%ED%9A%8C%EC%9B%90-%EA%B4%80%EB%A6%AC-%EB%B0%8F-%EC%9D%B8%EC%A6%9D%EC%9D%B8%EA%B0%80)
 
 🍪 [리뷰](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%A6%AC%EB%B7%B0)
 
@@ -117,7 +144,7 @@
 
 🥨 [대기열 서비스 WebFlux 기반 비동기 모델 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B9%84%EC%8A%A4-WebFlux-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%EB%AA%A8%EB%8D%B8-%EB%8F%84%EC%9E%85)
 
-🥨 [놀이동산 방식 대기열의 처리주기 및 처리량 결정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4%EC%97%90%EC%84%9C-%EC%98%88%EC%95%BD%EC%9C%BC%EB%A1%9C-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%A7%84%EC%9E%85%EC%8B%9C%ED%82%AC-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9D%B8%EC%9B%90-%EA%B2%B0%EC%A0%95)
+🥨 [놀이동산 방식 대기열의 처리주기 및 처리량 결정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%86%80%EC%9D%B4%EB%8F%99%EC%82%B0-%EB%B0%A9%EC%8B%9D-%EB%8C%80%EA%B8%B0%EC%97%B4%EC%9D%98-%EC%B2%98%EB%A6%AC-%EC%A3%BC%EA%B8%B0-%EB%B0%8F-%EC%B2%98%EB%A6%AC%EB%9F%89-%EA%B2%B0%EC%A0%95)
 
 🥨 [OpenFeign을 사용한 Toss Payments API 연동](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-Toss-Payments-API-%EC%97%B0%EB%8F%99-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
 
@@ -133,7 +160,7 @@
 
 🥖 [Redisson 분산락 적용으로 동시성 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-%EC%A0%81%EC%9A%A9%EC%9C%BC%EB%A1%9C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
 
-🥖 [Redisson 분산락 Key 적용 시 내부 함수 사용 불가 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-Key-%EC%A0%81%EC%9A%A9-%EC%8B%9C-%EB%82%B4%EB%B6%80-%ED%95%A8%EC%88%98-%EC%82%AC%EC%9A%A9-%EB%B6%88%EA%B0%80-%EB%AC%B8%EC%A0%9C)
+🥖 [Redisson 분산락 Key 설정 시 내부 함수 사용 불가 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-Key-%EC%84%A4%EC%A0%95-%EC%8B%9C-%EB%82%B4%EB%B6%80-%ED%95%A8%EC%88%98-%EC%82%AC%EC%9A%A9-%EB%B6%88%EA%B0%80-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
 
 🥖 [대용량 트래픽 처리가 요구되는 대기열 서버의 과부화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%EB%8C%80%EC%9A%A9%EB%9F%89-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EA%B0%80-%EC%9A%94%EA%B5%AC%EB%90%98%EB%8A%94-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B2%84%EC%9D%98-%EA%B3%BC%EB%B6%80%ED%99%94-%EB%AC%B8%EC%A0%9C)
 
