@@ -62,7 +62,7 @@ logging:
     org:
       springframework:
         cloud:
-          gateway=DEBUG:
+          gateway: DEBUG
 
 jwt:
   secret:
