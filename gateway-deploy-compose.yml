@@ -5,6 +5,8 @@ services:
     environment:
       - EUREKA_PROD_URL=${EUREKA_PROD_URL}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     ports:
       - "19091:19091"
     networks:

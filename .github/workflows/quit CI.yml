@@ -619,9 +619,13 @@ jobs:
             # AWS SSM에서 파라미터 가져오기
             EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
 
             export EUREKA_PROD_URL
             export JWT_SECRET_KEY
+            export REDIS_HOST
+            export REDIS_PORT
             
             # Docker Compose 실행
             sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
@@ -632,6 +636,8 @@ jobs:
             sudo SPRING_PROFILES_ACTIVE=prod \
                   EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   JWT_SECRET_KEY=$JWT_SECRET_KEY \
+                  REDIS_HOST=REDIS_HOST \
+                  REDIS_PORT=REDIS_PORT \
                   docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
   deploy-queue:
     needs:

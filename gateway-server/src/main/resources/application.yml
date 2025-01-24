@@ -7,6 +7,10 @@ spring:
 
   main:
     web-application-type: reactive
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   cloud:
     gateway:
@@ -45,6 +49,8 @@ spring:
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
+
+
 
 eureka:
   client:
