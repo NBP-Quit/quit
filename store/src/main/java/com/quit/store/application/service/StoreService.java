@@ -10,7 +10,9 @@ import com.quit.store.domain.repository.StoreRepository;
 import com.quit.store.presentation.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ public class StoreService {
         return CreateStoreResponse.from(store.getId());
     }
 
+    @CachePut(cacheNames = "storeDetails", key = "'storeId:' + #storeId")
     public StoreResponse updateStore(UUID storeId, StoreDto request, String userId, String userRole) {
         roleValidator.validateRole(userRole, UPDATE);
         Store store = checkStore(storeId);
@@ -50,6 +53,7 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "storeDetails", key = "'storeId:' + #storeId")
     public StoreResponse getStore(UUID storeId) {
         Store store = checkStore(storeId);
         return StoreResponse.from(store);
@@ -61,7 +65,10 @@ public class StoreService {
         return storePage.map(StoreResponse::from);
     }
 
-    @CacheEvict(cacheNames = "store", key = "args[0]")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "storeDetails", key = "'storeId:' + #storeId"),
+            @CacheEvict(cacheNames = "storeExistence", key = "'storeId:' + #storeId")
+    })
     public void deleteStore(UUID storeId, String userId, String userRole) {
         roleValidator.validateRole(userRole, STORE_DELETE);
         Store store = checkStore(storeId);
@@ -69,7 +76,7 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "store", key = "args[0]")
+    @Cacheable(cacheNames = "storeExistence", key = "'storeId:' + #storeId")
     public boolean getStoreForInternal(UUID storeId) {
         return storeRepository.existsByIdAndIsDeletedFalse(storeId);
     }

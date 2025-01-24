@@ -1,6 +1,6 @@
-## QUIT : 대규모 트래픽 처리 식당 예약 서비스
+## 🍽️ QUIT : 대규모 트래픽 처리 식당 예약 서비스
 
-![프로젝트 대표 이미지](.jpg)
+![박람회장_이미지_뒷면_노션](https://github.com/user-attachments/assets/4f5805ab-3227-461a-b910-2e557cbac132)
 
 **QUIT**는 고객을 대기줄에서 '나가게(Quit)' 하여 **더 빠르고 편리한 식사 경험을 제공하겠다는 의미**를 담았습니다.
 
@@ -8,24 +8,137 @@
 
 <br>
 
-## 프로젝트 핵심 목표
+## 목차
+🍪 [프로젝트 핵심 목표](#프로젝트-핵심-목표)
 
-1. **대규모 트래픽 대응**
-   - Redis와 Kafka를 활용한 비동기 처리를 통해 API 요청 200req/sec 이상 처리.
-   - 동시성 문제를 해결하며 식당 예약 서비스 제공.
+🍪 [기술 스택](#기술-스택)
 
-2. **성능 최적화**
-   - Redis 기반 캐싱으로 실시간 상품 조회 성능을 향상.
-   - Redisson을 사용하여 안정적 데이터 처리 구현.
+🍪 [KEY Summary](#key-summary)
 
-3. **운영 및 배포 효율화**
-   - Docker와 Github Actions를 이용한 CI/CD 파이프라인 구축으로 배포 자동화.
-   - Prometheus와 Grafana를 활용한 실시간 모니터링으로 시스템 안정성 확보.
+🍪 [ERD](#erd)
 
-4. **데이터 일관성 및 트랜잭션 관리**
-   - Kafka를 이용한 SAGA 패턴으로 분산 트랜잭션 관리.
+🍪 [인프라 아키텍처](#인프라-아키텍처)
+
+🍪 [주요 기능](#주요-기능)
+
+🍪 [역할 분담](#역할-분담)
 
 <br>
+
+## 프로젝트 핵심 목표
+
+### 🥨 대규모 트래픽 대응
+
+- **MSA 구조**를 통해 서비스의 확장성과 유연성을 확보
+- **Redis**, **Kafka**로 **대규모 트래픽 안정적** 처리
+- **동시성 문제를 해결**하며 안정적 서비스 제공
+- 부하 테스트
+
+### 🥨 배포 및 운영
+
+- **Docker**와 **Github Actions**를 이용한 **CI/CD** 파이프라인 구축
+
+### 🥨 모니터링 시스템 구축
+
+- **Prometheus**와 **Grafana**를 활용한 **실시간 모니터링**으로 시스템 안정성 확보
+
+<br>
+
+## KEY Summary
+
+### 🥐 **Kafka를 통한 비동기 메시징 처리**
+
+- 대기열, 예약, 예약 인원 관리, 결제, 알림 간 비동기 메시지 처리로 서비스 간 독립성과 확장성 확보.
+- 대규모 트래픽 환경에서도 안정적인 데이터 전송과 처리 지원.
+
+### 🥐 **Redisson 분산 락을 활용한 동시성 제어**
+
+- 예약 관련 로직에 분산 락을 적용.
+- 데이터 정합성 유지하여 동시성 문제를 방지하고 안정적인 데이터 처리 구현
+
+### 🥐 **Redis를 활용한 캐싱 처리**
+
+- 빈번하게 조회되는 자원에 캐싱을 적용하여 데이터베이스 부하를 감소.
+- 평균 응답 시간 46.7% 감소, 초당 처리량 약 80% 증가로 성능 최적화 달성.
+- 빠른 데이터 응답 속도로 사용자 경험 개선.
+
+### 🥐 **WebFlux 기반 비동기 대기열 서비스**
+
+- WebFlux의 비동기 모델을 도입하여 높은 동시성과 빠른 응답 속도를 제공하여 대규모 트래픽 효율적 처리.
+- Redis를 활용하여 실시간 대기열 상태를 관리하고 가게별로 독립적인 대기열을 운영하여 효율적인 대기 관리.
+- 놀이동산 방식으로 일정 시간마다 일정 인원이 순차적으로 대기열에서 진입.
+- 멀티 인스턴스 환경에서 각 서버에 특정 가게를 할당하여 대기열 서비스를 분배하고 부하를 분산.
+
+### 🥐 **다양한 외부 API 연동**
+
+- 다양한 외부 API 활용, 검증된 서비스를 통해 개발 효율성과 코스트를 절약하여 사용자 경험 향상
+- **Slack API**: 예약 성공 또는 취소와 같은 주요 이벤트 발생 시 사용자에게 Slack 개인 DM을 통해 실시간 알림 전송
+- **Toss Payments**: 사용자 결제 처리를 위해 토스 API를 연동해 안전하고 신뢰성 있는 결제 서비스 제공
+- **AWS S3**: 사용자가 리뷰 작성 시 첨부한 이미지 파일을 AWS S3에 저장하여 효율적이고 확장 가능한 스토리지 솔루션 제공
+
+<br>
+
+## ERD
+<img width="1576" alt="image" src="https://github.com/user-attachments/assets/29210eeb-0237-4dd7-9064-07ae9447c03f" />
+
+<br>
+
+## 인프라 아키텍처
+
+### 아키텍처 다이어그램
+<img width="1209" alt="image" src="https://github.com/user-attachments/assets/3067a8f3-bb28-4663-aab2-e90e986121ee" />
+
+위 아키텍처는 **MSA 기반의 서비스** 구조를 나타냅니다.  
+각 모듈은 OpenFeign, Kafka를 통해 통신하며, Docker로 컨테이너화되어 CI/CD를 통해 자동 배포됩니다.
+
+<br>
+
+## 주요 기능
+🍪 [예약](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%98%88%EC%95%BD)
+
+🍪 [대기열](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%8C%80%EA%B8%B0%EC%97%B4)
+
+🍪 [가게, 예약스케줄](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B0%80%EA%B2%8C)
+
+🍪 [결제](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EA%B2%B0%EC%A0%9C)
+
+🍪 [유저](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%9C%A0%EC%A0%80)
+
+🍪 [리뷰](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%A6%AC%EB%B7%B0)
+
+🍪 [알림](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EC%95%8C%EB%A6%BC)
+
+🍪 [모니터링](https://github.com/NBP-Quit/quit/wiki/%5B%EB%8F%84%EB%A9%94%EC%9D%B8-%EB%B3%84-%EC%A3%BC%EC%9A%94-%EA%B8%B0%EB%8A%A5%5D-%EB%AA%A8%EB%8B%88%ED%84%B0%EB%A7%81)
+
+<br>
+
+## 기술적 의사결정
+🥨 [대규모 트래픽 처리와 안정성을 위한 Kafka 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B7%9C%EB%AA%A8-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EC%99%80-%EC%95%88%EC%A0%95%EC%84%B1%EC%9D%84-%EC%9C%84%ED%95%9C-Kafka-%EB%8F%84%EC%9E%85)
+
+🥨 [대기열 서비스 WebFlux 기반 비동기 모델 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B9%84%EC%8A%A4-WebFlux-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%EB%AA%A8%EB%8D%B8-%EB%8F%84%EC%9E%85)
+
+🥨 [놀이동산 방식 대기열의 처리주기 및 처리량 결정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4%EC%97%90%EC%84%9C-%EC%98%88%EC%95%BD%EC%9C%BC%EB%A1%9C-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%A7%84%EC%9E%85%EC%8B%9C%ED%82%AC-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9D%B8%EC%9B%90-%EA%B2%B0%EC%A0%95)
+
+🥨 [OpenFeign을 사용한 Toss Payments API 연동](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-Toss-Payments-API-%EC%97%B0%EB%8F%99-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
+
+🥨 [분산락을 이용한 동시성 제어](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%A0%9C%EC%96%B4-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
+
+<br>
+
+## 트러블슈팅
+### BackEnd
+🥖 [프로메테우스 매트릭 수집과 인증 처리 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%ED%94%84%EB%A1%9C%EB%A9%94%ED%85%8C%EC%9A%B0%EC%8A%A4-%EB%A7%A4%ED%8A%B8%EB%A6%AD-%EC%88%98%EC%A7%91%EA%B3%BC-%EC%9D%B8%EC%A6%9D-%EC%B2%98%EB%A6%AC-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Kafka 메시지 직렬화/역직렬화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85%5D-Kafka-%EB%A9%94%EC%8B%9C%EC%A7%80-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Redisson 분산락 적용으로 동시성 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-%EC%A0%81%EC%9A%A9%EC%9C%BC%EB%A1%9C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
+
+🥖 [Redisson 분산락 Key 적용 시 내부 함수 사용 불가 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-Redisson-%EB%B6%84%EC%82%B0%EB%9D%BD-Key-%EC%A0%81%EC%9A%A9-%EC%8B%9C-%EB%82%B4%EB%B6%80-%ED%95%A8%EC%88%98-%EC%82%AC%EC%9A%A9-%EB%B6%88%EA%B0%80-%EB%AC%B8%EC%A0%9C)
+
+🥖 [대용량 트래픽 처리가 요구되는 대기열 서버의 과부화 문제 해결](https://github.com/NBP-Quit/quit/wiki/%5B%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85%5D-%EB%8C%80%EC%9A%A9%EB%9F%89-%ED%8A%B8%EB%9E%98%ED%94%BD-%EC%B2%98%EB%A6%AC%EA%B0%80-%EC%9A%94%EA%B5%AC%EB%90%98%EB%8A%94-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B2%84%EC%9D%98-%EA%B3%BC%EB%B6%80%ED%99%94-%EB%AC%B8%EC%A0%9C)
+
+<br>
+
 
 ## 기술 스택
 ### Backend
@@ -55,324 +168,14 @@
 
 <br>
 
-## KEY Summary
-
-### 🍁 **성능 개선 : 자주 조회되는 데이터 
-
-
-1. **한 줄 요약**  
-   - Redis 도입으로 기존 DB 조회보다 **348% 성능 개선**  
-   - 대규모 트래픽 환경에서도 안정적인 서비스 유지  
-
-   ![성능 개선 이미지]
-
-2. **도입 배경**  
-   - 상품의 최저가를 제공하기 위해 외부 서버에서 제공하는 타임세일 상품의 할인율과  
-     상품 자체의 할인율을 비교하는 기능이 필요  
-
-3. **기술적 선택지**  
-
-   1. **DB 데이터 적재**  
-      - 스케줄링 작업으로 짧은 시간 내 대량의 데이터를 수정하는 것은 데이터베이스에 과도한 부하 발생  
-      - 상품 자체의 할인율과 타임세일 할인율을 분리하여 별도 컬럼 저장 필요  
-
-   2. **Redis 캐싱**  
-      - 실시간 최저가 할인율로 최신 정보와 가격 제공  
-      - TTL 설정으로 타임세일 종료 시 자동 데이터 삭제  
-
-   **결론:** Redis 도입을 결정하여 성능 및 효율성을 크게 개선  
-
-<br>
-
-## ERD
-<img width="1576" alt="image" src="https://github.com/user-attachments/assets/29210eeb-0237-4dd7-9064-07ae9447c03f" />
-
-<br>
-
-## 인프라 아키텍처 & 적용 기술
-
-### 아키텍처 다이어그램
-<img width="1209" alt="image" src="https://github.com/user-attachments/assets/68cf4a40-6465-47fc-929e-beca5d7359a7" />
-
-
-위 아키텍처는 **MSA 기반의 서비스** 구조를 나타냅니다.  
-각 모듈은 OpenFeign, Kafka를 통해 통신하며, Docker로 컨테이너화되어 CI/CD를 통해 자동 배포됩니다.
-
-<br>
-
-## 주요 기능
-### 🥐 **Kafka를 통한 비동기 메시징 처리**
-
-- 대기열, 예약, 예약 인원 관리, 결제, 알림 간 비동기 메시지 처리로 서비스 간 독립성과 확장성 확보.
-- 대규모 트래픽 환경에서도 안정적인 데이터 전송과 처리 지원.
-
-### 🥐 **WebFlux 기반 비동기 대기열 서비스**
-
-- 대기열 서비스에 **WebFlux 비동기 모델** 도입으로 높은 동시성과 빠른 응답 속도 제공.
-- 비동기 처리 방식으로 대규모 트래픽 처리와 리소스 사용 최적화.
-
-### 🥐 **Redisson 분산 락을 활용한 동시성 제어**
-
-- 예약 관련 로직에 분산 락을 적용.
-- 데이터 정합성 유지하여 동시성 문제를 방지하고 안정적인 데이터 처리 구현
-
-### 🥐 **Redis를 활용한 캐싱 처리**
-
-- 빈번하게 조회되는 자원에 캐싱을 적용하여 데이터베이스 부하를 감소.
-- 빠른 데이터 응답 속도로 사용자 경험 개선.
-
-<br>
-
-## 기술적 의사결정
-<details>
-  <summary>대규모 트래픽 처리와 안정성을 위한 Kafka 도입</summary>
-  
-### 도입 배경
-
-- MSA 환경에서 동기 처리 방식은 대규모 트래픽 상황에서 성능 및 확장성의 한계를 드러냄.
-- 비동기 메시지 처리를 통해 서비스 간 독립성을 유지하고, 대규모 트래픽 상황에서도 안정적인 성능을 제공하기 위해 메시징 시스템 도입을 검토.
-
-### 기술적 선택지
-
-1. **RabbitMQ**
-    - 장점
-        - 간단한 설정과 사용법, 메시지 전달 지연 시간 낮음.
-    - 단점
-        - 수평 확장이 어렵고, 대규모 트래픽 처리 시 성능 제한.
-2. **Kafka**
-    - 장점
-        - 수평 확장이 용이하고, 대용량 트래픽을 안정적으로 처리.
-        - 메시지의 중복 처리 및 장기 보관이 가능하여 높은 신뢰성 제공.
-    - 단점
-        - 초기 설정 및 운영 복잡도가 높음.
-    
-
-### 의사 결정
-
-✅ **Kafka 선택**
-
-- **선택 이유**
-    - **Kafka**는 대규모 트래픽 환경에서 **RabbitMQ**보다 **뛰어난 성능과 안정성**을 제공.
-    - **수평 확장이 용이**해, 향후 서비스 확장을 고려할 때 **유연한 대응**이 가능.
-    - **메시지 보관** 및 **중복 데이터 처리**에서 높은 신뢰성을 보장.
-
-➡️ 이러한 장점은 초기 설정 및 운영의 **높은 복잡도를 상쇄할 만큼의 가치**가 있다고 판단하여 **Kafka를 채택**.
-</details>
-<details>
-  <summary>대기열 서비스 WebFlux 기반 비동기 모델 도입</summary>
-
-### 도입 배경
-
-- 대기열 서비스는 높은 동시성 요구와 대규모 트래픽 처리 능력이 필수적.
-- 기존의 동기 처리 방식은 대규모 트래픽 상황에서 자원 소모와 성능 저하 문제를 초래할 가능성이 있음.
-- 이를 해결하기 위해 비동기 처리 방식을 도입하여 적은 리소스로 높은 동시성과 빠른 응답 속도를 제공하고자 함.
-
-### 기술적 선택지
-
-1. **Spring MVC**
-    - **장점**: 기존 동기 처리 방식으로 간단한 개발과 익숙한 코드베이스 제공.
-    - **단점**: 동기식 요청-응답 구조로 인해 동시 처리 능력과 리소스 효율성이 제한적.
-2. **Spring WebFlux**
-    - **장점**: Non-blocking I/O 기반으로 적은 리소스에서 높은 동시성을 제공.
-    - **Reactive Stream**을 활용해 백프레셔를 관리하고, 소비자 속도에 맞춰 데이터를 처리 가능.
-    - Redis와의 연동 시 **Reactive Redis Template**을 사용해 기존 동기 방식보다 데이터 처리 속도가 우수.
-    - **단점**: 기존 동기식 개발 방식보다 높은 러닝 커브와 코드 복잡도.
-    
-
-### 의사 결정
-
-✅ **WebFlux**와 **Reactive Redis Template 조합**으로 대기열 서비스의 비동기 처리 시스템 구성
-
-- 선택이유
-    - Non-blocking I/O 기반으로 높은 동시성과 대규모 트래픽 처리에 적합.
-    - Reactive Stream을 통해 데이터 처리 속도와 백프레셔 관리 효율성 강화.
-    - Redis와 **Reactive Redis Template**의 조합으로 대기열 상태 관리와 성능 최적화 기대.
-    
-    ➡️  초기 러닝 커브와 코드 복잡도를 고려했지만, **대규모 트래픽 상황에서 안정적이고 효율적인 성능을 제공**할 수 있어 **WebFlux를 채택**.
-</details>
-<details>
-  <summary>Toss Payments API 연동 방식 선정</summary>
-
-**RestTemplate vs RestClient vs OpenFeign**
-
-### 도입 배경
-
-- 결제 기능 구현에서 Toss Payments API를 연동하기 위해 HTTP 통신 방식을 선택 필요
-- 결제와 같은 민감한 서비스에서 안정성과 유지보수성을 보장할 수 있어야 하며, 코드의 간결성과 확장성도 고려해야함
-
-### 기술적 선택지
-
-- **RestTemplate**
-    - **장점**: Spring에서 널리 사용되며, 비교적 간단하게 설정 및 사용 가능.
-    - **단점**: **Boilerplate 코드가 많아 코드 가독성과 유지보수성에서 불리.
-    - Spring 5부터는 `Deprecated`로 선언되어 장기적인 사용이 권장되지 않음.
-- **RestClient**
-    - **장점**: Spring 6부터 제공되는 HTTP 클라이언트로, 현대적인 HTTP 요청 처리를 지원.
-    - **단점**: 초기 사용자가 적어 커뮤니티 지원이 부족하며, 프로젝트 초기에 안정성을 보장하기 어려움.
-- **OpenFeign**
-    - **장점**: 선언형 HTTP 클라이언트를 통해 직관적인 코드 작성 가능.
-    - Boilerplate 코드를 줄이고, 유지보수성과 확장성이 뛰어남.
-    - **단점**: 학습 곡선이 존재하며, 설정이 RestTemplate보다 복잡할 수 있음.
-
-***Boilerplate 코드 : 반복적이고 구조적으로 큰 변화 없이 자주 작성되는 코드*
-
-### 의사 결정
-
-**✅ OpenFeign**을 선택하여 HTTP 통신을 구현
-
-- **선택 이유**
-    - **선언형 HTTP 클라이언트**를 제공하여 API 연동 시 **코드가 간결하고 직관적**임.
-    - 기존에 내부 서비스 호출에서도 OpenFeign을 사용 중이어서 **자연스러운 통합**이 가능.
-    - **유지보수성과 확장성** 측면에서 RestTemplate와 RestClient보다 더 유리함.
-    - **ErrorDecoder**, **Retryer** 등의 설정을 활용하여 **요청 실패 처리 및 안정성을 효과적으로 강화**.
-</details>
-<details>
-  <summary>동시성 제어를 위한 Redis 분산 락 도입</summary>
-
-### 도입 배경
-
-- 대규모 트래픽 상황에서 예약 시 데이터 정합성을 보장하기 위해 동일 자원에 대한 접근 제어가 필요했기 때문에 분산 락 적용
-
-### 기술적 선택지
-
-- **Lettuce**
-    - 장점: 가볍고 유연하며, 비동기 및 반응형 지원, 단순한 분산 락 구현 가능
-    - 단점: 구현 복잡성, 복제본 일관성 문제, 재진입 락 미지원
-- **Lua Script**
-    - 장점: 원자성 보장, 효율적 네트워크 통신, 유연한 커스터마이징
-    - 단점: 스크립트 관리 복잡, 복제본 일관성 문제, 디버깅 어려움
-- **Redisson**
-    - 장점: Redlock 지원, 재진입 락 기본 제공, API 편리성, 클러스터 환경 지원
-    - 단점: 복잡한 알고리즘, 성능 부담, 라이브러리 종속
-
-### 의사 결정
-
-Redisson을 선택한 이유: Redis의 기본 분산 락 기능보다 자동 만료, 재시도, 공정성 보장 등 고급 기능을 지원하여 구현 복잡도를 낮추고 안정성을 높임.
-
-또한, 다중 인스턴스 및 분산 시스템 환경에서 동작을 보장하여 단일 서버뿐만 아니라 여러 노드 간의 자원 동기화가 필요한 상황에서도 안정적으로 락을 관리할 수 있음.
-</details>
-
-<br>
-
-## 트러블슈팅
-<details>
-  <summary>프로메테우스 매트릭 수집과 인증 처리 문제 해결</summary>
-
-### **문제 정의**
-
-1. **프로메테우스 매트릭 수집 시 인증 문제**
-    - Prometheus가 `/actuator/prometheus` 엔드포인트에 요청을 보낼 때, `X-User-Role` 인증 헤더가 포함되지 않아 인증 오류 발생.
-    - 필터에서 이를 차단하며 무한 루프가 발생, 매트릭 수집이 중단되는 문제 발생.
-2. **외부 악의적 접근 방지 필요**
-    - `X-User-Role` 헤더 없이 외부에서 `/actuator/prometheus`에 접근할 경우, 인증 없이 매트릭 데이터에 접근할 가능성 존재.
-3. **매트릭 수집 요청과 사용자 접근 로직의 충돌**
-    - 동일한 엔드포인트에 대해 매트릭 수집 요청(Prometheus)과 사용자 요청이 혼재되어 필터가 요청을 올바르게 처리하지 못하는 문제 발생.
-    
-- 동일한 엔드포인트에서 프로메테우스 매트릭 수집 요청과 사용자 요청이 혼재.
-- 필터가 요청의 목적에 따라 적절히 처리하지 못해 인증 로직이 충돌.
-
-### **가설**
-
-- `User-Agent` 헤더를 통해 Prometheus 의 요청과 일반 사용자의 요청을 구분할 수 있음.
-- Prometheus 요청에 대해 인증을 우회 처리하면 무한 루프 문제를 방지할 수 있음.
-- 사용자 요청에는 기존 `X-User-Role` 기반 인증을 유지하면서, 악의적 접근을 방지할 수 있음.
-
-### 해결 방안
-
-1. **프로메테우스 요청 식별**
-    - `User-Agent` **헤더**를 활용하여 Prometheus 요청을 식별.
-        - `User-Agent`에 Prometheus 문자열이 포함된 요청은 인증을 우회하도록 로직 수정.
-2. **악의적 접근 방지**
-    - `User-Agent`가 Prometheus가 아닌 요청은 `X-User-Role` 헤더를 필수적으로 요구.
-    - 인증 없는 외부 접근 시 매트릭 데이터를 차단.
-3. **매트릭 수집 요청과 사용자 요청 분리**
-    - 요청별 로직 분리:
-        - Prometheus 요청 → 인증 없이 매트릭 데이터 제공.
-        - 사용자 요청 → `MASTER` ****역할 인증을 요구하도록 필터 개선.
-
-### 해결 완료
-
-1. **User-Agent 기반 인증 로직 구현**
-    - `User-Agent`가 Prometheus 요청은 인증 없이 처리.
-    - 그 외 요청은 `X-User-Role` 헤더를 필수적으로 확인하여 인증을 요구.
-2. **매트릭 수집과 사용자 요청 분리**
-    - Prometheus 요청과 사용자 요청을 구분하여 독립적으로 처리하도록 필터 로직 개선.
-3. **문제 해결 결과**
-    - Prometheus 매트릭 수집이 정상적으로 동작하면서도 외부의 악의적 접근을 차단.
-    - 인증 로직이 강화되어 사용자 요청과 매트릭 수집 요청 간 충돌이 해결.
-</details>
-<details>
-  <summary>Kafka 직렬화 / 역직렬화 문제</summary>
-
-### **문제 정의**
-
-Topic을 통해 메시지로 데이터를 전달하기 위해 JsonSerializer 사용해 직렬화 시 MSA 환경에서는 JsonDeserializer가 메시지를 역직렬화 하지 못하는 문제 발생
-
-### **가설**
-
-JsonSerializer로 메시지 직렬화 시 메시지 헤더의 클래스 정보를 JsonDeserializer가 참조하지 못하기 때문에 역직렬화 시 문제가 발생함
-
-### 해결 방안
-
-1. 다양한 메시지를 직렬화/역직렬화 하기 위해 Object Mapper를 사용해 Custom Serializer/DeSerializer를 구현
-2. 직렬화 시 메시지 헤더의 클래스 정보를 참조하지 않도록 설정 및 각각의 메시지 타입을 DeSerializer 설정 시 명시적으로 지정하여 Consumer를 설정
-- 보안, 성능, 데이터 간결성 측면에서 2번 방식이 유리하며 서비스에 사용되는 메시지 타입이 많지 않기 때문에 2번 방식을 선택
-
-### 해결 완료
-
-- 메시지 헤더에 클래스 정보를 넣지 않고 Consumer에 각각의 메시지 타입을 명시하는 방식으로 설정하는 것을 통해 메시지 역직렬화 문제 해결
-
-### **회고**
-
-- 위 방식은 보안 및 성능적인 측면에서 장점을 가지지만 추후 메시지 타입이 계속 늘어나는 경우 Consumer 설정을 추가해야 하므로 확장성 측면에서 단점이 있다.
-- 프로젝트의 요구사항 및 Trade off에 따라 1번과 2번 방식을 적절하게 선택해서 적용하는 것이 필요하다.
-</details>
-<details>
-  <summary>Redisson 분산 락 Key 적용 시 내부 함수 사용 불가 문제</summary>
-
-### **문제 정의**
-
-Redisson 분산 락 Key 설정 시 내부 함수를 호출할 수 없는 문제 발생
-
-### **가설**
-
-Proxy는 내부 함수(자기 자신)을 호출할 수 없기 때문에 lock key 설정 시 에러가 발생한다.
-
-### 해결 방안
-
-1. Proxy가 내부 함수를 호출할 수 있도록 선언한다.
-2. Key 값으로 설정하기 위해 필요한 값을 메서드 파라미터로 전달하여 메서드 파라미터를 key 값으로 설정한다.
-
-Proxy가 내부 함수를 호출할 수 있도록 선언할 경우 순환 참조 문제가 발생할 수 있기 때문에 Key 값으로 설정하려는 값을 미리 조회하여 메서드 파라미터로 전달하는 방식 선택.
-
-### 해결 완료
-
-- 예약의 slot id(예약 시간 ID) 정보를 미리 조회하여 메서드 파라미터로 전달하여 분산 락 적용 시 Key 값으로 설정할 수 있도록 하며 로깅에도 사용할 수 있도록 처리.
-(어노테이션에서 내부 함수 호출 시 Proxy 문제 발생)
-    
-    ![image2.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/83c75a39-3aba-4ba4-a792-7aefe4b07895/d0ea09ca-3583-4ead-8776-922215de18b7/image2.png)
-    
-    (Slot ID를 Key로 사용하여 분산 락을 획득하고 작업 완료 후 락을 해제)
-    
-    ![로그.PNG](https://prod-files-secure.s3.us-west-2.amazonaws.com/83c75a39-3aba-4ba4-a792-7aefe4b07895/3e5000fb-7ab0-4225-a957-2de5022c8610/%EB%A1%9C%EA%B7%B8.png)
-    
-
-### **회고**
-
-- 위 해결 방식은 메시지에 포함된 예약 ID를 DB에 조회하여 해당 예약에 포함된 slot ID를 파라미터로 전달하기 때문에 조회 작업을 한 번 더 해야 된다는 문제점이 있다.
-- 순환 참조 및 중복 조회 없이 필요한 데이터를 사용할 수 있는 설계 방법을 생각해 볼 필요성을 느꼈다.
-</details>
-
-<br>
-
 ## 역할 분담
 
 ### **Detail Role**
 
-| 이름   | 포지션   | 담당(개인별 기여점)                                                                                                            | Github 링크                       |
-|--------|----------|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
-| 한미수 | 리더     | ▶ **대기열**: <br>▶ **모니터링**: | [https://github.com/HMisu](https://github.com/HMisu) |
-| 박용운 | 부리더   | ▶ **예약**: | [https://github.com/eleunadeu](https://github.com/eleunadeu)    |
-| 양혜지 | 팀원     | ▶ **인증/인가**: <br>▶ **배포**: | [https://github.com/laira2](https://github.com/laira2)   |
-| 이건 | 팀원     | ▶ **리뷰**: <br>▶ **알림**: | [https://github.com/geon8692](https://github.com/geon8692)    |
-| 이소현 | 팀원     | ▶ **가게**: <br>▶ **결제**:  | [https://github.com/sohyuneeee](https://github.com/sohyuneeee)    |
+|    이름    |      포지션         | 담당(개인별 기여점)                                                                                                           | Github 링크              |
+|:---------------:|:-------------------:|---------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| 한미수 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 리더 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | ▶ **대기열**: <br> - Spring WebFlux 활용으로 높은 동시성과 빠른 응답속도 제공 및 적은 리소스로 대규모 트래픽 처리<br>- Redis를 통한 대기열 정보 및 상태 관리<br>- 대규모 트래픽 상황에서 멀티 인스턴스를 통한 부하 방지<br>- 대기열 진입 시 Feign Client 가게 정보 검증<br>- 예약 서비스 진입을 위해 Kafka 메시지 발행<br>▶ **모니터링**<br>- Prometheus을 사용해 서비스 메트릭 수집<br>- Grafana 연동으로 Prometheus에서 수집한 데이터 시각화 및 실시간 서비스 모니터링 가능한 대시보드 생성<br>- Grafana에서 CPU 사용량이 50% 이상일 때 자동으로 Slack에 알림이 전송되도록 설정 | [GitHub](https://github.com/HMisu) |
+| 박용운 |부리더  | ▶ **예약**: <br> - Kafka 메시지 기반 비동기 예약 처리 및 권한에 따른 동기 처리 구현 <br> - Redisson 분산 락 적용 예약 작업 동시성 제어 <br> - 예약 시 feign client 사용 예약 가능 여부 확인 및 가게 주인 여부 확인 <br> - 외부 서비스 호출 시 circuit breaker 적용, fallback 처리 구현 <br> - QueryDSL 적용 조회 속도 개선 및 관리자 검색 기능 제공 | [GitHub](https://github.com/eleunadeu)    |
+| 양혜지 | 팀원     | ▶ **인증/인가**: <br> ▶ **사용자 관리**: <br> - 관리자 권한 요청을 통해 필요한 권한 획득 <br> - JWT 토큰 기반 로그인 기능 구현 <br> - Redis 활용 Rate Limiting 기능 도입 <br> ▶ **배포**: <br> - GitHub Actions 사용 CI/CD 파이프라인 구축 <br> - Docker Hub 사용 이미지 관리 <br> - 배포 시 사용되는 민감한 환경 변수 AWS Parameter Store로 저장 및 GitHub Actions의 Secrets 기능과 연계해 CI/CD 파이프라인에서 동적으로 불어와 사용해 보안성 강화 | [GitHub](https://github.com/laira2)   |
+| 이건 | 팀원     | ▶ **리뷰**: <br> - QueryDSL 활용 검색 기능 구현 <br> - OpneFeign 사용 예약 정보 조회 및 검증, 리뷰 신고 요청 <br> - Redis Set, Hash 자료구조를 사용 좋아요, 리뷰 개수, 가게 평균 평점 관리 <br> - Redis 캐싱 사용 가게 평균 별점, 인기 리뷰 조회 성능 개선 <br> - 좋아요 기능 Write-back 캐싱 전략 적용  <br> ▶ **알림**: <br> - 예약 성공 시 Kafka 비동기 처리로 Slack 개인 DM으로 알림 전송 | [GitHub](https://github.com/geon8692)    |
+| 이소현 | 팀원     | ▶ **가게, 예약스케줄**: <br> - QueryDSL 활용하여 검색 기능 구현 <br> - Redis 사용하여 빈번하게 조회 되는 데이터 캐싱 적용 <br> - Kafka 비동기 처리로 예약 슬롯(예약 스케줄)의 현재 예약 인원 감소 및 복구 <br> - 현재 예약 인원 감소 및 복구 시 Redisson 분산 락 적용하여 동시성 제어  <br>▶ **결제**: <br> - OpenFeign 사용하여 토스페이먼츠 연동 (테스트환경) <br> - 멱등키 적용하여 결제 승인 및 취소 요청 시 멱등성 보장 <br> - kafka 비동기 처리 | [GitHub](https://github.com/sohyuneeee)    |

@@ -23,6 +23,12 @@ spring:
     password: ${DATASOURCE_PROD_PASSWORD}
     url: ${PAYMENT_DATASOURCE_PROD_URL}
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
 server:
   port: 19095
 
