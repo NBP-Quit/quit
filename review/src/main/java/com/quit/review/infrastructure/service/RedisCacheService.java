@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RedisService implements CacheService {
+public class RedisCacheService implements CacheService {
 
 	private final RedisTemplate<String, Object> redisTemplate;
 
