@@ -35,9 +35,8 @@ logging:
   level:
     org:
       springframework:
-        security=DEBUG:
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+        cloud:
+          gateway=DEBUG:
 
 management:
   endpoints:
