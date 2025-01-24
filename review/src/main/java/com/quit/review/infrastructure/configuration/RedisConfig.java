@@ -13,9 +13,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import com.quit.review.infrastructure.service.RedisEventListener;
 
 @EnableCaching
 @Configuration
@@ -26,6 +31,9 @@ public class RedisConfig {
 
 	@Value("${spring.data.redis.port}")
 	private int port;
+
+	@Value("${spring.data.redis.channel.name}")
+	private String channelName;
 
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {
@@ -64,5 +72,23 @@ public class RedisConfig {
 			.builder(redisConnectionFactory)
 			.cacheDefaults(configuration)
 			.build();
+	}
+
+	@Bean
+	public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory, MessageListenerAdapter messageListenerAdapter) {
+		RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
+		redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+		redisMessageListenerContainer.addMessageListener(messageListenerAdapter, topic());
+		return redisMessageListenerContainer;
+	}
+
+	@Bean
+	MessageListenerAdapter messageListenerAdapter(RedisEventListener redisEventListener) {
+		return new MessageListenerAdapter(redisEventListener);
+	}
+
+	@Bean
+	public ChannelTopic topic() {
+		return new ChannelTopic(channelName);
 	}
 }

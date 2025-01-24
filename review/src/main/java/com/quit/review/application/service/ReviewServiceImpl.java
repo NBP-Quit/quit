@@ -138,6 +138,10 @@ public class ReviewServiceImpl implements ReviewService {
 	@Transactional
 	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
 	public void like(UUID storeId, UUID reviewId, Long userId) {
+		if (!reviewRepository.existsById(reviewId)) {
+			throw new CustomApiException(HttpStatus.NOT_FOUND, "Review not found");
+		}
+
 		String key = "review:" + reviewId + ":likes";
 		Long added = cacheService.addToSet(key, userId);
 
@@ -151,6 +155,10 @@ public class ReviewServiceImpl implements ReviewService {
 	@Transactional
 	@CacheEvict(cacheNames = "reviewSummaryCache", key = "args[0]")
 	public void unlike(UUID storeId, UUID reviewId, Long userId) {
+		if (!reviewRepository.existsById(reviewId)) {
+			throw new CustomApiException(HttpStatus.NOT_FOUND, "Review not found");
+		}
+
 		String key = "review:" + reviewId + ":likes";
 		Long removed = cacheService.removeFromSet(key, userId);
 
