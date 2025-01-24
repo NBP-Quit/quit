@@ -144,7 +144,7 @@
 
 🥨 [대기열 서비스 WebFlux 기반 비동기 모델 도입](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4-%EC%84%9C%EB%B9%84%EC%8A%A4-WebFlux-%EA%B8%B0%EB%B0%98-%EB%B9%84%EB%8F%99%EA%B8%B0-%EB%AA%A8%EB%8D%B8-%EB%8F%84%EC%9E%85)
 
-🥨 [놀이동산 방식 대기열의 처리주기 및 처리량 결정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%8C%80%EA%B8%B0%EC%97%B4%EC%97%90%EC%84%9C-%EC%98%88%EC%95%BD%EC%9C%BC%EB%A1%9C-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%A7%84%EC%9E%85%EC%8B%9C%ED%82%AC-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9D%B8%EC%9B%90-%EA%B2%B0%EC%A0%95)
+🥨 [놀이동산 방식 대기열의 처리주기 및 처리량 결정](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-%EB%86%80%EC%9D%B4%EB%8F%99%EC%82%B0-%EB%B0%A9%EC%8B%9D-%EB%8C%80%EA%B8%B0%EC%97%B4%EC%9D%98-%EC%B2%98%EB%A6%AC-%EC%A3%BC%EA%B8%B0-%EB%B0%8F-%EC%B2%98%EB%A6%AC%EB%9F%89-%EA%B2%B0%EC%A0%95)
 
 🥨 [OpenFeign을 사용한 Toss Payments API 연동](https://github.com/NBP-Quit/quit/wiki/%5B%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%9D%98%EC%82%AC%EA%B2%B0%EC%A0%95%5D-Toss-Payments-API-%EC%97%B0%EB%8F%99-%EB%B0%A9%EC%8B%9D-%EC%84%A0%EC%A0%95)
 
