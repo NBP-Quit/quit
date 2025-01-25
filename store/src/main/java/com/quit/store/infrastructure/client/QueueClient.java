@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.UUID;
 
-@FeignClient(name = "queue")
+@FeignClient(name = "queue", url = "${QUEUE_FEIGN_URL}")
 public interface QueueClient extends QueueClientService {
 
     @PostMapping("/api/queues/assign-store/{storeId}")
