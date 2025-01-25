@@ -62,6 +62,7 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAFKA_SERVER=${KAFKA_SERVER}
     ports:
       - "19095:19095"
     depends_on:

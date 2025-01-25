@@ -1,5 +1,5 @@
 ###회원 가입
-POST http://host.docker.internal:19091/api/auth/signup
+POST http://18.217.92.13:19090/api/auth/signup
 Content-Type: application/json
 Accept: application/json
 
