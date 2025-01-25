@@ -30,24 +30,23 @@ spring:
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
         - id: queue-service
-          uri: lb://queue-service
+          uri: http://3.135.209.115:19096
           predicates:
             - Path=/api/queues, /api/queues/**
-
         - id: reservation-service
-          uri: lb://reservation-service
+          uri: http://3.139.88.124:19094
           predicates:
             - Path=/api/reservations, /api/reservations/**
         - id: review-service
-          uri: lb://review-service
+          uri: http://3.135.206.14:19097
           predicates:
             - Path=/api/stores/{storeId}/reviews/**, /api/stores/{storeId}/reservations/{reservationId}/reviews/**
         - id: store-service
-          uri: lb://store-service
+          uri: http://3.144.16.75:19093
           predicates:
             - Path=/api/stores/**
         - id: payment-service
-          uri: lb://payment-service
+          uri: http://3.138.203.18:19095
           predicates:
             - Path=/api/payments/**
 
