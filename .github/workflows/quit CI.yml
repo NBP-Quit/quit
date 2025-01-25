@@ -670,7 +670,7 @@ jobs:
 
             # 환경 변수를 설정하고 Docker Compose up            
             sudo KAFKA_SERVER=$KAFKA_SERVER \
-                  docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
+                  docker-compose -f /home/ubuntu/kafka-deploy-compose.yml up -d
   deploy-queue:
     needs:
       - build-eureka
