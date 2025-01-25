@@ -1,0 +1,44 @@
+services:
+  reservation:
+    image: laira2/quit:reservation-latest
+    container_name: reservation-service
+    build:
+      context: .
+      dockerfile: reservation/Dockerfile
+      args:
+        EUREKA_PROD_URL: ${EUREKA_PROD_URL}
+        DATASOURCE_DRIVER_CLASS_NAME: ${DATASOURCE_DRIVER_CLASS_NAME}
+        DATASOURCE_PROD_USERNAME: ${DATASOURCE_PROD_USERNAME}
+        DATASOURCE_PROD_PASSWORD: ${DATASOURCE_PROD_PASSWORD}
+        RESERVATION_DATASOURCE_PROD_URL: ${RESERVATION_DATASOURCE_PROD_URL}
+        REDIS_HOST: ${REDIS_HOST}
+        REDIS_PORT: ${REDIS_PORT}
+        FILE_DIRECTORY: ./reservation
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - DATASOURCE_DRIVER_CLASS_NAME=${DATASOURCE_DRIVER_CLASS_NAME}
+      - DATASOURCE_PROD_USERNAME=${DATASOURCE_PROD_USERNAME}
+      - DATASOURCE_PROD_PASSWORD=${DATASOURCE_PROD_PASSWORD}
+      - RESERVATION_DATASOURCE_PROD_URL=${RESERVATION_DATASOURCE_PROD_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - FEIGN_URL=${FEIGN_URL}
+    ports:
+      - "19094:8080"
+    depends_on:
+      - redis
+    networks:
+      - quit-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - quit-network
+
+networks:
+  quit-network:
+    driver: bridge

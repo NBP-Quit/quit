@@ -1,10 +1,8 @@
 spring:
   application:
-    name: payment
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    name: payment-service
+  profiles:
+    active: dev
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,6 +17,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  datasource:
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${DATASOURCE_PROD_USERNAME}
+    password: ${DATASOURCE_PROD_PASSWORD}
+    url: ${PAYMENT_DATASOURCE_PROD_URL}
   data:
     redis:
       host: ${REDIS_HOST}
@@ -31,7 +34,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: ${EUREKA_PROD_URL}
 
 payment:
   secret-key: ${PAYMENT_SECRET_KEY}

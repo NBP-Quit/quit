@@ -1,0 +1,28 @@
+services:
+  user-service:
+    image: laira2/quit:user-latest
+    container_name: user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - DATASOURCE_DRIVER_CLASS_NAME=${DATASOURCE_DRIVER_CLASS_NAME}
+      - DATASOURCE_PROD_USERNAME=${DATASOURCE_PROD_USERNAME}
+      - DATASOURCE_PROD_PASSWORD=${DATASOURCE_PROD_PASSWORD}
+      - USER_DATASOURCE_PROD_URL=${USER_DATASOURCE_PROD_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - USER_EC2_HOST=${USER_EC2_HOST}
+    ports:
+      - "19092:19092"
+    networks:
+      - quit-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - quit-network
+networks:
+  quit-network:
+    driver: bridge

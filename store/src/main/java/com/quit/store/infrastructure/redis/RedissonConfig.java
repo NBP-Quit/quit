@@ -20,8 +20,7 @@ public class RedissonConfig {
         Config config = new Config();
         config.useSingleServer()
                 .setAddress(
-                REDISSON_HOST_PREFIX + redisProperties.getHost() + ":" + redisProperties.getPort())
-                .setPassword(redisProperties.getPassword());
+                REDISSON_HOST_PREFIX + redisProperties.getHost() + ":" + redisProperties.getPort());
         redisson = Redisson.create(config);
         return redisson;
     }

@@ -1,0 +1,1195 @@
+name: Quit CI
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build-eureka:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: eureka 빌드
+        run: |
+          cd eureka-server
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========eureka========="
+          cd ../
+
+      - name: eureka 도커 이미지 빌드 & push
+        run: |
+          docker compose -f eureka-server-compose.yml build --no-cache
+          docker push "laira2/quit:eureka-server-latest"
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+
+  build-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: gateway 빌드
+        run: |
+          cd gateway-server
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========gateway========="
+          cd ../
+
+      - name: gateway 도커 이미지 빌드 & push
+        run: |
+          docker compose -f gateway-server-compose.yml build --no-cache
+          docker push "laira2/quit:gateway-server-latest"
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
+  build-payment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: payment 빌드
+        run: |
+          cd payment
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========payment========="
+          ls build/libs
+          cd ../
+
+      - name: payment push
+        run: |
+          docker compose -f payment-compose.yml build
+          docker push "laira2/quit:payment-latest"
+        env:
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          PAYMENT_DATASOURCE_PROD_URL: ${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}
+
+  build-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: queue 빌드
+        run: |
+          cd queue
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========queue========="
+          ls build/libs
+          cd ../
+
+      - name: queue 도커 이미지 빌드 & push
+        run: |
+          docker compose -f queue-compose.yml build --no-cache
+          docker push "laira2/quit:queue-latest"
+        env:
+          EUREKA_PROD_URL: ${EUREKA_PROD_URL}
+          REDIS_HOST: ${REDIS_HOST}
+          REDIS_PORT: ${REDIS_PORT}
+          REDIS_USERNAME: ${REDIS_USERNAME}
+          REDIS_PASSWORD: ${REDIS_PASSWORD}
+          STORE_BASEURL: ${STORE_BASEURL}
+          GATEWAY_BASEURL: ${GATEWAY_BASEURL}
+
+  build-reservation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: reservation 빌드
+        run: |
+          cd reservation
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========reservation========="
+          ls build/libs
+          cd ../
+
+      - name: reservation push
+        run: |
+          docker compose -f reservation-compose.yml build
+          docker push "laira2/quit:reservation-latest"
+        env:
+          DOCKER_HUB_REPOSITORY: "quit"
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          RESERVATION_DATASOURCE_PROD_URL: ${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}
+          STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
+          FEIGN_URL: ${{ secrets.FEIGN_URL }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+  build-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: notification 빌드
+        run: |
+          cd notification
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========notification========="
+          ls build/libs
+          cd ../
+
+      - name: notification 도커 이미지 빌드 & push
+        run: |
+          docker compose -f notification-compose.yml build --no-cache
+          docker push "laira2/quit:notification-latest"
+        env:
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+  build-others:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: review 빌드
+        run: |
+          cd review
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========review========="
+          ls build/libs
+          cd ../
+
+      - name: user 빌드
+        run: |
+          cd user
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========user========="
+          ls build/libs
+          cd ../
+
+      - name: store 빌드
+        run: |
+          cd store
+          chmod +x gradlew
+          ./gradlew clean build -x test --no-daemon -Dspring.profiles.active=prod
+          echo "========store========="
+          ls build/libs
+          cd ../
+
+      - name: Build, Tag and Push docker image to Hub
+        run: |
+          docker compose -f prometheus-compose.yml build
+          docker compose build
+          docker push "laira2/quit:user-latest"
+          docker push "laira2/quit:store-latest"
+          docker push "laira2/quit:review-latest"
+        env:
+          DOCKER_HUB_REPOSITORY: "quit"
+          EUREKA_PROD_URL: ${{ secrets.EUREKA_PROD_URL }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
+          DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}
+          DATASOURCE_PROD_USERNAME: ${{ secrets.DATASOURCE_PROD_USERNAME }}
+          DATASOURCE_PROD_PASSWORD: ${{ secrets.DATASOURCE_PROD_PASSWORD }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          STORE_BASEURL: ${{ secrets.STORE_BASEURL }}
+          GATEWAY_BASEURL: ${{ secrets.GATEWAY_BASEURL }}
+          STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
+          USER_DATASOURCE_PROD_URL: ${{ secrets.USER_DATASOURCE_PROD_URL }}
+          REVIEW_DATASOURCE_PROD_URL: ${{ secrets.REVIEW_DATASOURCE_PROD_URL }}
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+  copy-yml:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - uses: actions/checkout@v4
+      - name: store-compose 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STORE_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "docker-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: eureka-server-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "eureka-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: Gateway-server-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GATEWAY_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "gateway-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: user-deploy-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.USER_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "user-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: prometheus.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus.yml"
+          target: "/home/ubuntu"
+
+      - name: prometheus-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "prometheus-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: queue-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.QUEUE_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "queue-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: reservation-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.RESERVATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "reservation-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: payment-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PAYMENT_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "payment-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+      - name: review-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.REVIEW_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "review-deploy-compose.yml"
+          target: "/home/ubuntu"
+
+
+      - name: notification-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.NOTIFICATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "notification-deploy-compose.yml"
+          target: "/home/ubuntu"
+  add-env:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Add environment variables to Parameter Store
+        run: |
+          declare -A params
+          params["AWS_ACCESS_KEY_ID"]="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          params["AWS_REGION"]="${{ secrets.AWS_REGION }}"
+          params["AWS_SECRET_ACCESS_KEY"]="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          
+          params["DATASOURCE_DRIVER_CLASS_NAME"]="${{ secrets.DATASOURCE_DRIVER_CLASS_NAME }}"
+          params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
+          params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
+          
+        
+          params["DOCKER_PASSWORD"]="${{ secrets.DOCKER_PASSWORD }}"
+          params["DOCKER_USERNAME"]="${{ secrets.DOCKER_USERNAME }}"
+          
+          params["AWS_REGION"]="${{ secrets.AWS_REGION }}"
+          params["AWS_ACCESS_KEY_ID"]="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          params["AWS_REGION"]="${{ secrets.AWS_REGION }}"
+          
+          
+          params["EC2_HOST"]="${{ secrets.EC2_HOST }}"
+          params["EC2_KEY"]="${{ secrets.EC2_KEY }}"
+          
+          params["EUREKA_EC2_HOST"]="${{ secrets.EUREKA_EC2_HOST }}"
+          params["EUREKA_PROD_URL"]="${{ secrets.EUREKA_PROD_URL }}"
+          
+          params["FEIGN_URL"]="${{ secrets.FEIGN_URL }}"
+          
+          params["GATEWAY_BASEURL"]="${{ secrets.GATEWAY_BASEURL }}"
+          params["GATEWAY_EC2_HOST"]="${{ secrets.GATEWAY_EC2_HOST }}"
+          
+          params["JWT_SECRET_KEY"]="${{ secrets.JWT_SECRET_KEY }}"
+          
+          params["NOTIFICATION_EC2_HOST"]="${{ secrets.NOTIFICATION_EC2_HOST }}"
+          
+          params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
+          params["PAYMENT_EC2_HOST"]="${{ secrets.PAYMENT_EC2_HOST }}"
+          params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+          
+          params["PROMETHEUS_EC2_HOST"]="${{ secrets.PROMETHEUS_EC2_HOST }}"
+          
+          params["QUEUE_EC2_HOST"]="${{ secrets.QUEUE_EC2_HOST }}"
+          
+          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
+          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
+          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
+          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
+          
+          params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
+          params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
+          params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
+          params["REDIS_USERNAME"]="${{ secrets.REDIS_USERNAME }}"
+          
+          params["RESERVATION_DATASOURCE_PROD_URL"]="${{ secrets.RESERVATION_DATASOURCE_PROD_URL }}"
+          params["RESERVATION_EC2_HOST"]="${{ secrets.RESERVATION_EC2_HOST }}"
+          
+          params["REVIEW_DATASOURCE_PROD_URL"]="${{ secrets.REVIEW_DATASOURCE_PROD_URL }}"
+          params["S3_ACCESS_KEY"]="${{ secrets.S3_ACCESS_KEY }}"
+          params["S3_SECRET_KEY"]="${{ secrets.S3_SECRET_KEY }}"
+          params["S3_BUCKET"]="${{ secrets.S3_BUCKET }}"
+          
+          params["STORE_BASEURL"]="${{ secrets.STORE_BASEURL }}"
+          params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
+          
+          params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
+          params["USER_EC2_HOST"]="${{ secrets.USER_EC2_HOST }}"
+          
+          # Iterate over the parameters and create them in Parameter Store
+          for key in "${!params[@]}"; do
+            aws ssm put-parameter \
+              --name "/quit/$key" \
+              --value "${params[$key]}" \
+              --type "SecureString" \
+              --overwrite
+          done
+
+  deploy-eureka:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Eureka server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.EUREKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            # AWS SSM에서 파라미터 가져오기
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            EUREKA_EC2_HOST=$(aws ssm get-parameter --name "/quit/EUREKA_EC2_HOST" --with-decryption --query "Parameter.Value" --output text)
+            
+            # EUREKA_PROD_URL 환경 변수 export
+            export EUREKA_PROD_URL
+            export EUREKA_EC2_HOST
+            
+            # Docker Compose 실행
+            sudo docker-compose -f /home/ubuntu/eureka-server-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/eureka-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/eureka-deploy-compose.yml pull
+      
+            # 환경 변수를 설정하고 Docker Compose up            
+            sudo SPRING_PROFILES_ACTIVE=prod \
+                  EUREKA_PROD_URL=$EUREKA_PROD_URL \
+                  EUREKA_EC2_HOST=$EUREKA_EC2_HOST \
+                  docker-compose -f /home/ubuntu/eureka-deploy-compose.yml up -d
+
+  deploy-gateway:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name:  gateway server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.GATEWAY_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            # AWS SSM에서 파라미터 가져오기
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export JWT_SECRET_KEY
+            export REDIS_HOST
+            export REDIS_PORT
+            
+            # Docker Compose 실행
+            sudo docker-compose -f /home/ubuntu/gateway-server-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/gateway-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/gateway-deploy-compose.yml pull
+            
+            # 환경 변수를 설정하고 Docker Compose up            
+            sudo SPRING_PROFILES_ACTIVE=prod \
+                  EUREKA_PROD_URL=$EUREKA_PROD_URL \
+                  JWT_SECRET_KEY=$JWT_SECRET_KEY \
+                  REDIS_HOST=$REDIS_HOST \
+                  REDIS_PORT=$REDIS_PORT \
+                  docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
+  deploy-queue:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Queue 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.QUEUE_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            echo "EUREKA_PROD_URL=$(aws ssm get-parameter --name /quit/EUREKA_PROD_URL --with-decryption --query Parameter.Value --output text)" > .env
+            echo "REDIS_HOST=$(aws ssm get-parameter --name /quit/REDIS_HOST --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_PORT=$(aws ssm get-parameter --name /quit/REDIS_PORT --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_USERNAME=$(aws ssm get-parameter --name /quit/REDIS_USERNAME --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "REDIS_PASSWORD=$(aws ssm get-parameter --name /quit/REDIS_PASSWORD --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "STORE_BASEURL=$(aws ssm get-parameter --name /quit/STORE_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
+            
+            sudo docker-compose -f /home/ubuntu/queue-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
+            
+            sudo  SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/queue-compose.yml up -d --no-build
+
+  deploy-reservation:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: reservation 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.RESERVATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            RESERVATION_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/RESERVATION_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            FEIGN_URL=$(aws ssm get-parameter --name "/quit/FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
+
+            echo "EUREKA_PROD_URL=$EUREKA_PROD_URL" > .env
+            echo "REDIS_HOST=$REDIS_HOST" >> .env
+            echo "REDIS_PORT=$REDIS_PORT" >> .env
+            echo "DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME" >> .env
+            echo "DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME" >> .env
+            echo "DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD" >> .env
+            echo "RESERVATION_DATASOURCE_PROD_URL=$RESERVATION_DATASOURCE_PROD_URL" >> .env
+            echo "FEIGN_URL=$FEIGN_URL" >> .env
+            
+            sudo docker-compose -f /home/ubuntu/reservation-compose.yml down
+            sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml down
+            sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml pull
+            
+            sudo SPRING_PROFILES_ACTIVE=prod docker-compose -f /home/ubuntu/reservation-deploy-compose.yml up -d --no-build
+  deploy-payment:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: payment 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.PAYMENT_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            PAYMENT_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/PAYMENT_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            PAYMENT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/PAYMENT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+
+            export EUREKA_PROD_URL
+            export DATASOURCE_DRIVER_CLASS_NAME
+            export DATASOURCE_PROD_USERNAME
+            export DATASOURCE_PROD_PASSWORD
+            export PAYMENT_DATASOURCE_PROD_URL
+            export PAYMENT_SECRET_KEY
+            export REDIS_HOST
+            export REDIS_PORT
+            
+            sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
+            sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml pull
+
+            sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
+              DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
+              DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
+              DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
+              PAYMENT_DATASOURCE_PROD_URL=$PAYMENT_DATASOURCE_PROD_URL \
+              PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
+              REDIS_HOST=$REDIS_HOST \        
+              EDIS_PORT=$REDIS_PORT \ 
+              docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
+
+  deploy-notification:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: notification 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.NOTIFICATION_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            SLACK_TOKEN=$(aws ssm get-parameter --name "/quit/SLACK_TOKEN" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            
+            export EUREKA_PROD_URL
+            export SLACK_TOKEN
+            export REDIS_HOST
+            export REDIS_PORT
+            
+            sudo docker-compose -f /home/ubuntu/notification-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/notification-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/notification-deploy-compose.yml pull
+
+            sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
+                  SLACK_TOKEN=$SLACK_TOKEN \ 
+                  REDIS_HOST=$REDIS_HOST \        
+                  REDIS_PORT=$REDIS_PORT \        
+                  docker-compose -f /home/ubuntu/notification-deploy-compose.yml up -d --no-build
+  deploy-user:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-eureka
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: user배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.USER_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            export EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            export USER_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/USER_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export JWT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            export USER_EC2_HOST=$(aws ssm get-parameter --name "/quit/USER_EC2_HOST" --with-decryption --query "Parameter.Value" --output text)
+            
+            sudo docker-compose -f /home/ubuntu/user-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/user-deploy-compose.yml pull
+
+            sudo SPRING_PROFILES_ACTIVE=prod \
+              EUREKA_PROD_URL=$EUREKA_PROD_URL \
+              DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
+              DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
+              DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
+              USER_DATASOURCE_PROD_URL=$USER_DATASOURCE_PROD_URL \
+              JWT_SECRET_KEY=$JWT_SECRET_KEY \
+              USER_EC2_HOST=${USER_EC2_HOST} \
+              docker-compose -f /home/ubuntu/user-deploy-compose.yml up -d --no-build
+  deploy-others:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name:  store 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.STORE_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            export EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            export STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+
+            sudo docker-compose down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml pull
+            
+            sudo SPRING_PROFILES_ACTIVE=prod \
+              EUREKA_PROD_URL=$EUREKA_PROD_URL \
+              DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
+              DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
+              DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
+              STORE_DATASOURCE_PROD_URL=$STORE_DATASOURCE_PROD_URL \
+              REDIS_PORT=$REDIS_PORT \
+              docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build              
+
+  deploy-review:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: review 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.REVIEW_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            export EUREKA_PROD_URL=$(aws ssm get-parameter --name "/quit/EUREKA_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_USERNAME=$(aws ssm get-parameter --name "/quit/REDIS_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            export REDIS_PASSWORD=$(aws ssm get-parameter --name "/quit/REDIS_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_DRIVER_CLASS_NAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_DRIVER_CLASS_NAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            export REVIEW_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/REVIEW_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export RABBITMQ_HOST=$(aws ssm get-parameter --name "/quit/RABBITMQ_HOST" --with-decryption --query "Parameter.Value" --output text)
+            export RABBITMQ_PORT=$(aws ssm get-parameter --name "/quit/RABBITMQ_PORT" --with-decryption --query "Parameter.Value" --output text)
+            export RABBITMQ_USERNAME=$(aws ssm get-parameter --name "/quit/RABBITMQ_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+            export RABBITMQ_PASSWORD=$(aws ssm get-parameter --name "/quit/RABBITMQ_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+            export S3_ACCESS_KEY=$(aws ssm get-parameter --name "/quit/S3_ACCESS_KEY" --with-decryption --query "Parameter.Value" --output text)
+            export S3_SECRET_KEY=$(aws ssm get-parameter --name "/quit/S3_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+            export S3_BUCKET=$(aws ssm get-parameter --name "/quit/S3_BUCKET" --with-decryption --query "Parameter.Value" --output text)
+
+            sudo docker-compose -f /home/ubuntu/review-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/review-deploy-compose.yml pull
+
+            sudo SPRING_PROFILES_ACTIVE=prod \
+              EUREKA_PROD_URL=$EUREKA_PROD_URL \
+              DATASOURCE_DRIVER_CLASS_NAME=$DATASOURCE_DRIVER_CLASS_NAME \
+              DATASOURCE_PROD_USERNAME=$DATASOURCE_PROD_USERNAME \
+              DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
+              REDIS_HOST=REDIS_HOST \  
+              REDIS_PORT=$REDIS_PORT \
+              REDIS_USERNAME=$REDIS_USERNAME \
+              REDIS_PASSWORD=$REDIS_PASSWORD \
+              REVIEW_DATASOURCE_PROD_URL=$REVIEW_DATASOURCE_PROD_URL \
+              RABBITMQ_HOST=$RABBITMQ_HOST \
+              RABBITMQ_PORT=$RABBITMQ_PORT \
+              RABBITMQ_USERNAME=$RABBITMQ_USERNAME \
+              RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD \
+              S3_ACCESS_KEY=$S3_ACCESS_KEY \
+              S3_SECRET_KEY=$S3_SECRET_KEY \
+              S3_BUCKET=$S3_BUCKET \
+              docker-compose -f /home/ubuntu/review-deploy-compose.yml up -d --no-build
+
+  deploy-prometheus:
+    needs:
+      - build-eureka
+      - build-gateway
+      - build-notification
+      - build-payment
+      - build-queue
+      - build-reservation
+      - build-others
+      - copy-yml
+      - add-env
+      - deploy-gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: AWS 인증 정보 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 도커 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prometheus server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.PROMETHEUS_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            sudo docker-compose -f /home/ubuntu/prometheus-compose.yml down
+            sudo docker-compose -f /home/ubuntu/prometheus-compose.yml pull
+            
+            SPRING_PROFILES_ACTIVE=prod sudo docker-compose -f /home/ubuntu/prometheus-compose.yml up -d --no-build

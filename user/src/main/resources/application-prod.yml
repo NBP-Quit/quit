@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    driver-class-name: ${DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${DATASOURCE_PROD_USERNAME}
+    password: ${DATASOURCE_PROD_PASSWORD}
+    url: ${USER_DATASOURCE_PROD_URL}
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_PROD_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${USER_EC2_HOST}
+    hostname: ${USER_EC2_HOST}

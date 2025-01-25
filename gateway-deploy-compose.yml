@@ -1,0 +1,23 @@
+services:
+  gateway-server:
+    image: laira2/quit:gateway-server-latest
+    container_name: gateway-server # 외부:내부
+    environment:
+      - EUREKA_PROD_URL=${EUREKA_PROD_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    ports:
+      - "19091:19091"
+    networks:
+      - quit-network
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - quit-network
+networks:
+  quit-network:
+    driver: bridge

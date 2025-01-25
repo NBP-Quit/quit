@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: user-service
+  profiles:
+    active: dev
   datasource:
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
     username: ${SPRING_DATASOURCE_LOCAL_USERNAME}
@@ -23,7 +25,14 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVICE_URL}
+      defaultZone: ${EUREKA_SERVICE_LOCAL_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: ${USER_EC2_HOST}
+    hostname: ${USER_EC2_HOST}
+    metadata-map:
+      ip: ${USER_EC2_HOST}
+    instance-id: ${USER_EC2_HOST}
 
 jwt:
   access-expiration: "#{60 * 60 * 1000}"
@@ -31,9 +40,11 @@ jwt:
 
 logging:
   level:
-    org:
-      springframework:
-        security=DEBUG:
+    org.springframework.cloud: DEBUG
+    org.springframework.web: DEBUG
+    com.quit: DEBUG
+    com.netflix.discovery: OFF
+
 
 management:
   endpoints:

@@ -3,11 +3,15 @@ server:
 
 spring:
   application:
-    name: gateway-service
+    name: gateway-server
 
   main:
     web-application-type: reactive
+  data:
+    redis:
+      host: ${REDIS_HOST}
 
+      port: ${REDIS_PORT}
   cloud:
     gateway:
       discovery:
@@ -15,7 +19,7 @@ spring:
           enabled: true
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: http://3.137.169.105:19092
           predicates:
             - Path=/api/users/**, /api/auth/**
           filters:
@@ -25,40 +29,44 @@ spring:
                 redis-rate-limiter.burstCapacity: 10
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
-        - id: queue
-          uri: lb://queue
+        - id: queue-service
+          uri: http://3.135.209.115:19096
           predicates:
             - Path=/api/queues, /api/queues/**
-        - id: reservation
-          uri: lb://reservation
+        - id: reservation-service
+          uri: http://3.139.88.124:19094
           predicates:
             - Path=/api/reservations, /api/reservations/**
-        - id: review
-          uri: lb://review
+        - id: review-service
+          uri: http://3.135.206.14:19097
           predicates:
             - Path=/api/stores/{storeId}/reviews/**, /api/stores/{storeId}/reservations/{reservationId}/reviews/**
-        - id: store
-          uri: lb://store
+        - id: store-service
+          uri: http://3.144.16.75:19093
           predicates:
             - Path=/api/stores/**
-        - id: payment
-          uri: lb://payment
+        - id: payment-service
+          uri: http://3.138.203.18:19095
           predicates:
             - Path=/api/payments/**
-           
+
+
+
 eureka:
   client:
-    register-with-eureka: true
     service-url:
-      defaultZone: http://localhost:19090/eureka/
-    fetch-registry: true
+      defaultZone: ${EUREKA_PROD_URL}
+  instance:
+    prefer-ip-address: true
+    ip-address: 18.217.92.13
+    hostname: 18.217.92.13
 
 logging:
   level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
+    org:
+      springframework:
+        cloud:
+          gateway: DEBUG
 
 jwt:
   secret:

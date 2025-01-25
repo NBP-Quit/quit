@@ -1,6 +1,9 @@
 spring:
   application:
     name: queue
+  profiles:
+    active: dev
+
   data:
     redis:
       host: ${REDIS_HOST}
@@ -26,7 +29,7 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: ${EUREKA_PROD_URL}
 
 store:
   baseUrl: ${STORE_BASEURL}
