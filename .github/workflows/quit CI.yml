@@ -799,7 +799,7 @@ jobs:
             echo "DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD" >> .env
             echo "RESERVATION_DATASOURCE_PROD_URL=$RESERVATION_DATASOURCE_PROD_URL" >> .env
             echo "FEIGN_URL=$FEIGN_URL" >> .env
-            echo "KAFKA_SERVER=KAFKA_SERVER" >> .env
+            echo "KAFKA_SERVER=$KAFKA_SERVER" >> .env
             
             sudo docker-compose -f /home/ubuntu/reservation-compose.yml down
             sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml down
@@ -1081,7 +1081,7 @@ jobs:
             export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            export $QUEUE_FEIGN_URL=$(aws ssm get-parameter --name "/quit/$QUEUE_FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
+            export QUEUE_FEIGN_URL=$(aws ssm get-parameter --name "/quit/QUEUE_FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
             export KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
   
             sudo docker-compose down --remove-orphans
