@@ -3,7 +3,7 @@ name: Quit CI
 on:
   push:
     branches:
-      - dev
+      - feat/112-quit
 
 jobs:
   build-eureka:
@@ -412,6 +412,15 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "notification-deploy-compose.yml"
           target: "/home/ubuntu"
+
+      - name: kafka-deploy-compose.yml 복제
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.KAFKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "kafka-deploy-compose.yml"
+          target: "/home/ubuntu"
   add-env:
     runs-on: ubuntu-latest
     steps:
@@ -438,14 +447,12 @@ jobs:
           params["DATASOURCE_PROD_USERNAME"]="${{ secrets.DATASOURCE_PROD_USERNAME }}"
           params["DATASOURCE_PROD_PASSWORD"]="${{ secrets.DATASOURCE_PROD_PASSWORD }}"
           
-        
           params["DOCKER_PASSWORD"]="${{ secrets.DOCKER_PASSWORD }}"
           params["DOCKER_USERNAME"]="${{ secrets.DOCKER_USERNAME }}"
           
           params["AWS_REGION"]="${{ secrets.AWS_REGION }}"
           params["AWS_ACCESS_KEY_ID"]="${{ secrets.AWS_ACCESS_KEY_ID }}"
           params["AWS_REGION"]="${{ secrets.AWS_REGION }}"
-          
           
           params["EC2_HOST"]="${{ secrets.EC2_HOST }}"
           params["EC2_KEY"]="${{ secrets.EC2_KEY }}"
@@ -488,7 +495,10 @@ jobs:
           params["STORE_DATASOURCE_PROD_URL"]="${{ secrets.STORE_DATASOURCE_PROD_URL }}"
           
           params["USER_DATASOURCE_PROD_URL"]="${{ secrets.USER_DATASOURCE_PROD_URL }}"
-          params["USER_EC2_HOST"]="${{ secrets.USER_EC2_HOST }}"
+          params["USER_EC2_HOST"]="${{ secrets.USER_EC2_HOST }}"          
+        
+          params["KAFKA_EC2_HOST"]="${{ secrets.KAFKA_EC2_HOST }}"
+          params["KAFKA_SERVER"]="${{ secrets.KAFKA_SERVER }}"
           
           # Iterate over the parameters and create them in Parameter Store
           for key in "${!params[@]}"; do
@@ -634,6 +644,33 @@ jobs:
                   REDIS_HOST=$REDIS_HOST \
                   REDIS_PORT=$REDIS_PORT \
                   docker-compose -f /home/ubuntu/gateway-deploy-compose.yml up -d
+
+      - name: kafka server 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        with:
+          host: ${{ secrets.KAFKA_EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          script: |
+            # AWS SSM에서 파라미터 가져오기
+            KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
+
+            export KAFKA_SERVER
+
+            # Docker Compose 실행
+            sudo docker-compose -f /home/ubuntu/kafka-deploy-compose.yml down --remove-orphans
+            sudo docker-compose -f /home/ubuntu/kafka-deploy-compose.yml pull
+
+            # 환경 변수를 설정하고 Docker Compose up            
+            sudo KAFKA_SERVER=$KAFKA_SERVER \
+                  docker-compose -f /home/ubuntu/kafka-deploy-compose.yml up -d
   deploy-queue:
     needs:
       - build-eureka
@@ -689,6 +726,7 @@ jobs:
             echo "REDIS_PASSWORD=$(aws ssm get-parameter --name /quit/REDIS_PASSWORD --with-decryption --query Parameter.Value --output text)" >> .env
             echo "STORE_BASEURL=$(aws ssm get-parameter --name /quit/STORE_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
             echo "GATEWAY_BASEURL=$(aws ssm get-parameter --name /quit/GATEWAY_BASEURL --with-decryption --query Parameter.Value --output text)" >> .env
+            echo "KAFKA_SERVER=$(aws ssm get-parameter --name /quit/KAFKA_SERVER --with-decryption --query Parameter.Value --output text)" >> .env
             
             sudo docker-compose -f /home/ubuntu/queue-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/queue-compose.yml pull
@@ -751,7 +789,8 @@ jobs:
             DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             RESERVATION_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/RESERVATION_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
             FEIGN_URL=$(aws ssm get-parameter --name "/quit/FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
-
+            KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
+            
             echo "EUREKA_PROD_URL=$EUREKA_PROD_URL" > .env
             echo "REDIS_HOST=$REDIS_HOST" >> .env
             echo "REDIS_PORT=$REDIS_PORT" >> .env
@@ -760,6 +799,7 @@ jobs:
             echo "DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD" >> .env
             echo "RESERVATION_DATASOURCE_PROD_URL=$RESERVATION_DATASOURCE_PROD_URL" >> .env
             echo "FEIGN_URL=$FEIGN_URL" >> .env
+            echo "KAFKA_SERVER=$KAFKA_SERVER" >> .env
             
             sudo docker-compose -f /home/ubuntu/reservation-compose.yml down
             sudo docker-compose -f /home/ubuntu/reservation-deploy-compose.yml down
@@ -822,7 +862,8 @@ jobs:
             PAYMENT_SECRET_KEY=$(aws ssm get-parameter --name "/quit/PAYMENT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
             REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
             REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
-
+            KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
+            
             export EUREKA_PROD_URL
             export DATASOURCE_DRIVER_CLASS_NAME
             export DATASOURCE_PROD_USERNAME
@@ -831,6 +872,7 @@ jobs:
             export PAYMENT_SECRET_KEY
             export REDIS_HOST
             export REDIS_PORT
+            export KAFKA_SERVER
             
             sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
             sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
@@ -844,6 +886,7 @@ jobs:
               PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
               REDIS_HOST=$REDIS_HOST \        
               EDIS_PORT=$REDIS_PORT \ 
+              KAFKA_SERVER=$KAFKA_SERVER \
               docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
 
   deploy-notification:
@@ -898,11 +941,13 @@ jobs:
             SLACK_TOKEN=$(aws ssm get-parameter --name "/quit/SLACK_TOKEN" --with-decryption --query "Parameter.Value" --output text)
             REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
             REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
+            KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
             
             export EUREKA_PROD_URL
             export SLACK_TOKEN
             export REDIS_HOST
             export REDIS_PORT
+            export KAFKA_SERVER
             
             sudo docker-compose -f /home/ubuntu/notification-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/notification-deploy-compose.yml down --remove-orphans
@@ -911,7 +956,8 @@ jobs:
             sudo EUREKA_PROD_URL=$EUREKA_PROD_URL \
                   SLACK_TOKEN=$SLACK_TOKEN \ 
                   REDIS_HOST=$REDIS_HOST \        
-                  REDIS_PORT=$REDIS_PORT \        
+                  REDIS_PORT=$REDIS_PORT \    
+                  KAFKA_SERVER=$KAFKA_SERVER \
                   docker-compose -f /home/ubuntu/notification-deploy-compose.yml up -d --no-build
   deploy-user:
     needs:
@@ -1035,8 +1081,9 @@ jobs:
             export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            export $QUEUE_FEIGN_URL=$(aws ssm get-parameter --name "/quit/$QUEUE_FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
-
+            export QUEUE_FEIGN_URL=$(aws ssm get-parameter --name "/quit/QUEUE_FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
+            export KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
+  
             sudo docker-compose down --remove-orphans
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml down --remove-orphans
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml pull
@@ -1049,6 +1096,7 @@ jobs:
               STORE_DATASOURCE_PROD_URL=$STORE_DATASOURCE_PROD_URL \
               REDIS_PORT=$REDIS_PORT \
               QUEUE_FEIGN_URL=$QUEUE_FEIGN_URL \
+              KAFKA_SERVER=$KAFKA_SERVER \
               docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build              
 
   deploy-review:

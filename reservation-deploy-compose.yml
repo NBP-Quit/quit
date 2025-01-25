@@ -12,6 +12,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - FEIGN_URL=${FEIGN_URL}
+      - KAFKA_SERVER=${KAFKA_SERVER}
     ports:
       - "19094:19094"
     depends_on:
