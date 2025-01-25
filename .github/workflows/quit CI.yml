@@ -279,11 +279,8 @@ jobs:
           STORE_DATASOURCE_PROD_URL: ${{ secrets.STORE_DATASOURCE_PROD_URL }}
           USER_DATASOURCE_PROD_URL: ${{ secrets.USER_DATASOURCE_PROD_URL }}
           REVIEW_DATASOURCE_PROD_URL: ${{ secrets.REVIEW_DATASOURCE_PROD_URL }}
-          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
-          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
-          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
-          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          QUEUE_FEIGN_URL: ${{ secrets.QUEUE_FEIGN_URL }}
 
   copy-yml:
     needs:
@@ -472,12 +469,8 @@ jobs:
           params["PROMETHEUS_EC2_HOST"]="${{ secrets.PROMETHEUS_EC2_HOST }}"
           
           params["QUEUE_EC2_HOST"]="${{ secrets.QUEUE_EC2_HOST }}"
-          
-          params["RABBITMQ_HOST"]="${{ secrets.RABBITMQ_HOST }}"
-          params["RABBITMQ_PORT"]="${{ secrets.RABBITMQ_PORT }}"
-          params["RABBITMQ_USERNAME"]="${{ secrets.RABBITMQ_USERNAME }}"
-          params["RABBITMQ_PASSWORD"]="${{ secrets.RABBITMQ_PASSWORD }}"
-          
+          params["QUEUE_FEIGN_URL"]="${{ secrets.QUEUE_FEIGN_URL }}"
+                    
           params["REDIS_HOST"]="${{ secrets.REDIS_HOST }}"
           params["REDIS_PASSWORD"]="${{ secrets.REDIS_PASSWORD }}"
           params["REDIS_PORT"]="${{ secrets.REDIS_PORT }}"
@@ -1042,6 +1035,7 @@ jobs:
             export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export STORE_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/STORE_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
+            export $QUEUE_FEIGN_URL=$(aws ssm get-parameter --name "/quit/$QUEUE_FEIGN_URL" --with-decryption --query "Parameter.Value" --output text)
 
             sudo docker-compose down --remove-orphans
             sudo docker-compose -f /home/ubuntu/docker-deploy-compose.yml down --remove-orphans
@@ -1054,6 +1048,7 @@ jobs:
               DATASOURCE_PROD_PASSWORD=$DATASOURCE_PROD_PASSWORD \
               STORE_DATASOURCE_PROD_URL=$STORE_DATASOURCE_PROD_URL \
               REDIS_PORT=$REDIS_PORT \
+              QUEUE_FEIGN_URL=$QUEUE_FEIGN_URL \
               docker-compose -f /home/ubuntu/docker-deploy-compose.yml up -d --no-build              
 
   deploy-review:
@@ -1112,10 +1107,6 @@ jobs:
             export DATASOURCE_PROD_USERNAME=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_USERNAME" --with-decryption --query "Parameter.Value" --output text)
             export DATASOURCE_PROD_PASSWORD=$(aws ssm get-parameter --name "/quit/DATASOURCE_PROD_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export REVIEW_DATASOURCE_PROD_URL=$(aws ssm get-parameter --name "/quit/REVIEW_DATASOURCE_PROD_URL" --with-decryption --query "Parameter.Value" --output text)
-            export RABBITMQ_HOST=$(aws ssm get-parameter --name "/quit/RABBITMQ_HOST" --with-decryption --query "Parameter.Value" --output text)
-            export RABBITMQ_PORT=$(aws ssm get-parameter --name "/quit/RABBITMQ_PORT" --with-decryption --query "Parameter.Value" --output text)
-            export RABBITMQ_USERNAME=$(aws ssm get-parameter --name "/quit/RABBITMQ_USERNAME" --with-decryption --query "Parameter.Value" --output text)
-            export RABBITMQ_PASSWORD=$(aws ssm get-parameter --name "/quit/RABBITMQ_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
             export S3_ACCESS_KEY=$(aws ssm get-parameter --name "/quit/S3_ACCESS_KEY" --with-decryption --query "Parameter.Value" --output text)
             export S3_SECRET_KEY=$(aws ssm get-parameter --name "/quit/S3_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
             export S3_BUCKET=$(aws ssm get-parameter --name "/quit/S3_BUCKET" --with-decryption --query "Parameter.Value" --output text)
@@ -1133,10 +1124,6 @@ jobs:
               REDIS_USERNAME=$REDIS_USERNAME \
               REDIS_PASSWORD=$REDIS_PASSWORD \
               REVIEW_DATASOURCE_PROD_URL=$REVIEW_DATASOURCE_PROD_URL \
-              RABBITMQ_HOST=$RABBITMQ_HOST \
-              RABBITMQ_PORT=$RABBITMQ_PORT \
-              RABBITMQ_USERNAME=$RABBITMQ_USERNAME \
-              RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD \
               S3_ACCESS_KEY=$S3_ACCESS_KEY \
               S3_SECRET_KEY=$S3_SECRET_KEY \
               S3_BUCKET=$S3_BUCKET \
