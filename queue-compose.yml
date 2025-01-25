@@ -19,7 +19,7 @@ services:
       - STORE_BASEURL=${STORE_BASEURL}
       - GATEWAY_BASEURL=${GATEWAY_BASEURL}
     ports:
-      - "19096:8080"
+      - "19096:19096"
     build:
       context: .
       dockerfile: queue/Dockerfile
