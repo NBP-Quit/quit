@@ -472,6 +472,7 @@ jobs:
           params["PAYMENT_DATASOURCE_PROD_URL"]="${{ secrets.PAYMENT_DATASOURCE_PROD_URL }}"
           params["PAYMENT_EC2_HOST"]="${{ secrets.PAYMENT_EC2_HOST }}"
           params["PAYMENT_SECRET_KEY"]="${{ secrets.PAYMENT_SECRET_KEY }}"
+          params["RESERVATION_BASE_URL"]="${{ secrets.RESERVATION_BASE_URL }}"
           
           params["PROMETHEUS_EC2_HOST"]="${{ secrets.PROMETHEUS_EC2_HOST }}"
           
@@ -873,6 +874,7 @@ jobs:
             export REDIS_HOST
             export REDIS_PORT
             export KAFKA_SERVER
+            export RESERVATION_BASE_URL
             
             sudo docker-compose -f /home/ubuntu/payment-compose.yml down --remove-orphans  
             sudo docker-compose -f /home/ubuntu/payment-deploy-compose.yml down --remove-orphans
@@ -887,6 +889,7 @@ jobs:
               REDIS_HOST=$REDIS_HOST \        
               EDIS_PORT=$REDIS_PORT \ 
               KAFKA_SERVER=$KAFKA_SERVER \
+              RESERVATION_BASE_URL=$RESERVATION_BASE_URL \
               docker-compose -f /home/ubuntu/payment-deploy-compose.yml up -d --no-build
 
   deploy-notification:

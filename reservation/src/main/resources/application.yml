@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: reservation-service
+    name: reservation
   jpa:
     show-sql: true
     database: postgresql
