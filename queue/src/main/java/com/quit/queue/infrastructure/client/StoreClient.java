@@ -26,7 +26,7 @@ public class StoreClient {
 
     public Mono<ApiResponse<Boolean>> getStoreForInternal(UUID storeId) {
         return webClient.get()
-                .uri("/{storeId}/internal", storeId)
+                .uri("/api/stores/{storeId}/internal", storeId)
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
