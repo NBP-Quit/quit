@@ -21,7 +21,7 @@ public class StoreClient {
     public StoreClient(WebClient.Builder webClientBuilder, @Value("${store.baseUrl}") String baseUrl) {
         baseUrl = baseUrl.replaceAll("^\"|\"$", "");
         log.info("Injected baseUrl: " + baseUrl);
-        this.webClient = webClientBuilder.baseUrl(baseUrl + "/api/stores").build();
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
     public Mono<ApiResponse<Boolean>> getStoreForInternal(UUID storeId) {
