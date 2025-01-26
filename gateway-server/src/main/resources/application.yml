@@ -34,7 +34,7 @@ spring:
           predicates:
             - Path=/api/queues, /api/queues/**
         - id: reservation-service
-          uri: lb://reservation
+          uri: http://3.139.88.124:19094
           predicates:
             - Path=/api/reservations, /api/reservations/**
         - id: review-service
