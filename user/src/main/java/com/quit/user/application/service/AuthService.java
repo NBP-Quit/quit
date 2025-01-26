@@ -12,6 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -46,6 +50,16 @@ public class AuthService {
 
         return UserDto.of(user);
 
+    }
+
+    private Set<String> blacklistedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    public void invalidateToken(String token) {
+        blacklistedTokens.add(token);
+    }
+
+    public boolean isTokenBlacklisted(String token) {
+        return blacklistedTokens.contains(token);
     }
 
 }

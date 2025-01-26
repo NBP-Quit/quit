@@ -4,6 +4,7 @@ import com.quit.user.application.dto.UserDto;
 import com.quit.user.common.dto.ApiResponse;
 import com.quit.user.application.service.AuthService;
 import com.quit.user.presentation.request.SignupRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,5 +29,11 @@ public class AuthController {
                 .ok(ApiResponse.success(createdUser));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        authService.invalidateToken(token);
+        return ResponseEntity.ok().build();
+    }
 }
 

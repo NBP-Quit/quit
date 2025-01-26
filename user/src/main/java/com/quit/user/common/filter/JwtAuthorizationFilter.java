@@ -1,5 +1,6 @@
 package com.quit.user.common.filter;
 
+import com.quit.user.application.service.AuthService;
 import com.quit.user.common.jwt.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +23,7 @@ import java.io.IOException;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -31,8 +33,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
 
         // 인증(auth) 관련 요청은 토큰 X
-        if (request.getRequestURI().startsWith("/api/auth/")) {
+        if (request.getRequestURI().startsWith("/api/auth/login") ||
+                request.getRequestURI().startsWith("/api/auth/logout")) {
             filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = request.getHeader("Authorization");
+
+        if (authService.isTokenBlacklisted(token)) {
+            // 무효화된 토큰이면 인증 거부
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
