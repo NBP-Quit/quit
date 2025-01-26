@@ -42,7 +42,7 @@ logging:
   level:
     org.springframework.cloud: DEBUG
     org.springframework.web: DEBUG
-    com.quit: DEBUG
+    com.quit.user: DEBUG
     com.netflix.discovery: OFF
 
 
