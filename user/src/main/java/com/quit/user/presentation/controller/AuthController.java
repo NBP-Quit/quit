@@ -29,13 +29,5 @@ public class AuthController {
                 .ok(ApiResponse.success(createdUser));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-
-        String token = request.getHeader("Authorization");
-        System.out.println("Logout request received. Token: "+token);
-        authService.invalidateToken(token);
-        return ResponseEntity.ok().build();
-    }
 }
 

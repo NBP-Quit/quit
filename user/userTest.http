@@ -1,36 +1,36 @@
 ###회원 가입
-POST http://18.217.92.13:19090/api/auth/signup
+POST http://18.217.92.13:19091/api/auth/signup
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user8@email.com",
+  "password" :"SuperPass1!",
+  "nickname":"사용자8",
+  "slackId" : "asdf",
+  "phone":"010-8888-8888",
+  "birthdate":"2000-08-08",
+  "address": "주소 8"
+}
+
+###로그인
+POST http://18.217.92.13:19091/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email":"user2@email.com",
+  "password" :"SuperPass1!"
+}
+
+###MASTER 관리자 로그인
+POST http://18.217.92.13:19091/api/auth/login
 Content-Type: application/json
 Accept: application/json
 
 {
   "email":"user1@email.com",
-  "password" :"SuperPass1!",
-  "nickname":"사용자1",
-  "slackId" : "aaaaa",
-  "phone":"010-1111-1111",
-  "birthdate":"2000-01-01",
-  "address": "주소 1"
-}
-
-###로그인
-POST http://host.docker.internal:19091/api/auth/login
-Content-Type: application/json
-Accept: application/json
-
-{
-"email":"user1@email.com",
-"password" :"SuperPass1!"
-}
-
-###MASTER 관리자 로그인
-POST http://host.docker.internal:19091/api/auth/login
-Content-Type: application/json
-Accept: application/json
-
-{
-  "email":"user6@email.com",
-  "password" :"User6666@"
+  "password" :"SuperPass1!"
 }
 
 ###삭제된 사용자 로그인
@@ -44,46 +44,46 @@ Accept: application/json
 }
 
 ###사용자 전체 조회
-GET http://host.docker.internal:19091/api/users
+GET http://18.217.92.13:19091/api/users
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiTUFTVEVSIiwibmlja25hbWUiOiLsgqzsmqnsnpAxIiwiaWF0IjoxNzM3ODkzOTk1LCJleHAiOjE3Mzc4OTc1OTV9.yTom8ypijX8h89zwHc-BWefWBHNXgC-vTTHWRN9U_x8
 
 
 ###특정 사용자 조회 id
-GET http://host.docker.internal:19091/api/users/1
+GET http://18.217.92.13:19091/api/users/1
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
 ###특정 사용자 조회 email
-GET http://host.docker.internal:19091/api/users/email/user1@email.com
+GET http://18.217.92.13:19091/api/users/email/user1@email.com
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
 ###회원 정보 수정
-PUT http://host.docker.internal:19091/api/users/1
+PUT http://18.217.92.13:19091/api/users/3
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c2VyMUBlbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsIm5pY2tuYW1lIjoi7IKs7Jqp7J6QMSIsImlhdCI6MTczNjkzNDgyOSwiZXhwIjoxNzM2OTM4NDI5fQ.-F7U1Yc40Wm4VC8Ii3utx4cg-yrCJD0ywNJqLpIFyfM
 
 {
-  "email":"user1@email.com",
-  "nickname":"수정1",
-  "slackId": "bbbb",
-  "phone":"010-1111-1111",
+  "email":"user3@email.com",
+  "nickname":"수정3",
+  "slackId": "ffff",
+  "phone":"010-1234-1234",
   "birthdate":"2000-05-05"
 }
 
 ###사용자 탈퇴
-DELETE http://host.docker.internal:19091/api/users/52
+DELETE http://18.217.92.13:19091/api/users/52
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MiIsImVtYWlsIjoidXNlcjNAZW1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDMiLCJpYXQiOjE3MzY0NzUzNjAsImV4cCI6MTczNjQ3ODk2MH0.orndNc7uSxN0KFriZbE_DMeb8aN8KEjPSMsheeX4_2o
 
 ###권한 요청
-POST http://host.docker.internal:19091/api/users/request-role
+POST http://18.217.92.13:19091/api/users/request-role
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5QGVtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwibmlja25hbWUiOiLsgqzsmqnsnpA5IiwiaWF0IjoxNzM2NDg4MjYwLCJleHAiOjE3MzY0OTE4NjB9.UAgxH8SWvdh6WVWRpDCemOgQcD1_2SpEBXVVKFXhlkU
@@ -93,14 +93,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0NTIiLCJlbWFpbCI6InVzZXI5Q
 }
 
 ###권한 요청 확인
-GET http://host.docker.internal:19091/api/users/request-role?status=PENDING
+GET http://18.217.92.13:19091/api/users/request-role?status=PENDING
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q
 
 
 ###권한 수정
-PUT http://host.docker.internal:19091/api/users/request-role/51de37e3-370f-4abc-ba11-1180813f4fbb
+PUT http://18.217.92.13:19091/api/users/request-role/51de37e3-370f-4abc-ba11-1180813f4fbb
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNTIiLCJlbWFpbCI6InVzZXI2QGVtYWlsLmNvbSIsInJvbGUiOiJNQVNURVIiLCJuaWNrbmFtZSI6IuyCrOyaqeyekDYiLCJpYXQiOjE3MzY0OTAzNjQsImV4cCI6MTczNjQ5Mzk2NH0.GDr2OeI7yWCQyWJhtDAnwZ2EbdHN8Ht39fXNTCjqZ-Q

@@ -3,12 +3,16 @@ package com.quit.user.common.jwt;
 import com.quit.user.application.dto.TokenDto;
 import com.quit.user.common.security.UserDetailsServiceImpl;
 import com.quit.user.domain.enums.UserRoleEnum;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -25,6 +29,9 @@ public class JwtUtil {
 
     private final SecretKey secretKey;
     private final UserDetailsServiceImpl userDetailsService;
+
+    private static final String BEARER_PREFIX = "Bearer ";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
 
     @Value(("${jwt.access-expiration}"))
     private Long accessExpiration;
@@ -64,5 +71,32 @@ public class JwtUtil {
     public Authentication createAuthentication(String email, String password) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
+    }
+
+    public long getExpiration(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        long iat = claims.get("iat", Long.class); // 발행 시간 (UNIX 타임스탬프)
+        long exp = claims.get("exp", Long.class); // 만료 시간 (UNIX 타임스탬프)
+        Date issuedAt = new Date(iat * 1000); // 밀리초 단위 변환
+        Date expiration = new Date(exp * 1000); // 밀리초 단위 변환
+
+        // 만료 시간 추출
+        return expiration.getTime() - System.currentTimeMillis(); // UNIX 타임스탬프 반환
+    }
+    //토큰 추출
+    public String extractToken(ServerHttpRequest request) {
+        String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (token != null && token.startsWith(BEARER_PREFIX)) {
+            token = token.substring(BEARER_PREFIX.length());
+            return token;
+        }else {
+            log.error("JWT token이 존재하지 않습니다.");
+            throw new JwtException("JWT token이 존재하지 않습니다.");
+        }
     }
 }
