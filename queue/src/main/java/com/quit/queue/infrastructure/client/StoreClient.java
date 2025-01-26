@@ -21,12 +21,12 @@ public class StoreClient {
     public StoreClient(WebClient.Builder webClientBuilder, @Value("${store.baseUrl}") String baseUrl) {
         baseUrl = baseUrl.replaceAll("^\"|\"$", "");
         log.info("Injected baseUrl: " + baseUrl);
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+        this.webClient = webClientBuilder.baseUrl(baseUrl + "/api/stores").build();
     }
 
     public Mono<ApiResponse<Boolean>> getStoreForInternal(UUID storeId) {
         return webClient.get()
-                .uri("/api/stores/{storeId}/internal", storeId)
+                .uri("/{storeId}/internal", storeId)
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
