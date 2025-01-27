@@ -88,7 +88,7 @@
 ## 인프라 아키텍처
 
 ### 아키텍처 다이어그램
-<img width="1209" alt="image" src="https://github.com/user-attachments/assets/3067a8f3-bb28-4663-aab2-e90e986121ee" />
+![인프라설계도_수정_수정 (1)](https://github.com/user-attachments/assets/d17b5eff-b673-47e3-8976-9ff936a30140)
 
 위 아키텍처는 **MSA 기반의 서비스** 구조를 나타냅니다.  
 각 모듈은 OpenFeign, Kafka를 통해 통신하며, Docker로 컨테이너화되어 CI/CD를 통해 자동 배포됩니다.
