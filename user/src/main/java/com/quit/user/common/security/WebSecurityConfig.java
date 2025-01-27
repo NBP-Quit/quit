@@ -49,7 +49,7 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests((authorizationRequests) -> authorizationRequests
-                        .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll() // 회원가입, 로그인 등에 대한 요청 접근 허용
+                        .requestMatchers("/api/auth/login", "/api/auth/signup","/api/auth/logout").permitAll() // 회원가입, 로그인 등에 대한 요청 접근 허용
                 .anyRequest().authenticated() )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
