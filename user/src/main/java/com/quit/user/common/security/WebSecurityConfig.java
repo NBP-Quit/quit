@@ -66,7 +66,7 @@ public class WebSecurityConfig {
                         token = token.substring(7); // "Bearer " 부분 제거
                         // 토큰을 블랙리스트에 저장 (예: Redis 사용)
                         long expiration = jwtUtil.getExpiration(token);
-                        redisTemplate.opsForValue().set("blacklist:" + token, true, expiration, TimeUnit.MILLISECONDS);
+                        redisTemplate.opsForValue().set("blacklist:" + token, "true", expiration, TimeUnit.MILLISECONDS);
                     }
 
                     // 성공 메시지 반환
