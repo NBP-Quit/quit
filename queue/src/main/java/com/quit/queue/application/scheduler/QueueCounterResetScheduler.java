@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @Service
@@ -21,29 +22,33 @@ public class QueueCounterResetScheduler {
         String serverId = serverInfo.getServerId();
         String storesKey = "queue:server:" + serverId + ":stores";
 
-        reactiveRedisTemplate.hasKey(storesKey)
-                .flatMap(exists -> {
-                    if (!exists) {
-                        return Mono.empty();
-                    }
+        Mono.fromRunnable(() -> {
+                    reactiveRedisTemplate.hasKey(storesKey)
+                            .flatMap(exists -> {
+                                if (!exists) {
+                                    return Mono.empty();
+                                }
 
-                    return reactiveRedisTemplate.opsForSet().members(storesKey)
-                            .flatMap(storeId -> {
-                                String counterKey = "queue:store:" + storeId + ":counter";
-                                String queueKey = "queue:store:" + storeId + ":users";
+                                return reactiveRedisTemplate.opsForSet().members(storesKey)
+                                        .flatMap(storeId -> {
+                                            String counterKey = "queue:store:" + storeId + ":counter";
+                                            String queueKey = "queue:store:" + storeId + ":users";
 
-                                return reactiveRedisTemplate.opsForZSet().size(queueKey)
-                                        .flatMap(size -> {
-                                            if (size == 0) {
-                                                return reactiveRedisTemplate.delete(counterKey)
-                                                        .then(Mono.empty());
-                                            }
-                                            return Mono.empty();
-                                        });
+                                            return reactiveRedisTemplate.opsForZSet().size(queueKey)
+                                                    .flatMap(size -> {
+                                                        if (size == 0) {
+                                                            return reactiveRedisTemplate.delete(counterKey)
+                                                                    .then(Mono.empty());
+                                                        }
+                                                        return Mono.empty();
+                                                    });
+                                        })
+                                        .then();
                             })
-                            .then();
+                            .doOnError(error -> log.error("Error resetting queue counters: {}", error.getMessage()))
+                            .subscribe();
                 })
-                .doOnError(error -> log.error("Error resetting queue counters: {}", error.getMessage()))
+                .subscribeOn(Schedulers.boundedElastic())
                 .subscribe();
     }
 }
