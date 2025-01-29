@@ -1,18 +1,19 @@
-package com.quit.queue.application.scheduler;
+package com.quit.queue.application.service;
 
 import com.quit.queue.application.messaging.ReservationMessage;
 import com.quit.queue.infrastructure.messaging.KafkaMessageProducer;
 import com.quit.queue.infrastructure.util.ServerInfo;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,18 +21,19 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class QueueScheduler {
+public class TimedEntryQueueService {
     private final ServerInfo serverInfo;
 
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final KafkaMessageProducer kafkaMessageProducer;
 
-    @Scheduled(fixedRate = 10000)
+    @PostConstruct
     public void processQueues() {
         String serverId = serverInfo.getServerId();
         String storesKey = "queue:server:" + serverId + ":stores";
 
-        reactiveRedisTemplate.opsForSet().members(storesKey)
+        Flux.interval(Duration.ofSeconds(10))
+                .flatMap(tick -> reactiveRedisTemplate.opsForSet().members(storesKey))
                 .flatMap(storeId -> {
                     String queueKey = "queue:store:" + storeId + ":users";
                     return processQueue(queueKey);
