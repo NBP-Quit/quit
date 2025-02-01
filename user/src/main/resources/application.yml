@@ -21,6 +21,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         default_batch_fetch_size: 1000
       open-in-view: false
+  data:
+    redis:
+      host: redis
+      port: 6379
 
 eureka:
   client:
@@ -42,8 +46,9 @@ logging:
   level:
     org.springframework.cloud: DEBUG
     org.springframework.web: DEBUG
-    com.quit: DEBUG
+    com.quit.user: DEBUG
     com.netflix.discovery: OFF
+    org.springframework.security: DEBUG
 
 
 management:

@@ -4,6 +4,7 @@ import com.quit.user.application.dto.UserDto;
 import com.quit.user.common.dto.ApiResponse;
 import com.quit.user.application.service.AuthService;
 import com.quit.user.presentation.request.SignupRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

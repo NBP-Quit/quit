@@ -3,7 +3,7 @@ name: Quit CI
 on:
   push:
     branches:
-      - dev
+      - feat/151-user
 
 jobs:
   build-eureka:
@@ -864,6 +864,7 @@ jobs:
             REDIS_HOST=$(aws ssm get-parameter --name "/quit/REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
             REDIS_PORT=$(aws ssm get-parameter --name "/quit/REDIS_PORT" --with-decryption --query "Parameter.Value" --output text)
             KAFKA_SERVER=$(aws ssm get-parameter --name "/quit/KAFKA_SERVER" --with-decryption --query "Parameter.Value" --output text)
+            RESERVATION_BASE_URL=$(aws ssm get-parameter --name "/quit/RESERVATION_BASE_URL" --with-decryption --query "Parameter.Value" --output text)
             
             export EUREKA_PROD_URL
             export DATASOURCE_DRIVER_CLASS_NAME
